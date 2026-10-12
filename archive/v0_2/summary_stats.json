@@ -1,0 +1,250 @@
+{
+ "units": "percent RMS change, [p10, p50, p90]",
+ "location": {
+  "single": {
+   "No touch: sweat + strap drift": [
+    0.0531,
+    0.0572,
+    0.0622
+   ],
+   "Bystander very close, no touch": [
+    0.0535,
+    0.0581,
+    0.066
+   ],
+   "Wrist (watch arm)": [
+    0.1139,
+    0.2292,
+    0.3717
+   ],
+   "Forearm (watch arm)": [
+    0.0697,
+    0.1073,
+    0.1564
+   ],
+   "Upper arm (watch arm)": [
+    0.0544,
+    0.0597,
+    0.0713
+   ],
+   "Other arm": [
+    0.0542,
+    0.0599,
+    0.0726
+   ],
+   "Shoulder": [
+    0.0541,
+    0.0596,
+    0.0715
+   ],
+   "Waist": [
+    0.054,
+    0.0596,
+    0.0719
+   ],
+   "Face / hair": [
+    0.0541,
+    0.0594,
+    0.0715
+   ]
+  },
+  "dual": {
+   "No touch: sweat + strap drift": [
+    0.0554,
+    0.0676,
+    0.1105
+   ],
+   "Bystander very close, no touch": [
+    0.0557,
+    0.068,
+    0.1136
+   ],
+   "Wrist (watch arm)": [
+    0.2373,
+    14.3701,
+    17.1188
+   ],
+   "Forearm (watch arm)": [
+    0.0785,
+    0.1873,
+    0.3084
+   ],
+   "Upper arm (watch arm)": [
+    0.0555,
+    0.0681,
+    0.112
+   ],
+   "Other arm": [
+    0.0556,
+    0.0689,
+    0.1143
+   ],
+   "Shoulder": [
+    0.0557,
+    0.0688,
+    0.1144
+   ],
+   "Waist": [
+    0.0556,
+    0.0682,
+    0.1108
+   ],
+   "Face / hair": [
+    0.0554,
+    0.0681,
+    0.1125
+   ]
+  },
+  "dual_shield": {
+   "No touch: sweat + strap drift": [
+    0.0525,
+    0.0559,
+    0.0597
+   ],
+   "Bystander very close, no touch": [
+    0.0534,
+    0.0576,
+    0.0631
+   ],
+   "Wrist (watch arm)": [
+    0.359,
+    18.0697,
+    20.5198
+   ],
+   "Forearm (watch arm)": [
+    0.1354,
+    0.2932,
+    0.4425
+   ],
+   "Upper arm (watch arm)": [
+    0.0543,
+    0.0595,
+    0.0698
+   ],
+   "Other arm": [
+    0.0543,
+    0.0596,
+    0.0698
+   ],
+   "Shoulder": [
+    0.0542,
+    0.0596,
+    0.0698
+   ],
+   "Waist": [
+    0.0544,
+    0.0596,
+    0.07
+   ],
+   "Face / hair": [
+    0.0545,
+    0.0598,
+    0.0704
+   ]
+  }
+ },
+ "environment": {
+  "Wrist grab": {
+   "Street shoes": [
+    0.3624,
+    18.0298,
+    20.5553
+   ],
+   "Sandals": [
+    0.3448,
+    17.8319,
+    20.6172
+   ],
+   "Barefoot on tiles": [
+    0.3406,
+    17.9432,
+    20.7936
+   ],
+   "Seated in a car": [
+    0.3774,
+    17.7782,
+    20.3904
+   ]
+  },
+  "Shoulder grab": {
+   "Street shoes": [
+    0.0545,
+    0.0597,
+    0.0695
+   ],
+   "Sandals": [
+    0.054,
+    0.0595,
+    0.0702
+   ],
+   "Barefoot on tiles": [
+    0.0543,
+    0.0592,
+    0.0702
+   ],
+   "Seated in a car": [
+    0.0544,
+    0.0598,
+    0.0701
+   ]
+  },
+  "No touch (drift only)": {
+   "Street shoes": [
+    0.0525,
+    0.0559,
+    0.0595
+   ],
+   "Sandals": [
+    0.0524,
+    0.0561,
+    0.0599
+   ],
+   "Barefoot on tiles": [
+    0.052,
+    0.0558,
+    0.0596
+   ],
+   "Seated in a car": [
+    0.0526,
+    0.0561,
+    0.0599
+   ]
+  }
+ },
+ "bench_vs_battery_shoulder": {
+  "Battery-powered (real use)": {
+   "Single electrode": [
+    0.0542,
+    0.0598,
+    0.072
+   ],
+   "Inner + outer electrode": [
+    0.0558,
+    0.069,
+    0.1129
+   ],
+   "Inner + outer + driven shield": [
+    0.0544,
+    0.0597,
+    0.0707
+   ]
+  },
+  "USB to a charging laptop (bench test)": {
+   "Single electrode": [
+    1.7513,
+    2.5933,
+    3.6747
+   ],
+   "Inner + outer electrode": [
+    1.5625,
+    2.2758,
+    3.159
+   ],
+   "Inner + outer + driven shield": [
+    1.8112,
+    2.6446,
+    3.7843
+   ]
+  }
+ }
+}

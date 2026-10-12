@@ -1,0 +1,61 @@
+* SparshaGuard v0.3 - equivalent circuit of a battery-powered wrist sensor (LTspice / ngspice)
+* Values = midpoints of the sourced ranges in sg_model.py (see docs/parameter_sources.md).
+* Design: inner + outer electrode with driven shield, wearer in street shoes.
+* .step TOUCH 0 = nobody touching, 1 = another person grabs her wrist (bare skin) with his
+* palm over the coated outer electrode.
+*
+* Node names:  S sense node | B her body | A other person | E surroundings/earth
+*              0 = watch circuit ground (floats on the battery; NOT earth)
+*
+* Skin is a constant-phase element in the Python model (Goyal et al. 2022). SPICE has no CPE,
+* so each skin element here is the series R + C equivalent evaluated at 100 kHz. Expect the
+* curves to match the Python model closely near the ~100 kHz resonance and less well far away.
+*
+* Expected results (checked with the Python solver using these exact values):
+*   TOUCH=0  peak ~94 kHz, |V(S)| ~1.10
+*   TOUCH=1  no peak; |V(S)| at 100 kHz ~0.27
+
+.param TOUCH=0
+.step param TOUCH list 0 1
+
+* ---- drive and tank: open-source Arduino Touche circuit (Honigman et al., NIME 2014)
+V1    drv 0 AC 1
+Rs    drv n1 10k
+L1    n1  S  10m
+Ctank S   0  104.5p        ; 100 pF tank + ~4.5 pF buffer/trace parasitics
+
+* ---- inner electrode: 3 cm^2 dry stainless steel, mid hydration (Goyal 2022), at 100 kHz
+Res   S   es1 983
+Ces   es1 es2 1.36n
+Rbody es2 B   350          ; limb 100-400 Ohm (Maity 2019) + trunk ~100 Ohm (Touche)
+
+* ---- her body couplings
+C_GB  B 0 12.4p            ; watch ground + strap electrode to wrist, 35% left by the shield (TI)
+C_BE  B E 140p             ; body to surroundings, street shoes (Jonassen 1998: 110-170 pF)
+C_GE  0 E 1.1p             ; watch return path (Datta 2020 wrist factor .. Maity 2019)
+
+* ---- the other person
+C_AE  A E 140p             ; his body to surroundings, street shoes
+* skin-to-skin contact over 60 cm^2 (two stratum corneum layers, at 100 kHz)
+Rsw_ba B   ba1 {if(TOUCH>0.5, 1m, 1e15)}
+Rba    ba1 ba2 0.36
+Cba    ba2 A   705n
+* his palm (15 cm^2 of skin) on the outer electrode through a 62.5 um coating (637 pF)
+Rsw_a0 A   a01 {if(TOUCH>0.5, 1m, 1e15)}
+Ra0    a01 a02 0.71
+Ca0    a02 a03 353n
+Ccoat  a03 0   637p
+
+* ---- DC paths so the simulator can find an operating point (no effect at these frequencies)
+Rdc_E   E   0 1e12
+Rdc_A   A   0 1e12
+Rdc_B   B   0 1e12
+Rdc_es1 es1 0 1e12
+Rdc_ba1 ba1 0 1e12
+Rdc_ba2 ba2 0 1e12
+Rdc_a01 a01 0 1e12
+Rdc_a02 a02 0 1e12
+Rdc_a03 a03 0 1e12
+
+.ac dec 200 1k 3.5Meg
+.end

@@ -1,0 +1,44 @@
+{
+ "active_limit": [
+  {
+   "design": "Current design",
+   "shoulder_pct": 0.017717835673315706,
+   "surroundings_pct": 0.015457189986925506,
+   "bystander_pct": 0.008730107384372823
+  },
+  {
+   "design": "Tank 10 pF\n(not 100 pF)",
+   "shoulder_pct": 0.19720472470940711,
+   "surroundings_pct": 0.17211170549436355,
+   "bystander_pct": 0.09732285397371188
+  },
+  {
+   "design": "+ near-ideal shield\n(5% left)",
+   "shoulder_pct": 0.47367891324440026,
+   "surroundings_pct": 0.4135424354131451,
+   "bystander_pct": 0.23407206590521645
+  },
+  {
+   "design": "+ 3x bigger return path\n(best imaginable)",
+   "shoulder_pct": 1.1082521476856984,
+   "surroundings_pct": 0.905485572242409,
+   "bystander_pct": 0.5373258095379873
+  }
+ ],
+ "passive_step_mV": {
+  "Current watch (shield leaves 35%, 5 pF amplifier input)": {
+   "0.1 V": 2.973,
+   "0.5 V": 14.865,
+   "1 V": 29.73,
+   "10 V": 297.297,
+   "100 V": 2972.973
+  },
+  "Bootstrapped input + good shield (2 pF left, 0.5 pF input)": {
+   "0.1 V": 15.278,
+   "0.5 V": 76.389,
+   "1 V": 152.778,
+   "10 V": 1527.778,
+   "100 V": 15277.778
+  }
+ }
+}

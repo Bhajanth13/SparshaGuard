@@ -1,0 +1,8 @@
+# Large CSV copies of the datasets: rebuild with `python rebuild_csv.py` (same data as the .npz files)
+data/sparshaguard_synthetic_v0_3.csv
+archive/v0_1/data/*.csv
+archive/v0_2/data/*.csv
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+~$*
