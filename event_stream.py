@@ -201,7 +201,7 @@ def fig_tradeoff(table, sustain=2.0):
         x = [np.mean(list(r["prompts_per_hour"].values())) for r in rows]
         y = [100 * r["detection_rate"]["wrist"] for r in rows]
         ax.plot(x, y, "-o", color=col, ms=9, mec=ps.SURFACE, mew=1.5, label=lab)
-        offs = [(14, 10), (-18, 10), (-26, -18), (26, -18)] if gate else [(30, -4), (30, -4), (30, 6), (-30, -16)]
+        offs = [(14, 10), (-18, 10), (-26, -18), (26, -18)] if gate else [(30, -2), (30, -6), (14, -20), (-24, -20)]
         for xi, yi, r, o in zip(x, y, rows, offs):
             ax.annotate(f"{r['T_enter_pct']:g}%", (xi, yi), textcoords="offset points",
                         xytext=o, ha="center", fontsize=9, color=ps.INK2)
@@ -215,10 +215,9 @@ def fig_tradeoff(table, sustain=2.0):
     ax.set_title("Sensitivity vs nuisance prompts: upper left is best", pad=22)
     sel = [r for r in table if not r["classifier_gate"] and r["sustain_s"] == sustain
            and r["T_enter_pct"] >= MIN_VALID_PCT]
-    other = "; ".join(f"{loc} " + ", ".join(f"{100 * r['detection_rate'][loc]:.0f}%" for r in sel)
+    other = "; ".join(f"{loc} " + "/".join(f"{100 * r['detection_rate'][loc]:.0f}" for r in sel) + "%"
                       for loc in ("forearm", "shoulder"))
-    ps.subtitle(ax, "Point labels = enter threshold (% of full scale). Other grabs caught, threshold only, "
-                    f"same thresholds: {other}")
+    ps.subtitle(ax, f"Point labels = enter threshold (% of full scale). Caught at those thresholds: {other}")
     ax.legend(loc="lower right")
     if any(r["T_enter_pct"] < MIN_VALID_PCT for r in table):
         fig.text(0.01, 0.005, f"Thresholds below {MIN_VALID_PCT:g}% (about twice the noise floor) are left out: "

@@ -86,28 +86,33 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
 1. **Shoes and clothing are not the problem.** Footwear barely changes the wrist-grab signal
    (fig 3), and with measured skin and fabric values a hand through a shirt still couples strongly.
 2. **Location is the problem.** With the recommended design, a wrist grab with his palm on the
-   outer electrode changes the sweep by a median ~16% of full scale; a forearm grab by ~0.26%.
-   Grabs on the upper arm, other arm, shoulder, waist or face change it by ~0.11%, the same as
-   the measurement noise. The capacitive sensor alone can't see those grabs; they need the motion
-   and audio paths (fig 2).
+   outer electrode changes the sweep by a median ~16% of full scale. Every other grab, the
+   forearm included, changes it by ~0.11–0.12%, the same as the measurement noise (forearm uses
+   the 3D field calculation since 12 Oct 2026; see "Checked against independent solvers"). The
+   capacitive sensor alone can't see those grabs; they need the motion and audio paths (fig 2).
 3. **The outer electrode is what makes wrist grabs visible.** Median wrist-grab change: single
    electrode ~0.25%, + outer electrode ~13%, + driven shield ~16%. A real driven shield only
    removes half to three-quarters of the strap's coupling to the wrist (TI), so its benefit is
    smaller than v0.2 assumed, but still positive.
 4. **Bench tests mislead.** Earthing the circuit (USB to a charging laptop) makes a shoulder grab
    look about 20x bigger than on battery (fig 4). Gate 1 must run on battery.
-5. **Her own hand and his hand look different.** His body brings ~140 pF of earth coupling to the
-   watch; her own hand only links her body to the watch ground. The classifier sorts her own hand
-   correctly ~94% of the time (fig 5). The confusions that remain are objects: the strap on a metal
-   pole and a wrist on a table look like a grab near the watch.
+5. **The sensor sees "a hand at the watch", but can't reliably tell whose.** His palm on the
+   outer electrode and her own palm on it change the sweep almost identically (16.4% vs 16.2%
+   with typical values). The classifier recognises her own hand as a hand 95–99% of the time and
+   calls it "other person" only 3–6% of the time, but it calls a stranger's wrist grab "other
+   person" only ~40% of the time and "a hand at the watch" 61–73% (fig 6). So the design should
+   prompt for the PIN on any hand at the watch and let the PIN decide, not rely on the classifier
+   to tell hers from his. The strap pressed on a metal pole is the main object that looks like a
+   hand.
 6. **Pipeline result (fig 9):** with a 0.3%-of-full-scale threshold and 2 s sustain, it caught
-   ~93% of wrist grabs but only ~43% of forearm grabs, with ~5.5 unwanted PIN prompts per hour
-   (1.5 walking, 7.5 commuting, 7.5 at a desk). The main causes are the strap pressed on a metal
-   pole, her hand on the watch, and the wrist on a table; 1.5 per hour at the desk were a friend
-   holding her wrist, which is real contact. The noisier ESP32 ADC is what pushes the threshold up
-   and the forearm detection down; an external ADC would help.
-7. **Accuracy is in line with Touché's own on-body result.** Random forest: 75% across four
-   classes and 92% for "some hand is at the watch". Touché measured 84% for on-body gestures with
+   ~93% of wrist grabs and none of the forearm or shoulder grabs, with ~5.5 unwanted PIN prompts
+   per hour (1.5 walking, 7.5 commuting, 7.5 at a desk). The main causes are the strap pressed on
+   a metal pole, her hand on the watch, the phone and the wrist on a table; 1.5 per hour at the
+   desk were a friend holding her wrist, which is real contact. Adding the classifier as a gate
+   cuts prompts to ~2 per hour but also drops wrist detection to ~49%, so it is not recommended.
+7. **Accuracy is in line with Touché's own on-body result.** Random forest: 77% across four
+   classes and 97% for "some hand is at the watch", measured on the events the sensor can see
+   (wrist grabs, her hand, objects, no touch); grabs elsewhere are counted separately as missed. Touché measured 84% for on-body gestures with
    per-user training and 53% walk-up. The 99% in the proposal is for grounded lab setups.
 
 ## What changed between versions
@@ -123,10 +128,11 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
 | Hand contact area | 20–100 cm² guessed | 40–80 cm² guessed | 40–80 cm² (Agarwal & Sahu hand area) |
 | Wrist grab, recommended design | ~16% | ~18% | ~16% |
 | Far grabs (shoulder etc.) | ~0.4%, inside drift | ~0.06%, at noise floor | ~0.11%, at noise floor |
-| Forearm grabs caught | ~89% | ~72% | ~43% |
+| Forearm grabs caught | ~89% | ~72% | ~43%, then 0% with the 3D coupling (12 Oct) |
 
 The main conclusions held through all three versions. v0.3 is less optimistic about forearm
-grabs and about the shield, mostly because of the noisier ADC and the weaker real-world shield.
+grabs and about the shield, mostly because of the noisier ADC and the weaker real-world shield;
+the 3D field calculation then showed that forearm grabs are not visible at all.
 
 ## Checked against independent solvers
 
@@ -153,15 +159,16 @@ two solvers agree to within 1% at every distance (outer electrode: 1.42 vs 1.44 
 mesh is refined (fig 14). Both solve the geometry in air; the strap plastic and the body's
 tissue are not included in either.
 
-### What the checks found: forearm grabs are optimistic in the model
+### What the checks changed: forearm grabs are not visible
 
-The 3D result (about 0.1–1.4 pF for a grip 1–5 cm from the strap) is below the 0.5–3 pF the
-model still uses for a forearm grab. Re-scoring forearm grabs with the 3D values (a quick check,
-not integrated into `sg_model.py`) moves the median change from ~0.27% to ~0.16% of full scale,
-and the share above the 0.3% threshold from ~40% to ~0%. So the "~43% of forearm grabs caught"
-in finding 6 should be read as an upper bound: with the 3D values, the active sweep sees a
-forearm grab only when his hand is on or within about 1 cm of the strap. Wrist-grab results
-are not affected.
+The 3D result (about 0.12–1.4 pF for a grip 1–5 cm from the strap) is well below the 0.5–3 pF
+estimate the model used for a forearm grab. On 12 October 2026 the 3D curve replaced that
+estimate in `sg_model.py` (`hand_near_strap_pF`), and the dataset, classifiers and daily-life
+simulation were re-run. The forearm-grab median fell from ~0.26% to ~0.12% of full scale (the
+noise floor), and forearm grabs caught fell from ~43% to 0%. The active sweep sees a grab only
+when his hand is on or within about 1 cm of the strap. Wrist-grab results did not change.
+Because forearm grabs are now invisible, the classifiers are trained only on grabs the sensor
+can see (wrist), as the script already did for shoulder, waist and other far grabs.
 
 ## Calibrating with Gate 1
 
@@ -171,9 +178,10 @@ training and for any accuracy you report.
 
 ## Known limitations
 
-- Lumped model. One coupling (his hand near the strap) now has a 3D boundary-element
-  calculation in `fem/`, confirmed with FastCap but not yet fed into the model; it would bring
-  forearm detection close to zero (see above). The others are still geometry estimates.
+- Lumped model. One coupling (his hand near the strap) comes from a 3D boundary-element
+  calculation in `fem/`, confirmed with FastCap; the 3D solve is in air (no strap plastic or
+  tissue), and where along the forearm he grips (1–5 cm from the strap) is an estimate. The other
+  couplings are still geometry estimates.
 - The passive body-potential channel proposed in `docs/whole_body_detection.md` is analysed
   on paper (fig 11), not yet simulated in the time-domain pipeline.
 - Event rates and durations in `event_stream.py` are guesses, not measured behaviour.

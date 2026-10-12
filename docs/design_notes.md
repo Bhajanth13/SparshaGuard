@@ -91,7 +91,8 @@ voltages). See `whole_body_detection.md`; it needs Gate 1 measurements before re
 - Add accelerometer simulation and motion fusion to cut nuisance prompts (currently about 5.5 per
   hour at a 0.3%-of-full-scale threshold, mostly the strap on metal, her hand on the watch and the
   wrist on a table).
-- Consider an external ADC (e.g. ADS1115): the ESP32's built-in ADC noise is what limits forearm
-  detection in v0.3.
+- Consider an external ADC (e.g. ADS1115): it lowers the noise floor. Note that with the 3D field
+  result a forearm grab 1–5 cm from the strap changes the sweep by only ~0.01–0.04% (typical
+  values), so a quieter ADC alone won't make forearm grabs visible.
 - Consider a titanium back plate: ~2.3x better skin contact than stainless steel (Goyal 2022).
 - Optional: Wokwi demo of the PIN / duress state machine; FEM study of electrode geometry.
