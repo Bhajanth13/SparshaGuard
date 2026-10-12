@@ -152,7 +152,7 @@ def fig_location():
     ax.axhspan(-0.5, 1.5, color=ps.GRID, alpha=0.45, zorder=0)
     ax.text(0.995, 0.5, "nuisance\n(must NOT trigger)", transform=ax.get_yaxis_transform(),
             ha="right", va="center", fontsize=8.5, color=ps.INK2)
-    ax.set_title("Grabs near the watch stand out; grabs elsewhere are lost in measurement noise", pad=22)
+    ax.set_title("Grabs at the wrist stand out; grabs elsewhere, even on the forearm, are lost in the noise", pad=22)
     ps.subtitle(ax, "Dot = median, bar = 10th–90th percentile over 3,200 simulated wearers per row "
                     "(4 footwear/seating conditions). Further right = easier to detect.")
     ax.legend(loc="lower right", title="Watch design", title_fontsize=9.5)

@@ -44,11 +44,11 @@ Gaps under 1 cm didn't converge (the hand is nearly touching the strap; that cas
 "hand on the electrode" contact, modelled separately). The previous estimate was 0.5–3 pF; the
 calculation says a forearm grab more than ~2 cm from the strap gives under 0.5 pF, which the
 earlier sensitivity check showed is below the noise. **The active sweep reliably sees contact
-only on or within about 1 cm of the strap.** (Not yet integrated into the model.)
+only on or within about 1 cm of the strap.** (Integrated into the model on 12 October 2026.)
 
 Checked with FastCap, MIT's reference capacitance solver (`fem/fastcap_crosscheck.py`, fig 14): the
-two solvers agree to within 1% at every distance. Re-scoring forearm grabs with these values
-(not integrated) drops the share above the 0.3% threshold from ~40% to ~0%.
+two solvers agree to within 1% at every distance. With these values in the model, the share of
+forearm grabs above the 0.3% threshold drops from ~40% to ~0%.
 
 ## 3. Ways to reach the whole body
 

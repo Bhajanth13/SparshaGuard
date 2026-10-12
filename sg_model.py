@@ -1,6 +1,6 @@
 """
 SparshaGuard - lumped-element electrical model of a battery-powered wrist sensor,
-the wearer, a second person, and the environment.  Version 0.3 (sourced values).
+the wearer, a second person, and the environment.  Version 0.3 (sourced values; forearm coupling from the 3D solve since 12 Oct 2026).
 
 Every parameter carries a tag in the comment next to it:
     [S#]  value taken from a published source (list in docs/parameter_sources.md)
@@ -265,6 +265,25 @@ def y_outer_contact(s, design):
     return 1.0 / (z_sc(area, h, a) + 1.0 / yc(coat))
 
 
+# --------------------------------------------------- his hand near the strap (3D)
+# Extra watch-ground <-> body coupling when his hand grips her forearm a given gap (cm) from the
+# strap edge: boundary-element solve in fem/hand_near_strap.py, checked with FastCap
+# (fem/fastcap_crosscheck.py, within 1 %). His palm is on her skin, so the hand is at her body's
+# potential in the 3D solve; in the circuit it is the A-0 branch, with A tied to B by the skin
+# contact. The driven shield sits under the case, so the strap edge facing his hand is the same
+# with and without it: both outer-electrode designs use the 'dual' curve.
+FEM_GAP_CM = np.array([1.0, 2.0, 3.0, 5.0, 10.0])
+FEM_HAND_PF = {"dual": np.array([1.4364, 0.4363, 0.2395, 0.1180, 0.0487]),
+               "single": np.array([0.3494, 0.1106, 0.0612, 0.0312, 0.0134])}
+
+
+def hand_near_strap_pF(gap_cm, design):
+    """Log-log interpolation of the 3D result, gap 1-10 cm."""
+    curve = FEM_HAND_PF["single" if design == "single" else "dual"]
+    g = np.clip(np.asarray(gap_cm, float), FEM_GAP_CM[0], FEM_GAP_CM[-1])
+    return np.exp(np.interp(np.log(g), np.log(FEM_GAP_CM), np.log(curve)))
+
+
 # ------------------------------------------------------------------------- events
 def apply_drift(p: dict, s: Sampler, strong: bool) -> dict:
     """Changes between the stored baseline and 'now' that are NOT a touch [E]:
@@ -296,8 +315,10 @@ def event_branches(p_now: dict, s: Sampler, design: str, kind: str, detail: str 
             prox = yc((s.u(0.5, 3) if design != "single" else s.u(0.2, 1)) * pF)  # [E]
             br["Y_A0"] = np.where(on_electrode[:, None], y_outer_contact(s, design), prox)
         elif loc == "forearm":
-            # [E] - 3D field calculation gives ~0.1-1.4 pF at 1-5 cm (fem/), not yet integrated
-            br["Y_A0"] = yc((s.u(0.5, 3) if design != "single" else s.u(0.2, 1)) * pF)
+            # his hand grips her forearm 1-5 cm from the strap edge [E: grip position; closer than
+            # 1 cm counts as a wrist grab]; coupling from the 3D boundary-element solve [G, fem/],
+            # confirmed with FastCap to within 1 % -> ~0.12-1.4 pF (outer electrode)
+            br["Y_A0"] = yc(hand_near_strap_pF(s.u(1, 5), design) * pF)
         else:
             # his body 0.3-0.6 m from the watch: 2-20 % of the watch's return path [E, settled]
             br["Y_A0"] = yc(p_now["C_GE_free"] * s.u(0.02, 0.20))

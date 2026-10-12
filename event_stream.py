@@ -10,7 +10,7 @@ Pipeline on the watch (5 frames/s, each frame = 16 averaged sweeps):
   4. optional classifier gate: frame must look like a hand at the watch (hers or his)
   5. prompt when the gate holds continuously for the sustain time
 
-Run:  python event_stream.py   (about a minute)
+Run:  python event_stream.py   (about 30 minutes on 2 cores)
 """
 import json
 
@@ -199,7 +199,7 @@ def fig_tradeoff(table, sustain=2.0):
         rows = [r for r in table if r["classifier_gate"] == gate and r["sustain_s"] == sustain
                 and r["T_enter_pct"] >= MIN_VALID_PCT]
         x = [np.mean(list(r["prompts_per_hour"].values())) for r in rows]
-        y = [100 * (r["detection_rate"]["wrist"] + r["detection_rate"]["forearm"]) / 2 for r in rows]
+        y = [100 * r["detection_rate"]["wrist"] for r in rows]
         ax.plot(x, y, "-o", color=col, ms=9, mec=ps.SURFACE, mew=1.5, label=lab)
         offs = [(14, 10), (-18, 10), (-26, -18), (26, -18)] if gate else [(30, -4), (30, -4), (30, 6), (-30, -16)]
         for xi, yi, r, o in zip(x, y, rows, offs):
@@ -211,12 +211,14 @@ def fig_tradeoff(table, sustain=2.0):
     ax.set_xlim(0.8, 60)
     ax.set_ylim(0, 102)
     ax.set_xlabel("Nuisance PIN prompts per hour of Guard Mode (average of walking, commute, desk)")
-    ax.set_ylabel("Wrist / forearm grabs caught (%)")
+    ax.set_ylabel("Wrist grabs caught (%)")
     ax.set_title("Sensitivity vs nuisance prompts: upper left is best", pad=22)
-    sh = {r["T_enter_pct"]: r["detection_rate"]["shoulder"] for r in table
-          if not r["classifier_gate"] and r["sustain_s"] == sustain and r["T_enter_pct"] >= MIN_VALID_PCT}
-    sh_txt = ", ".join(f"{k:g}%: {100 * v:.0f}%" for k, v in sorted(sh.items()))
-    ps.subtitle(ax, f"Point labels = enter threshold (% of full scale). Shoulder grabs caught (threshold only) - {sh_txt}")
+    sel = [r for r in table if not r["classifier_gate"] and r["sustain_s"] == sustain
+           and r["T_enter_pct"] >= MIN_VALID_PCT]
+    other = "; ".join(f"{loc} " + ", ".join(f"{100 * r['detection_rate'][loc]:.0f}%" for r in sel)
+                      for loc in ("forearm", "shoulder"))
+    ps.subtitle(ax, "Point labels = enter threshold (% of full scale). Other grabs caught, threshold only, "
+                    f"same thresholds: {other}")
     ax.legend(loc="lower right")
     if any(r["T_enter_pct"] < MIN_VALID_PCT for r in table):
         fig.text(0.01, 0.005, f"Thresholds below {MIN_VALID_PCT:g}% (about twice the noise floor) are left out: "

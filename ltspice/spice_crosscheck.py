@@ -183,7 +183,7 @@ def build(design, env, kind, detail, bench=False):
         if detail == "wrist":
             outer_contact("A", "0")
         elif detail == "forearm":
-            n.C("A", "0", (1.75 if design != "single" else 0.6) * pF, "his hand near the strap")
+            n.C("A", "0", m.hand_near_strap_pF(3.0, design) * pF, "his hand 3 cm from the strap (3D solve)")
         else:
             n.C("A", "0", cge_free * 0.11, "his body to the watch")
     elif kind == "self":

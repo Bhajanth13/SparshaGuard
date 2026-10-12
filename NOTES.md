@@ -24,7 +24,9 @@ This repo is a simulation study (no hardware yet). The next stage, "Gate 1", is 
 - Log every value found in a paper in `docs/SparshaGuard_paper_values.xlsx` with its full reference. Keep that workbook simple
   (one sheet per purpose) and never add frozen panes.
 - The remaining [E] estimates are on hold for a later discussion. The ring-electrode idea was dropped.
-- The 3D hand-near-strap result (`fem/`, 0.05–1.4 pF at 1–10 cm) is not yet integrated into `sg_model.py` (forearm case still uses 0.5–3 pF). Integrate only when asked.
+- The 3D hand-near-strap result (`fem/`, 0.05–1.4 pF at 1–10 cm, checked with FastCap) was integrated into `sg_model.py` on 12 Oct 2026
+  at the team's request: forearm grabs now sit at the noise floor, so only wrist grabs are visible to the active sweep.
+- Independent checks: `ltspice/spice_crosscheck.py` (circuit vs ngspice) and `fem/fastcap_crosscheck.py` (3D field vs FastCap).
 - Ideas proposed but not yet modelled: a passive body-potential channel for touches anywhere on the body (`docs/whole_body_detection.md`),
   an ADS1115 external ADC, a titanium back plate.
 - Keep explanations plain and practical; the team presents this at hackathons.

@@ -118,7 +118,7 @@ assumed [S11], which makes touches away from the electrode even harder to see.
 | Bare-skin grab | Two stratum corneum layers in series over 40–80 cm² | [S10]/[S13] |
 | Grab through clothing | Skin + fabric capacitor + skin | [S10]/[S7] |
 | His palm on the outer electrode | His skin over 10–20 cm² + coating | [S10]/[D]/[E] |
-| His hand near the strap (forearm) | 0.5–3 pF | [E] |
+| His hand near the strap (forearm) | 3D solve, grip 1–5 cm from the strap: ~0.12–1.4 pF with the outer electrode, ~0.03–0.35 pF single (was 0.5–3 pF until 12 Oct 2026) | [G] 3D, FastCap-checked; grip position [E] |
 | His body 0.3–0.6 m from the watch (shoulder etc.) | 2–20% of the watch's return path (~0.02–0.3 pF) | [E] |
 | Bystander, no touch | 21–40 pF body-to-body | [S12]/[E] | 21 pF at 1 m by FEM (Nath et al. 2021); higher when closer, upper end estimated |
 | Her own hand on the strap | Outer-electrode contact + both arms (2 × 100–400 Ω) | [S5]/[E] |
@@ -136,7 +136,7 @@ Each estimate was swung across its full range to see whether it changes any resu
 
 | Estimate | Range tested | Result | Status |
 |---|---|---|---|
-| His hand a few cm from the strap | 0.5 → 3 pF | Forearm grab 0.07% → 0.42% | **Matters.** 3D field calculation done (below) |
+| His hand a few cm from the strap | 0.5 → 3 pF | Forearm grab 0.07% → 0.42% | **Matters.** Replaced by the 3D calculation on 12 Oct 2026 (below) |
 | Wrist on a table | +1/+5 → +5/+20 pF | 0.14% → 0.66% | **Matters.** Measure on real tables in Gate 1 |
 | Strap-gap jitter | 1.5% → 5% | 0.03% → 0.09% (drift) | Matters a little. Measure in Gate 1 |
 | His palm on the strap | 10 cm²/100 µm → 20 cm²/25 µm | 13% → 19% | **Settled**: always far above the trigger |
@@ -148,13 +148,16 @@ Each estimate was swung across its full range to see whether it changes any resu
 
 "Settled" means the true value can't change any conclusion, so the estimate stays as it is.
 
-## 3D field calculation: his hand near the strap (not yet integrated)
+## 3D field calculation: his hand near the strap (integrated 12 October 2026)
 
 Boundary-element electrostatic solve (`fem/hand_near_strap.py`; validated to 0.5% on a sphere
 and 1.2% on a disc). Extra coupling with the outer electrode: 1.42 pF at 1 cm, 0.44 pF at 2 cm,
-0.24 pF at 3 cm, 0.12 pF at 5 cm, 0.05 pF at 10 cm (single electrode about 4x lower). The model
-currently uses 0.5–3 pF; the calculation suggests about 0.1–1.4 pF for a grip 1–5 cm away.
-See `whole_body_detection.md`. Confirmed with FastCap to within 1% (`fem/fastcap_crosscheck.py`, fig 14).
+0.24 pF at 3 cm, 0.12 pF at 5 cm, 0.05 pF at 10 cm (single electrode about 4x lower). Confirmed
+with FastCap to within 1% (`fem/fastcap_crosscheck.py`, fig 14). Since 12 October 2026 the model
+uses this curve for a forearm grab (`hand_near_strap_pF` in `sg_model.py`), with his grip 1–5 cm
+from the strap edge [E]; a grip closer than 1 cm counts as a wrist grab. This replaced the old
+0.5–3 pF estimate and brought the forearm-grab median from ~0.26% to ~0.12% of full scale, at
+the noise floor. See `whole_body_detection.md`.
 
 ## What Gate 1 should measure
 

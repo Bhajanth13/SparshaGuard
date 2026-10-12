@@ -30,9 +30,9 @@ F = len(D["freqs_hz"])
 FEAT = slice(0, F)                          # amplitude change only, as Touché measures
 design, env, label, sub = D["design"], D["environment"], D["label"], D["subtype"]
 CLASS_LABEL = {"no_contact": "No contact", "object": "Object", "self": "Her own hand",
-               "other_person": "Other person\n(near watch)"}
+               "other_person": "Other person\n(at the wrist)"}
 results = {}
-NEAR = ["wrist", "forearm"]
+NEAR = ["wrist"]          # grabs the sensor can see; forearm grabs fell below the noise with the 3D coupling
 
 
 def models():
@@ -107,7 +107,7 @@ for ax, d in zip(axes, m.DESIGNS):
 axes[0].set_ylabel("True class")
 fig.suptitle("Contact classifier on synthetic data (rows sum to 100%)", x=0.01, ha="left",
              fontweight="bold", fontsize=13)
-fig.text(0.01, 0.905, "Trained and tested on events the sensor can physically see (grabs at the wrist or forearm). "
+fig.text(0.01, 0.905, "Trained and tested on events the sensor can physically see (grabs at the wrist). "
          "Grabs elsewhere are tested separately in fig 6.", fontsize=9.5, color=ps.INK2)
 fig.tight_layout(rect=(0, 0, 1, 0.9))
 ps.save(fig, "figures/fig5_confusion_matrices.png")
@@ -157,8 +157,8 @@ yd, sd = label[idx], sub[idx]
 groups = [("No contact", (yd == "no_contact"), ps.MUTED, "o"),
           ("Object", (yd == "object"), ps.SERIES[6], "s"),
           ("Her own hand", (yd == "self"), ps.SERIES[2], "^"),
-          ("Other person, near watch", (yd == "other_person") & np.isin(sd, ["wrist", "forearm"]), ps.SERIES[1], "D"),
-          ("Other person, elsewhere", (yd == "other_person") & ~np.isin(sd, ["wrist", "forearm"]), ps.SERIES[0], "v")]
+          ("Other person, at the wrist", (yd == "other_person") & np.isin(sd, NEAR), ps.SERIES[1], "D"),
+          ("Other person, elsewhere", (yd == "other_person") & ~np.isin(sd, NEAR), ps.SERIES[0], "v")]
 fig, ax = plt.subplots(figsize=(11.5, 6.4))
 rng = np.random.default_rng(0)
 for lab, mask, col, mk in groups:

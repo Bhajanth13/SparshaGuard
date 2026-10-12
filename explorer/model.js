@@ -80,7 +80,7 @@ const SG = (() => {
       const skins = add(zSC(f, area, HIS.hyd, HIS.alpha), zSC(f, area, HIS.hyd, HIS.alpha));
       b.Y_BA = inv(st.bare ? skins : add(skins, zc(w, plate(3.15, area * CM2, st.clothMm * 1e-3))));
       if (st.loc === "wrist") b.Y_A0 = yOuterContact(w, f, d);
-      else if (st.loc === "forearm") b.Y_A0 = yc(w, (d !== "single" ? 1.75 : 0.6) * pF);
+      else if (st.loc === "forearm") b.Y_A0 = yc(w, (d !== "single" ? 0.2395 : 0.0612) * pF);  // 3D solve, hand 3 cm from strap
       else b.Y_A0 = yc(w, p.C_GE_free * 0.11);
     } else if (st.touch === "self") {
       b.Y_B0 = add(b.Y_B0, inv(add(inv(yOuterContact(w, f, d)), c(500))));

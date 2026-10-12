@@ -324,7 +324,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 
   <footer>
     <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché, amplitude only. Body capacitance from Jonassen's footwear measurements, skin under a dry steel electrode from Goyal et al., fabric from Ng &amp; Reaz, the watch's return path from Datta et al. and Maity et al., body-to-body coupling from Nath et al., shield performance from TI, ADC noise from an ESP32 measurement. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/parameter_sources.md.</p>
-    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap now has a 3D calculation (shown above) that isn't fed into the explorer's forearm case yet. The passive channel is analysed on paper, not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
+    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (shown above), checked with FastCap; the forearm case uses it with his hand 3 cm from the strap. The passive channel is analysed on paper, not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
   </footer>
 </div>
 
@@ -411,7 +411,7 @@ const SG = (() => {
       const skins = add(zSC(f, area, HIS.hyd, HIS.alpha), zSC(f, area, HIS.hyd, HIS.alpha));
       b.Y_BA = inv(st.bare ? skins : add(skins, zc(w, plate(3.15, area * CM2, st.clothMm * 1e-3))));
       if (st.loc === "wrist") b.Y_A0 = yOuterContact(w, f, d);
-      else if (st.loc === "forearm") b.Y_A0 = yc(w, (d !== "single" ? 1.75 : 0.6) * pF);
+      else if (st.loc === "forearm") b.Y_A0 = yc(w, (d !== "single" ? 0.2395 : 0.0612) * pF);  // 3D solve, hand 3 cm from strap
       else b.Y_A0 = yc(w, p.C_GE_free * 0.11);
     } else if (st.touch === "self") {
       b.Y_B0 = add(b.Y_B0, inv(add(inv(yOuterContact(w, f, d)), c(500))));
@@ -681,7 +681,7 @@ const SG = (() => {
     if (st.touch === "person") {
       add("Z_BA", st.bare ? `Skin-to-skin contact: ${LOC_TEXT[st.loc]}.` : `Contact through fabric: ${LOC_TEXT[st.loc]}, acting as a capacitor of about ${(8.854e-12 * 3.15 * 60e-4 / (st.clothMm * 1e-3) * 1e12).toFixed(0)} pF. At these frequencies that is only a few hundred ohms, so fabric barely hides the touch.`);
       if (st.loc === "wrist") add("Z_A0", st.design === "single" ? "His hand lies over the plastic case: only a few pF back to the watch ground." : "His palm covers the outer electrode and closes a short loop straight back to the watch ground. This is why wrist grabs stand out.");
-      else if (st.loc === "forearm") add("Z_A0", "His hand is a few centimetres from the strap: a few pF of coupling to the watch.");
+      else if (st.loc === "forearm") add("Z_A0", "His hand is about 3 cm from the strap: only about 0.24 pF of coupling to the watch (3D calculation).");
       else add("Z_A0", "Only his body's distance from the watch, about 0.1 pF. The rest has to travel through the surroundings, where the watch is coupled by only about 0.8 to 1.1 pF.");
       add("C_AE", "His body adds about 140 pF to the surroundings, but the floating watch hardly sees it.");
     }

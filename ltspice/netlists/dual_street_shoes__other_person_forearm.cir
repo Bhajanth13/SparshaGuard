@@ -426,6 +426,6 @@ R625 x333 x624 5.740441e-03
 C626 x624 A 8.767482e-08
 R628 x333 x627 2.824925e-05
 C629 x627 A 5.633953e-07
-C630 A 0 1.750000e-12 ; his hand near the strap
+C630 A 0 2.395000e-13 ; his hand 3 cm from the strap (3D solve)
 .options rshunt=1e18
 .end
