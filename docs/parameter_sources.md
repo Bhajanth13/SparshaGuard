@@ -154,7 +154,7 @@ Boundary-element electrostatic solve (`fem/hand_near_strap.py`; validated to 0.5
 and 1.2% on a disc). Extra coupling with the outer electrode: 1.42 pF at 1 cm, 0.44 pF at 2 cm,
 0.24 pF at 3 cm, 0.12 pF at 5 cm, 0.05 pF at 10 cm (single electrode about 4x lower). The model
 currently uses 0.5–3 pF; the calculation suggests about 0.1–1.4 pF for a grip 1–5 cm away.
-See `whole_body_detection.md`.
+See `whole_body_detection.md`. Confirmed with FastCap to within 1% (`fem/fastcap_crosscheck.py`, fig 14).
 
 ## What Gate 1 should measure
 

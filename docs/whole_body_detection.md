@@ -46,6 +46,10 @@ calculation says a forearm grab more than ~2 cm from the strap gives under 0.5 p
 earlier sensitivity check showed is below the noise. **The active sweep reliably sees contact
 only on or within about 1 cm of the strap.** (Not yet integrated into the model.)
 
+Checked with FastCap, MIT's reference capacitance solver (`fem/fastcap_crosscheck.py`, fig 14): the
+two solvers agree to within 1% at every distance. Re-scoring forearm grabs with these values
+(not integrated) drops the share above the 0.3% threshold from ~40% to ~0%.
+
 ## 3. Ways to reach the whole body
 
 | Approach | Covers whole body? | Reliability | Cost / burden | Verdict |

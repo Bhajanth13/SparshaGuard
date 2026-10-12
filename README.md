@@ -26,6 +26,7 @@ python rebuild_csv.py       # write the CSV from the .npz (numpy + pandas only)
 python fem/hand_near_strap.py   # 3D field calculation: his hand near the strap (~2 min)
 python whole_body.py        # whole-body touch study, fig10-fig12      (~5 s)
 python ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fig13 (~5 s, needs ngspice)
+FASTCAP=/path/to/fastcap python fem/fastcap_crosscheck.py  # check the 3D result against FastCap, fig14 (~2 min)
 ```
 
 Open `explorer/sparshaguard_explorer.html` in any browser for the interactive explorer
@@ -55,7 +56,8 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `docs/design_notes.md` | Hardware changes, sensing physics, false-trigger strategy, Gate 1 test rules |
 | `whole_body.py`, `docs/whole_body_detection.md` | Can it detect a touch anywhere on her body? Active-sweep limit, passive body-potential channel, proposed design (fig10–fig12) |
 | `fem/bem_capacitance.py`, `fem/hand_near_strap.py` | Boundary-element electrostatic solver and the hand-near-strap 3D calculation |
-| `figures/` | All figures, fig0–fig13, 200 dpi PNG |
+| `fem/fastcap_crosscheck.py` | The same 3D calculation in FastCap, MIT's reference capacitance solver (fig14, `fem/fastcap_results.json`); build steps in its docstring |
+| `figures/` | All figures, fig0–fig14, 200 dpi PNG |
 | `video/` | Narrated 13-minute explainer (`SparshaGuard_Explained.mp4`), the same as an interactive offline page (`.html`), and the narration script |
 | `archive/v0_1/`, `archive/v0_2/` | Earlier models, figures and results, for comparison |
 
@@ -126,7 +128,9 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
 The main conclusions held through all three versions. v0.3 is less optimistic about forearm
 grabs and about the shield, mostly because of the noisier ADC and the weaker real-world shield.
 
-## Checked against SPICE
+## Checked against independent solvers
+
+### Circuit: SPICE
 
 `ltspice/spice_crosscheck.py` builds the same circuit element by element as a SPICE netlist and
 solves it with ngspice, an industry-standard circuit simulator, on the same 200-point sweep.
@@ -138,6 +142,27 @@ capacitor shows up as a 0.09% difference, so the check is sensitive enough to ca
 This confirms the solver and the wiring of the model; it does not check the parameter values,
 which only Gate 1 measurements can do.
 
+### 3D field: FastCap
+
+`fem/fastcap_crosscheck.py` solves the hand-near-strap geometry again in FastCap (Nabors & White,
+IEEE TCAD 1991), the multipole-accelerated capacitance solver from MIT used as a reference in
+chip and package design. It has its own mesh and panel integrals. FastCap was first checked
+against the exact capacitance of a sphere (0.16% error at 1,654 panels). On the finer mesh the
+two solvers agree to within 1% at every distance (outer electrode: 1.42 vs 1.44 pF at 1 cm,
+0.44 vs 0.44 pF at 2 cm, 0.049 vs 0.049 pF at 10 cm), and FastCap moves toward our result as its
+mesh is refined (fig 14). Both solve the geometry in air; the strap plastic and the body's
+tissue are not included in either.
+
+### What the checks found: forearm grabs are optimistic in the model
+
+The 3D result (about 0.1–1.4 pF for a grip 1–5 cm from the strap) is below the 0.5–3 pF the
+model still uses for a forearm grab. Re-scoring forearm grabs with the 3D values (a quick check,
+not integrated into `sg_model.py`) moves the median change from ~0.27% to ~0.16% of full scale,
+and the share above the 0.3% threshold from ~40% to ~0%. So the "~43% of forearm grabs caught"
+in finding 6 should be read as an upper bound: with the 3D values, the active sweep sees a
+forearm grab only when his hand is on or within about 1 cm of the strap. Wrist-grab results
+are not affected.
+
 ## Calibrating with Gate 1
 
 The list of what to measure, in priority order, is at the end of `docs/parameter_sources.md`.
@@ -147,7 +172,8 @@ training and for any accuracy you report.
 ## Known limitations
 
 - Lumped model. One coupling (his hand near the strap) now has a 3D boundary-element
-  calculation in `fem/` (not yet fed into the model); the others are still geometry estimates.
+  calculation in `fem/`, confirmed with FastCap but not yet fed into the model; it would bring
+  forearm detection close to zero (see above). The others are still geometry estimates.
 - The passive body-potential channel proposed in `docs/whole_body_detection.md` is analysed
   on paper (fig 11), not yet simulated in the time-domain pipeline.
 - Event rates and durations in `event_stream.py` are guesses, not measured behaviour.
