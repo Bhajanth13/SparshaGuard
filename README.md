@@ -25,6 +25,7 @@ python build_explorer.py    # rebuild the interactive page after editing its sou
 python rebuild_csv.py       # write the CSV from the .npz (numpy + pandas only)
 python fem/hand_near_strap.py   # 3D field calculation: his hand near the strap (~2 min)
 python whole_body.py        # whole-body touch study, fig10-fig12      (~5 s)
+python ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fig13 (~5 s, needs ngspice)
 ```
 
 Open `explorer/sparshaguard_explorer.html` in any browser for the interactive explorer
@@ -44,6 +45,7 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `event_stream.py` | Time-domain pipeline: baseline tracking, hysteresis, sustain rule, prompts per hour |
 | `plotstyle.py` | Shared figure style |
 | `ltspice/sparshaguard_wrist_grab.cir` | The same circuit as a netlist for LTspice / ngspice cross-checking |
+| `ltspice/spice_crosscheck.py` | Writes a SPICE netlist for every design and scenario (`ltspice/netlists/`), runs ngspice and compares with the Python solver (fig13, `data/spice_crosscheck.json`) |
 | `data/sparshaguard_synthetic_v0_3.csv` | The dataset, amplitude only; columns explained below. Not stored in the repo (40 MB): run `python rebuild_csv.py` |
 | `data/sparshaguard_synthetic_v0_3.npz` | Same data as the CSV; `..._phase.npz` and `..._baseline.npz` add phase and baseline amplitude |
 | `data/*.json` | Numeric results behind every figure |
@@ -53,7 +55,7 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `docs/design_notes.md` | Hardware changes, sensing physics, false-trigger strategy, Gate 1 test rules |
 | `whole_body.py`, `docs/whole_body_detection.md` | Can it detect a touch anywhere on her body? Active-sweep limit, passive body-potential channel, proposed design (fig10–fig12) |
 | `fem/bem_capacitance.py`, `fem/hand_near_strap.py` | Boundary-element electrostatic solver and the hand-near-strap 3D calculation |
-| `figures/` | All figures, fig0–fig12, 200 dpi PNG |
+| `figures/` | All figures, fig0–fig13, 200 dpi PNG |
 | `video/` | Narrated 13-minute explainer (`SparshaGuard_Explained.mp4`), the same as an interactive offline page (`.html`), and the narration script |
 | `archive/v0_1/`, `archive/v0_2/` | Earlier models, figures and results, for comparison |
 
@@ -123,6 +125,18 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
 
 The main conclusions held through all three versions. v0.3 is less optimistic about forearm
 grabs and about the shield, mostly because of the noisier ADC and the weaker real-world shield.
+
+## Checked against SPICE
+
+`ltspice/spice_crosscheck.py` builds the same circuit element by element as a SPICE netlist and
+solves it with ngspice, an industry-standard circuit simulator, on the same 200-point sweep.
+SPICE has no constant-phase element, so each skin element is a fitted R-C ladder (Valsa et al.
+2011), accurate to better than 0.004% over the sweep. Across 49 cases (3 designs × 14
+scenarios, plus footwear and the USB-bench case) the two solvers agree to within 0.0001% of full
+scale, about 1,000 times smaller than the ADC noise (fig 13). A deliberate 10% error in one
+capacitor shows up as a 0.09% difference, so the check is sensitive enough to catch mistakes.
+This confirms the solver and the wiring of the model; it does not check the parameter values,
+which only Gate 1 measurements can do.
 
 ## Calibrating with Gate 1
 
