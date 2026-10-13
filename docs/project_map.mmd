@@ -1,94 +1,59 @@
-flowchart TB
-  %% SparshaGuard: how the whole project fits together
+flowchart LR
+  %% SparshaGuard project map, left to right: sources -> physics -> checks -> study -> demo
 
-  SRC["<b>1 · Published sources</b><br/>Touché sweep + Arduino Touché circuit (Sato 2012, Honigman 2014)<br/>body + footwear capacitance (Jonassen 1998, Maity 2019)<br/>dry skin under a metal electrode (Goyal 2022) · watch return path (Datta 2020)<br/>fabric, body-to-body, hand area (Ng 2017, Nath 2021, Agarwal 2010)<br/>driven-shield residual (TI SNOA926) · ESP32 ADC noise"]
-  DOCS[("docs/parameter_sources.md<br/>docs/SparshaGuard_paper_values.xlsx<br/>every value tagged [S#] [G] [E]")]
-  SRC --> DOCS
-
-  subgraph PHYS["2 · Physics engine · sg_model.py"]
+  subgraph S1["① Sources"]
     direction TB
-    SWEEP["Sweep: 200 frequencies<br/>f = 1 kHz + 17.5 kHz·k, up to 3.48 MHz"]
-    TANK["Drive + LC tank<br/>Y_src = 1 / (R_s + jωL), C_tank ≈ 104.5 pF"]
-    SKIN["Skin-electrode impedance<br/>Z = 1/(Q_c (jω)^β) + R_sc ‖ 1/(Q_sc (jω)^α)<br/>α ≈ 0.9, β ≈ 0.55, dry ↔ hydrated"]
-    CAPS["Couplings<br/>C = ε₀ ε_r A / d (plates)<br/>C_BE 110–250 pF · C_GE 0.4–2 pF · C_GB × shield"]
-    EVENTS["Touch events<br/>wrist · forearm · shoulder · own hand<br/>railing · pole · phone · table · bystander · strap off"]
-    NODAL["4-node nodal solve, watch ground floats<br/>nodes S · B · A · E<br/>[Y]·V = I  →  V_S(f)"]
-    SCORE["Change score<br/>RMS over sweep of |V_now| − |V_base|<br/>(% of full scale) + ADC noise"]
-    SWEEP --> TANK --> NODAL
-    SKIN --> NODAL
-    CAPS --> NODAL
-    EVENTS --> NODAL
-    NODAL --> SCORE
+    PAP["15 published papers<br/>Touché · Jonassen · Goyal<br/>Datta · Nath · TI · …"]
+    PAR[("parameter_sources.md<br/>paper_values.xlsx")]
+    PAP --> PAR
   end
-  DOCS --> PHYS
 
-  subgraph FIELD["3 · 3D field · fem/"]
+  subgraph S2["② Physics · sg_model.py"]
     direction TB
-    BEM["Boundary-element solver<br/>bem_capacitance.py<br/>P·q = V  →  capacitance matrix"]
-    HAND["hand_near_strap.py<br/>arm + strap + case + his hand<br/>1.44 pF at 1 cm … 0.05 pF at 10 cm"]
-    BEM --> HAND
+    CIR["Circuit: 200-freq sweep<br/>LC tank · skin CPE<br/>C = ε₀εᵣA/d"]
+    SOL["4-node solve<br/>[Y]·V = I<br/>floating watch ground"]
+    SCO["Change score<br/>RMS |V| − |V_base|"]
+    BEM["3D field (fem/)<br/>hand near strap<br/>1.4 → 0.05 pF"]
+    CIR --> SOL --> SCO
+    BEM --> CIR
   end
-  HAND -- "forearm coupling<br/>hand_near_strap_pF(gap)" --> CAPS
 
-  subgraph CHECK["4 · Independent checks"]
-    direction LR
-    SPICE["ltspice/spice_crosscheck.py<br/>same circuit in ngspice, CPE as R-C ladder<br/>49 cases agree to 1e-4 % FS"]
-    FCAP["fem/fastcap_crosscheck.py<br/>MIT FastCap, exact-sphere check<br/>agrees within 1 %"]
-  end
-  NODAL -. verified by .-> SPICE
-  HAND -. verified by .-> FCAP
-
-  subgraph PIPE["5 · Study pipeline (Python)"]
+  subgraph S3["③ Checks"]
     direction TB
-    FIGS["make_figures.py<br/>fig0–4: circuit, sweeps, by location,<br/>footwear, bench vs battery"]
-    DATA["make_dataset.py<br/>18,000 Monte Carlo events<br/>data/*.npz"]
-    CLF["train_classifier.py<br/>SVM + random forest, fig5–7<br/>models/svm_dual_shield.joblib"]
-    STREAM["event_stream.py<br/>hours of daily life at 5 frames/s<br/>baseline · hysteresis · 2 s hold<br/>fig8–9: catch rate vs prompts/hour"]
-    WHOLE["whole_body.py<br/>fig10–12: active-sweep limit,<br/>passive body-potential idea"]
-    DATA --> CLF --> STREAM
+    SPI["SPICE (ngspice)<br/>49 cases, Δ < 0.0001 %"]
+    FCP["FastCap (MIT)<br/>within 1 %"]
   end
-  SCORE --> FIGS
-  SCORE --> DATA
-  SCORE --> STREAM
-  PHYS --> WHOLE
-  HAND --> WHOLE
 
-  RES[("Results<br/>wrist grab ~16 % · others ≈ noise 0.1 %<br/>93 % wrist grabs caught · 0 % forearm/shoulder<br/>~5.5 unwanted prompts/hour")]
-  FIGS --> RES
-  CLF --> RES
-  STREAM --> RES
-
-  subgraph WEB["6 · Front end (browser, offline)"]
+  subgraph S4["④ Study (Python)"]
     direction TB
-    PORT["explorer/model.js<br/>JavaScript port of sg_model.py<br/>(matches Python exactly)"]
-    EXPL["explorer/sparshaguard_explorer.html<br/>interactive physics explorer"]
-    subgraph TWIN["Digital-twin demo · demo/"]
-      direction TB
-      SENS["sensor.js · sensor twin<br/>model + sweat drift + strap jitter<br/>+ feet + ADC noise → 200 amplitudes, 5×/s"]
-      FW["firmware.js · watch logic<br/>baseline · 0.3 % threshold · 2 s hold<br/>off-wrist check · PIN / duress state machine"]
-      UI["sparshaguard_demo.html<br/>body map · watch + ring · signal graph<br/>Amma's phone · guided story · try-it tiles"]
-      CHK["check_demo.js · headless check<br/>87 % wrist · 0 % forearm/shoulder<br/>100 % strap removal · ~4 prompts/hour"]
-      SENS --> FW --> UI
-      SENS --> CHK
-      FW --> CHK
-    end
-    PORT --> EXPL
-    PORT --> SENS
+    DAT["Dataset<br/>18,000 events"]
+    ML["Classifiers<br/>SVM · forest"]
+    LIFE["Daily-life sim<br/>2 s hold rule"]
+    RES[("Results<br/>wrist 16 % signal<br/>93 % caught<br/>forearm/shoulder 0 %")]
+    DAT --> ML --> LIFE --> RES
   end
-  PHYS == "ported to JS" ==> PORT
-  STREAM == "same detection rules" ==> FW
-  CHK -. "rates match" .-> RES
 
-  subgraph USER["7 · What the user sees"]
-    direction LR
-    U1["Guard Mode on"] --> U2["Touch held 2 s"] --> U3["Vibrate + PIN, 15 s"]
-    U3 -- "1234" --> U4["Cancelled"]
-    U3 -- "no PIN / wrong PIN" --> U5["SMS + GPS · call 112 · record audio"]
-    U3 -- "9999 duress" --> U6["Shows Cancelled,<br/>alerts silently"]
-    U1 -- "strap pulled off" --> U5
+  subgraph S5["⑤ Demo (browser)"]
+    direction TB
+    SEN["Sensor twin<br/>model + drift + noise"]
+    FW["Watch firmware<br/>threshold · PIN · duress"]
+    UI["Demo page<br/>watch · phone · story"]
+    SEN --> FW --> UI
   end
-  UI --> USER
 
-  GATE1["Next: Gate 1 battery prototype<br/>measure → replace [E] values → re-run everything"]
-  RES --> GATE1
-  GATE1 -. calibrates .-> DOCS
+  subgraph S6["⑥ User flow"]
+    direction TB
+    U1["Touch held 2 s"] --> U2["PIN, 15 s"]
+    U2 -- "1234" --> U3["Cancelled"]
+    U2 -- "none / wrong" --> U4["SMS + GPS<br/>call 112"]
+    U2 -- "9999" --> U5["Silent alert"]
+  end
+
+  PAR --> CIR
+  SOL -.-> SPI
+  BEM -.-> FCP
+  SCO --> DAT
+  SCO == "ported to JS" ==> SEN
+  LIFE == "same rules" ==> FW
+  UI --> U1
+  RES -. "Gate 1 prototype<br/>calibrates" .-> PAR
