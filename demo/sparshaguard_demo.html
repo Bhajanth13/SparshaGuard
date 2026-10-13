@@ -920,9 +920,15 @@ const SG = (() => {
   try { const mq = matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener ? mq.addEventListener("change", readCols) : mq.addListener(readCols); } catch (e) { /* colours stay as read */ }
   const css = (v) => COLS[v];
   function setup(cv) {
-    if (!cv._w) { new ResizeObserver(([e]) => { cv._w = e.contentRect.width; cv._dirty = true; }).observe(cv); cv._w = cv.getBoundingClientRect().width; cv._dirty = true; }
-    const dpr = window.devicePixelRatio || 1, h = +cv.getAttribute("height"), W = cv._w;
-    if (cv._dirty) { cv.width = Math.round(W * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px"; cv._dirty = false; }
+    // CSS height comes from the height attribute, read once: the attribute is then overwritten
+    // with the device-pixel size, so reading it again would grow the canvas on scaled screens.
+    if (!cv._h) {
+      cv._h = +cv.getAttribute("height"); cv.style.height = cv._h + "px";
+      cv._w = cv.getBoundingClientRect().width; cv._dirty = true;
+      new ResizeObserver(([e]) => { const w = e.contentRect.width; if (Math.abs(w - cv._w) > 0.5) { cv._w = w; cv._dirty = true; } }).observe(cv);
+    }
+    const dpr = window.devicePixelRatio || 1, h = cv._h, W = cv._w;
+    if (cv._dirty || cv._dpr !== dpr) { cv.width = Math.round(W * dpr); cv.height = Math.round(h * dpr); cv._dpr = dpr; cv._dirty = false; }
     const g = cv._g || (cv._g = cv.getContext("2d")); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, W, H: h };
   }
   function drawScore() {
