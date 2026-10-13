@@ -1,9 +1,41 @@
-# SparshaGuard simulation v0.3
+# SparshaGuard
 
-Simulation study for **SparshaGuard**, a touch-sensing safety watch (Sukruth A Chinnur, RV University).
-It models what a battery-powered wrist sensor actually measures when another person touches the
-wearer, generates a labelled synthetic dataset, trains contact classifiers, and runs the full
-detection pipeline through simulated hours of daily life.
+**A smartwatch for women's safety that raises the alarm when someone else grabs her.**
+Team: Bhajanth V, Sukruth A Chinnur · RV University.
+
+Most safety apps need her to find her phone and press SOS. SparshaGuard flips the default: once
+Guard Mode is on, another person's hand held at the watch for 2 seconds starts a 15-second PIN
+countdown. No PIN or a wrong PIN sends her live location to her contacts, calls 112 and records
+audio. A duress PIN shows "Cancelled" but alerts silently. Pulling the watch off alerts at once.
+
+## Try the demo
+
+Open **`demo/sparshaguard_demo.html`** in any browser (download it and double-click; it works
+offline). Press **Play all** for the guided story (about 80 s), or switch to **Try it yourself**
+and touch her. The watch's own decision logic runs on a simulated sensor built from the physics
+below; nothing is scripted to succeed.
+
+## Results at a glance
+
+| | Result | How we know |
+|---|---|---|
+| Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model from 15 published sources |
+| Wrist grabs caught | 93 % (study), 87 % (demo, 120 random trials) | hours of simulated daily life |
+| Watch pulled off | 100 % caught, no false alarms | demo headless check |
+| Unwanted PIN prompts | ~4–5.5 per hour of daily life | same simulation |
+| Grabs on forearm, shoulder, elsewhere | not visible to the wrist sensor (0 %) | 3D field calculation; planned motion + audio sensing covers these |
+| Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `ltspice/`, `fem/` |
+
+**Honest status:** this is a simulation study. Every value comes from a published paper or from
+geometry, and the remaining estimates are marked. The next stage, **Gate 1**, is a
+battery-powered prototype whose measurements replace those estimates before any number is
+quoted as a device result. A map of the whole project is in `docs/project_map.svg`.
+
+## The science, in detail
+
+Simulation study v0.3. It models what a battery-powered wrist sensor actually measures when
+another person touches the wearer, generates a labelled synthetic dataset, trains contact
+classifiers, and runs the full detection pipeline through simulated hours of daily life.
 
 > **Status: sourced, not yet calibrated.** v0.3 takes its values from the proposal's Touché
 > references and 14 further published sources (body capacitance with footwear, skin under a
@@ -62,7 +94,9 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `fem/bem_capacitance.py`, `fem/hand_near_strap.py` | Boundary-element electrostatic solver and the hand-near-strap 3D calculation |
 | `fem/fastcap_crosscheck.py` | The same 3D calculation in FastCap, MIT's reference capacitance solver (fig14, `fem/fastcap_results.json`); build steps in its docstring |
 | `figures/` | All figures, fig0–fig14, 200 dpi PNG |
-| `video/` | Narrated 13-minute explainer (`SparshaGuard_Explained.mp4`), the same as an interactive offline page (`.html`), and the narration script |
+| `docs/project_map.mmd`, `.svg` | One-page map of the whole project (Mermaid source and picture) |
+| `docs/video_script_2min.md` | Narration and shot list for the 2-minute hackathon video |
+| `video/` | Earlier 13-minute explainer (`SparshaGuard_Explained.mp4`, `.html`, narration script). **Outdated:** made before the 3D forearm result, so it overstates forearm grabs; see `video/README.md` |
 | `archive/v0_1/`, `archive/v0_2/` | Earlier models, figures and results, for comparison |
 
 ### Dataset columns
