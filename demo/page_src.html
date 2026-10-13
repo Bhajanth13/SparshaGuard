@@ -4,12 +4,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: three columns. The world (what happens to her) | the device (watch + her contact's phone) | inside the watch (what the firmware sees). Stacks on narrow screens. */
+/* One stage, read left to right: where she is touched -> her watch -> her contact's phone.
+   Below it, one control bar: a guided story with captions, or a few tiles to try it yourself.
+   The science (sweep, firmware log, numbers) is folded away until asked for. */
 :root {
-  --paper: #eef2f5; --panel: #ffffff; --ink: #13202a; --ink2: #4a5866; --muted: #74818d; --line: #dbe1e7; --grid: #e8ecf0;
+  --paper: #eef1f4; --panel: #ffffff; --ink: #13202a; --ink2: #4a5866; --muted: #74818d; --line: #dbe1e7; --grid: #e8ecf0;
   --base: #6b7a88; --touch: #c0306a; --touch-soft: rgba(192, 48, 106, 0.12); --warn: #b77700; --warn-soft: rgba(250, 178, 25, 0.18);
   --crit: #d03b3b; --crit-soft: rgba(208, 59, 59, 0.12); --calm: #2f6f4f; --calm-soft: rgba(12, 163, 12, 0.10); --focus: #2a78d6;
-  --screen: #0b1015; --screen-ink: #e9f1f6; --screen-dim: #8a99a6; --case: #2b333b; --strap: #3b444d;
+  --body: #c9d2da; --body-line: #9aa7b3; --screen: #0b1015; --screen-ink: #e9f1f6; --screen-dim: #8a99a6; --case: #2b333b;
   --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
@@ -19,196 +21,254 @@
     --paper: #0e1419; --panel: #161f27; --ink: #e7edf2; --ink2: #b2bfca; --muted: #85929e; --line: #27333e; --grid: #1f2a33;
     --base: #97a7b6; --touch: #ef6a9c; --touch-soft: rgba(239, 106, 156, 0.16); --warn: #fab219; --warn-soft: rgba(250, 178, 25, 0.16);
     --crit: #ef7b7b; --crit-soft: rgba(239, 123, 123, 0.16); --calm: #5cc98a; --calm-soft: rgba(92, 201, 138, 0.14); --focus: #6da7ec;
-    --case: #3a444e; --strap: #4a5560; color-scheme: dark;
+    --body: #33404c; --body-line: #52616f; --case: #3a444e; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #0e1419; --panel: #161f27; --ink: #e7edf2; --ink2: #b2bfca; --muted: #85929e; --line: #27333e; --grid: #1f2a33;
   --base: #97a7b6; --touch: #ef6a9c; --touch-soft: rgba(239, 106, 156, 0.16); --warn: #fab219; --warn-soft: rgba(250, 178, 25, 0.16);
   --crit: #ef7b7b; --crit-soft: rgba(239, 123, 123, 0.16); --calm: #5cc98a; --calm-soft: rgba(92, 201, 138, 0.14); --focus: #6da7ec;
-  --case: #3a444e; --strap: #4a5560; color-scheme: dark;
+  --body: #33404c; --body-line: #52616f; --case: #3a444e; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 14.5px; line-height: 1.45; }
 button { font: inherit; color: inherit; }
-.wrap { max-width: 1440px; margin: 0 auto; padding: 18px 20px 28px; }
-header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; margin-bottom: 14px; }
-h1 { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 26px; margin: 0; letter-spacing: 0.2px; }
-h1 span { color: var(--touch); }
-.tag { font-size: 13px; color: var(--ink2); }
-.badges { display: flex; flex-wrap: wrap; gap: 6px; }
-.badge { font-family: var(--f-mono); font-size: 11.5px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink2); }
-.cols { display: grid; grid-template-columns: 300px 400px minmax(0, 1fr); gap: 16px; align-items: start; }
-@media (max-width: 1180px) { .cols { grid-template-columns: 300px minmax(0, 1fr); } .inside { grid-column: 1 / -1; } }
-@media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
-.card + .card { margin-top: 12px; }
-.ctitle { font-family: var(--f-display); font-stretch: 90%; font-weight: 700; font-size: 15px; margin: 0 0 2px; }
-.csub { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
-.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--paper); padding: 3px; border-radius: 9px; }
-.seg button { border: 0; background: transparent; padding: 6px 4px; border-radius: 7px; font-size: 12.5px; cursor: pointer; color: var(--ink2); }
-.seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
-.group { margin-top: 10px; }
-.glabel { font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 0 0 5px; }
-.scn { display: grid; gap: 5px; }
-.scn button { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--line); background: var(--panel);
-  padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px; }
-.scn button:hover { border-color: var(--base); }
-.scn button[aria-pressed="true"] { border-color: var(--touch); background: var(--touch-soft); font-weight: 600; }
-.scn button .tm { font-family: var(--f-mono); font-size: 12px; color: var(--touch); }
-.scn button .hint { font-size: 11.5px; color: var(--muted); font-weight: 400; }
-.stories button { border-style: dashed; }
-.pinhint { font-family: var(--f-mono); font-size: 12.5px; color: var(--ink2); background: var(--paper); border-radius: 8px; padding: 7px 10px; margin-top: 10px; }
-.row { display: flex; gap: 8px; margin-top: 10px; }
-.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
-.btn:hover { border-color: var(--base); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 14px 20px 24px; }
 
-/* ---- device column ---- */
-.device { display: grid; gap: 12px; justify-items: center; }
-.watchwrap { position: relative; width: 250px; padding: 46px 0; display: grid; justify-items: center; }
-.strap { position: absolute; left: 50%; width: 150px; height: 70px; transform: translateX(-50%); background: var(--strap); border-radius: 18px; }
-.strap.top { top: 0; } .strap.bot { bottom: 0; }
-.strap::after { content: ""; position: absolute; inset: 8px 22px; border-radius: 10px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 3px, transparent 3px 9px); }
-.watch { position: relative; width: 236px; height: 270px; background: var(--case); border-radius: 46px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.06); z-index: 1; }
+/* header */
+header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 14px; }
+.brand { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 24px; letter-spacing: .2px; }
+.brand span { color: var(--touch); }
+.brand small { display: block; font-family: var(--f-body); font-weight: 400; font-size: 12.5px; color: var(--muted); letter-spacing: 0; }
+.tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.tabs button { border: 0; background: transparent; padding: 7px 18px; border-radius: 999px; cursor: pointer; font-weight: 500; color: var(--ink2); }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--panel); }
+.tools { display: flex; justify-content: flex-end; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px; cursor: pointer; font-size: 13px; color: var(--ink2); }
+.chip[aria-pressed="true"] { border-color: var(--ink2); color: var(--ink); font-weight: 600; }
+@media (max-width: 760px) { header { grid-template-columns: 1fr; justify-items: start; } .tools { justify-content: flex-start; } }
+
+/* stage */
+.stage { display: grid; grid-template-columns: 260px minmax(0, 1fr) 300px; gap: 16px; align-items: stretch; }
+@media (max-width: 1060px) { .stage { grid-template-columns: 220px minmax(0, 1fr); } .phonecol { grid-column: 1 / -1; justify-self: center; } }
+@media (max-width: 640px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
+.label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin: 0 0 6px; }
+.bodycard { display: flex; flex-direction: column; }
+.figure { width: 100%; max-width: 250px; margin: auto; display: block; }
+.figure .b { fill: var(--body); stroke: var(--body-line); stroke-width: 1.5; }
+.figure .ghost { fill: var(--body); opacity: .55; }
+.figure .w { fill: var(--ink); }
+.figure .m { opacity: 0; transition: opacity .25s; }
+.figure .m.on { opacity: 1; }
+.figure .dot { fill: var(--touch); }
+.figure .ring { fill: none; stroke: var(--touch); stroke-width: 2.5; animation: ping 1.2s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes ping { from { transform: scale(.4); opacity: 1 } to { transform: scale(1.6); opacity: 0 } }
+.figure .obj { fill: var(--base); }
+.touchnow { font-size: 13px; color: var(--ink2); min-height: 40px; }
+.touchnow b { color: var(--ink); }
+
+.center { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.watchbox { position: relative; width: 300px; height: 300px; display: grid; place-items: center; }
+.ringsvg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ringsvg circle { fill: none; stroke-width: 9; stroke-linecap: round; transition: stroke-dashoffset .2s linear, stroke .2s; }
+.ringsvg .track { stroke: var(--grid); }
+.watch { width: 250px; height: 250px; border-radius: 50%; background: var(--case); padding: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.07); }
 .watch.buzz { animation: buzz .16s linear infinite; }
 @keyframes buzz { 0% { transform: translate(0,0) } 25% { transform: translate(-2px,1px) } 50% { transform: translate(2px,-1px) } 75% { transform: translate(-1px,-1px) } }
-@media (prefers-reduced-motion: reduce) { .watch.buzz { animation: none; outline: 3px solid var(--warn); } }
-.crown { position: absolute; right: -8px; top: 96px; width: 10px; height: 42px; background: var(--case); border-radius: 4px; }
-.screen { width: 100%; height: 100%; background: var(--screen); border-radius: 34px; color: var(--screen-ink); padding: 16px 14px; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
-.sclock { font-family: var(--f-mono); font-size: 12px; color: var(--screen-dim); }
-.sbig { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 30px; line-height: 1.05; margin-top: 10px; text-align: center; }
-.ssmall { font-size: 12px; color: var(--screen-dim); text-align: center; margin-top: 6px; }
-.sbtn { margin-top: auto; border: 0; border-radius: 999px; padding: 9px 16px; background: #2f6f4f; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; }
-.sbtn.off { background: #3b4650; }
-.shield { width: 54px; height: 62px; margin-top: 12px; }
-.pulse { width: 8px; height: 8px; border-radius: 50%; background: #5cc98a; display: inline-block; margin-right: 6px; animation: pl 1.6s ease-in-out infinite; }
-@keyframes pl { 50% { opacity: .25 } }
-.count { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 40px; color: #fab219; line-height: 1; }
-.dots { display: flex; gap: 8px; margin: 6px 0 6px; }
-.dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--screen-dim); }
-.dots i.on { background: var(--screen-ink); border-color: var(--screen-ink); }
-.pad { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
-.pad button { height: 26px; border: 0; border-radius: 8px; background: #1e2832; color: var(--screen-ink); font-family: var(--f-mono); font-size: 13px; cursor: pointer; }
-.pad button:active, .pad button.hit { background: #3a4a59; }
+@media (prefers-reduced-motion: reduce) { .watch.buzz { animation: none; } .figure .ring { animation: none; } }
+.screen { width: 100%; height: 100%; border-radius: 50%; background: var(--screen); color: var(--screen-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; overflow: hidden; padding: 18px; }
 .screen.alert { background: #5a1414; }
-.screen.alert .sbig { color: #fff; }
-.rec { color: #ff8a8a; font-size: 12px; margin-top: 8px; font-family: var(--f-mono); }
-.rec::before { content: ""; display: inline-block; width: 8px; height: 8px; background: #ff5050; border-radius: 50%; margin-right: 6px; animation: pl 1s infinite; }
+.sclock { font-family: var(--f-mono); font-size: 12px; color: var(--screen-dim); }
+.sbig { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 28px; line-height: 1.05; margin-top: 4px; }
+.ssmall { font-size: 12px; color: var(--screen-dim); margin-top: 4px; }
+.sbtn { margin-top: 10px; border: 0; border-radius: 999px; padding: 8px 16px; background: #2f6f4f; color: #fff; font-weight: 600; font-size: 12.5px; cursor: pointer; }
+.sbtn.off { background: #3b4650; }
+.shield { width: 40px; height: 46px; margin: 4px 0 2px; }
+.count { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 30px; color: #fab219; line-height: 1; }
+.dots { display: flex; gap: 7px; margin: 4px 0 5px; }
+.dots i { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--screen-dim); }
+.dots i.on { background: var(--screen-ink); border-color: var(--screen-ink); }
+.pad { display: grid; grid-template-columns: repeat(3, 40px); gap: 3px; }
+.pad button { height: 22px; border: 0; border-radius: 7px; background: #1e2832; color: var(--screen-ink); font-family: var(--f-mono); font-size: 12px; cursor: pointer; }
+.pad button.hit, .pad button:active { background: #4a5c6d; }
+.rec { color: #ff9a9a; font-size: 11.5px; margin-top: 6px; font-family: var(--f-mono); }
+.rec::before { content: ""; display: inline-block; width: 7px; height: 7px; background: #ff5050; border-radius: 50%; margin-right: 5px; animation: pl 1s infinite; }
+@keyframes pl { 50% { opacity: .25 } }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: #5cc98a; display: inline-block; margin-right: 5px; animation: pl 1.6s infinite; }
+.status { font-family: var(--f-display); font-stretch: 90%; font-weight: 700; font-size: 16px; text-align: center; min-height: 24px; }
+.signal { width: 100%; max-width: 560px; }
+.signal .top { display: flex; justify-content: space-between; align-items: baseline; }
+.signal .val { font-family: var(--f-mono); font-size: 13px; color: var(--ink2); }
+canvas { width: 100%; display: block; }
 
-.phone { width: 300px; background: var(--case); border-radius: 30px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
-.pscreen { background: var(--panel); border-radius: 22px; min-height: 230px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.phonecol { display: flex; justify-content: center; }
+.phone { width: 280px; background: var(--case); border-radius: 30px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); align-self: start; }
+.pscreen { background: var(--panel); border-radius: 22px; min-height: 380px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .phead { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--touch-soft); color: var(--touch); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
 .pname { font-weight: 600; font-size: 13.5px; } .psub { font-size: 11.5px; color: var(--muted); }
-.msgs { display: flex; flex-direction: column; gap: 8px; max-height: 330px; overflow: auto; }
-.msg { background: var(--paper); border-radius: 12px 12px 12px 4px; padding: 8px 10px; font-size: 12.5px; }
-.msg.crit { background: var(--crit-soft); border: 1px solid var(--crit); }
+.msgs { display: flex; flex-direction: column; gap: 8px; }
+.msg { border-radius: 12px 12px 12px 4px; padding: 8px 10px; font-size: 12.5px; background: var(--crit-soft); border: 1px solid var(--crit); animation: slide .35s ease-out; }
+@keyframes slide { from { transform: translateY(-8px); opacity: 0 } to { transform: none; opacity: 1 } }
 .msg .mt { font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); margin-top: 4px; }
 .map { margin-top: 6px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
 .empty { color: var(--muted); font-size: 12.5px; text-align: center; margin: auto 0; }
-.sim { font-size: 11px; color: var(--muted); text-align: center; }
+.sim { font-size: 11px; color: var(--muted); text-align: center; margin-top: auto; }
 
-/* ---- inside column ---- */
-.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-.metric { background: var(--paper); border-radius: 8px; padding: 7px 9px; }
-.metric .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-.metric .v { font-family: var(--f-mono); font-size: 16px; font-weight: 500; }
-.bar { height: 6px; background: var(--grid); border-radius: 3px; margin-top: 5px; overflow: hidden; }
-.bar i { display: block; height: 100%; width: 0; background: var(--touch); transition: width .15s; }
-canvas { width: 100%; display: block; }
-.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink2); margin: 4px 0 2px; }
+/* control bar */
+.bar { margin-top: 14px; }
+.chapters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chapters button { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px 6px 6px; cursor: pointer; font-size: 13px; }
+.chapters button .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--grid); font-family: var(--f-mono); font-size: 11.5px; }
+.chapters button[aria-current="step"] { border-color: var(--touch); font-weight: 600; }
+.chapters button[aria-current="step"] .n { background: var(--touch); color: #fff; }
+.chapters button.done .n { background: var(--calm); color: #fff; }
+.caption { font-family: var(--f-display); font-stretch: 92%; font-weight: 600; font-size: 22px; line-height: 1.3; min-height: 58px; }
+.caption .sub { display: block; font-family: var(--f-body); font-weight: 400; font-size: 14px; color: var(--ink2); margin-top: 4px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 9px 16px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.btn.primary { background: var(--touch); border-color: var(--touch); color: #fff; }
+.btn:disabled { opacity: .45; cursor: default; }
+.hint { font-size: 12.5px; color: var(--muted); margin-left: auto; }
+.tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 10px 8px; cursor: pointer; display: grid; justify-items: center; gap: 4px; text-align: center; font-size: 13px; font-weight: 500; }
+.tile svg { width: 34px; height: 34px; }
+.tile .k { font-size: 11px; color: var(--muted); font-weight: 400; }
+.tile[aria-pressed="true"] { border-color: var(--touch); background: var(--touch-soft); }
+.tile[aria-pressed="true"] .k { color: var(--touch); }
+.ctx { display: flex; gap: 4px; background: var(--paper); padding: 3px; border-radius: 9px; }
+.ctx button { border: 0; background: transparent; padding: 5px 10px; border-radius: 7px; font-size: 12.5px; cursor: pointer; color: var(--ink2); }
+.ctx button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; }
+
+/* science */
+.science { margin-top: 14px; display: none; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 14px; }
+.science.open { display: grid; }
+@media (max-width: 900px) { .science.open { grid-template-columns: minmax(0, 1fr); } }
+.facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+@media (max-width: 640px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fact { background: var(--paper); border-radius: 10px; padding: 8px 10px; }
+.fact .v { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 24px; }
+.fact .k { font-size: 11.5px; color: var(--ink2); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink2); margin: 2px 0 4px; }
 .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--c); margin-right: 5px; vertical-align: middle; }
-.world-now { font-size: 12.5px; color: var(--ink2); background: var(--paper); border-radius: 8px; padding: 7px 10px; margin-bottom: 10px; }
-.world-now b { color: var(--ink); }
-.log { list-style: none; margin: 0; padding: 0; font-size: 12.5px; max-height: 210px; overflow: auto; display: grid; gap: 3px; }
-.log li { display: grid; grid-template-columns: 66px 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--grid); }
+.log { list-style: none; margin: 0; padding: 0; font-size: 12.5px; max-height: 260px; overflow: auto; }
+.log li { display: grid; grid-template-columns: 66px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--grid); }
 .log .lt { font-family: var(--f-mono); color: var(--muted); }
 .log .prompt { color: var(--warn); font-weight: 600; } .log .alert, .log .silent { color: var(--crit); font-weight: 600; } .log .cancel { color: var(--calm); font-weight: 600; }
-footer { margin-top: 16px; font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; }
+.notes { font-size: 12.5px; color: var(--ink2); margin: 10px 0 0; }
+footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; }
 </style>
 
 <div class="wrap">
   <header>
-    <div>
-      <h1>Sparsha<span>Guard</span> digital twin</h1>
-      <div class="tag">The watch's firmware running on a simulated sensor. Only the sensor is simulated; the decisions are the watch's own.</div>
+    <div class="brand">Sparsha<span>Guard</span><small>Digital twin: the watch's own logic on a simulated sensor</small></div>
+    <div class="tabs" role="tablist" aria-label="Mode">
+      <button role="tab" id="tab-guided" aria-selected="true">Guided demo</button>
+      <button role="tab" id="tab-try" aria-selected="false">Try it yourself</button>
     </div>
-    <div class="badges">
-      <span class="badge">Physics: 15 published sources</span>
-      <span class="badge">Circuit checked with SPICE</span>
-      <span class="badge">3D field checked with FastCap</span>
+    <div class="tools">
+      <button class="chip" id="sound" aria-pressed="true">Sound on</button>
+      <button class="chip" id="sci" aria-pressed="false">Show the science</button>
     </div>
   </header>
 
-  <div class="cols">
-    <!-- ================= the world ================= -->
-    <section aria-labelledby="w-t">
-      <div class="card" style="margin-bottom:12px">
-        <h2 class="ctitle">Play a story</h2>
-        <p class="csub">Scripted sequences for a demo. The sensor and firmware still decide everything.</p>
-        <div class="scn stories" id="stories"></div>
-        <div class="row"><button class="btn" id="reset">Reset</button></div>
-      </div>
-      <div class="card">
-        <h2 class="ctitle" id="w-t">The world</h2>
-        <p class="csub">What happens to her. The watch never sees these labels, only its sensor readings.</p>
-        <div class="seg" role="group" aria-label="Where she is" id="ctx">
-          <button data-c="walking" aria-pressed="true">Walking</button>
-          <button data-c="bus" aria-pressed="false">Bus / metro</button>
-          <button data-c="desk" aria-pressed="false">At a desk</button>
-        </div>
-        <div class="group"><p class="glabel">Another person (tap to start, tap to stop)</p>
-          <div class="scn" id="scn-people"></div></div>
-        <div class="group"><p class="glabel">Her and objects</p>
-          <div class="scn" id="scn-other"></div></div>
-        <div class="pinhint">Her PIN <b>1234</b> · duress PIN <b>9999</b></div>
-      </div>
-    </section>
+  <!-- ================= stage ================= -->
+  <div class="stage">
+    <div class="card bodycard">
+      <p class="label">Ananya</p>
+      <svg class="figure" viewBox="0 0 200 300" role="img" aria-label="Body outline showing where she is touched">
+        <g id="m-bystander" class="m"><circle class="ghost" cx="186" cy="48" r="18"/><rect class="ghost" x="166" y="70" width="40" height="110" rx="18"/></g>
+        <circle class="b" cx="100" cy="42" r="22"/>
+        <path class="b" d="M66 74 Q100 64 134 74 L140 170 Q100 182 60 170 Z"/>
+        <path class="b" d="M66 76 Q52 80 50 96 L40 190 Q46 196 52 192 L64 110 Z"/>
+        <path class="b" d="M134 76 Q148 80 150 96 L160 190 Q154 196 148 192 L136 110 Z"/>
+        <path class="b" d="M74 172 L72 286 Q80 292 88 286 L96 180 Z M126 172 L128 286 Q120 292 112 286 L104 180 Z"/>
+        <g id="m-pole" class="m"><rect class="obj" x="168" y="70" width="7" height="230" rx="3"/></g>
+        <g id="m-table" class="m"><rect class="obj" x="118" y="198" width="82" height="8" rx="3"/></g>
+        <g id="watchicon"><rect class="w" x="148" y="172" width="16" height="13" rx="4"/></g>
+        <g id="m-wrist" class="m"><circle class="ring" cx="156" cy="178" r="16"/><circle class="dot" cx="156" cy="178" r="5"/></g>
+        <g id="m-forearm" class="m"><circle class="ring" cx="151" cy="148" r="14"/><circle class="dot" cx="151" cy="148" r="5"/></g>
+        <g id="m-shoulder" class="m"><circle class="ring" cx="138" cy="84" r="16"/><circle class="dot" cx="138" cy="84" r="5"/></g>
+        <g id="m-self" class="m"><path d="M52 190 Q100 214 150 184" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="5 5"/><circle class="dot" cx="152" cy="181" r="5"/></g>
+        <g id="m-strap" class="m"><path d="M160 178 Q186 160 188 130" fill="none" stroke="var(--crit)" stroke-width="2.5" stroke-dasharray="5 5"/><rect x="180" y="118" width="16" height="13" rx="4" fill="var(--crit)"/></g>
+      </svg>
+      <div class="touchnow" id="touchnow"></div>
+    </div>
 
-    <!-- ================= the device ================= -->
-    <section class="device" aria-label="Her watch and her contact's phone">
-      <div class="watchwrap">
-        <div class="strap top"></div><div class="strap bot"></div>
-        <div class="watch" id="watch"><div class="crown"></div><div class="screen" id="screen"></div></div>
+    <div class="card center">
+      <div class="watchbox">
+        <svg class="ringsvg" viewBox="0 0 300 300" aria-hidden="true">
+          <circle class="track" cx="150" cy="150" r="140"/>
+          <circle id="ring" cx="150" cy="150" r="140" stroke-dasharray="879.6" stroke-dashoffset="879.6"/>
+        </svg>
+        <div class="watch" id="watch"><div class="screen" id="screen"></div></div>
       </div>
+      <div class="status" id="status"></div>
+      <div class="signal">
+        <div class="top"><p class="label" style="margin:0">Sensor signal (change from her baseline)</p><span class="val" id="sigval"></span></div>
+        <canvas id="cv-score" height="110" role="img" aria-label="Sensor signal over the last 30 seconds against the 0.3 percent touch threshold"></canvas>
+      </div>
+    </div>
+
+    <div class="phonecol">
       <div class="phone">
         <div class="pscreen">
-          <div class="phead"><div class="avatar">A</div><div><div class="pname">Amma's phone</div><div class="psub">Trusted contact · messages from SparshaGuard</div></div></div>
-          <div class="msgs" id="msgs"><div class="empty">No messages</div></div>
+          <div class="phead"><div class="avatar">A</div><div><div class="pname">Amma's phone</div><div class="psub">Trusted contact</div></div></div>
+          <div class="msgs" id="msgs"><div class="empty">No alerts</div></div>
           <div class="sim">Simulated. Nothing is actually sent or called.</div>
         </div>
       </div>
-    </section>
-
-    <!-- ================= inside the watch ================= -->
-    <section class="inside" aria-labelledby="i-t">
-      <div class="card">
-        <h2 class="ctitle" id="i-t">Inside the watch</h2>
-        <p class="csub">5 readings a second, each the average of 16 sweeps over 200 frequencies (1 kHz–3.5 MHz).</p>
-        <div class="world-now" id="worldnow"></div>
-        <div class="metrics">
-          <div class="metric"><div class="k">Change vs baseline</div><div class="v" id="m-score">–</div></div>
-          <div class="metric"><div class="k">Touch held</div><div class="v" id="m-hold">0.0 / 2.0 s</div><div class="bar"><i id="m-holdbar"></i></div></div>
-          <div class="metric"><div class="k">Off-wrist match</div><div class="v" id="m-off">–</div></div>
-        </div>
-        <div class="legend"><span style="--c: var(--touch)">change, % of full scale (log)</span><span style="--c: var(--warn)">0.3 % touch threshold</span><span style="--c: var(--base)">0.15 % release</span></div>
-        <canvas id="cv-score" height="190" role="img" aria-label="Change against baseline over the last 30 seconds"></canvas>
-        <div class="legend" style="margin-top:10px"><span style="--c: var(--base)">baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
-        <canvas id="cv-sweep" height="150" role="img" aria-label="Sensor sweep, baseline and now"></canvas>
-      </div>
-      <div class="card">
-        <h2 class="ctitle">Firmware log</h2>
-        <ul class="log" id="log"></ul>
-      </div>
-    </section>
+    </div>
   </div>
 
-  <footer>
-    <div>Same model as the study: a wrist grab changes the reading by ~16 %, every other grab (forearm included) by about the noise (~0.1 %). In 120 random trials each, this twin catches ~87 % of wrist grabs (the rest: his palm misses the outer electrode), 0 % of forearm and shoulder grabs, and 100 % of strap removals; ~4 unwanted PIN prompts per hour of daily life (study: 93 %, 0 %, 0 %, ~5.5 per hour). Grabs away from the wrist need the planned motion and audio paths.</div>
-    <div>Sensor values are simulated from the published-source model (sg_model.py), not measured; Gate 1 hardware will calibrate them. Location and contacts are made up.</div>
-  </footer>
+  <!-- ================= control bar ================= -->
+  <div class="card bar" id="bar-guided">
+    <div class="chapters" id="chapters"></div>
+    <div class="caption" id="caption" aria-live="polite"></div>
+    <div class="controls">
+      <button class="btn primary" id="playall">Play all</button>
+      <button class="btn" id="playone">Play this chapter</button>
+      <button class="btn" id="next">Next chapter</button>
+      <span class="hint">About 1½ minutes for all six chapters</span>
+    </div>
+  </div>
+  <div class="card bar" id="bar-try" hidden>
+    <div class="controls" style="margin:0 0 10px">
+      <span class="label" style="margin:0">Tap a tile to start a touch, tap again to stop. Answer on the watch: PIN <b>1234</b>, duress <b>9999</b>.</span>
+      <div class="ctx" id="ctx" style="margin-left:auto" role="group" aria-label="Where she is">
+        <button data-c="walking" aria-pressed="true">Walking</button><button data-c="bus" aria-pressed="false">Bus</button><button data-c="desk" aria-pressed="false">Desk</button>
+      </div>
+      <button class="btn" id="reset">Start over</button>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+  <!-- ================= the science ================= -->
+  <div class="science" id="science">
+    <div class="card">
+      <p class="label">Proof, not promises</p>
+      <div class="facts">
+        <div class="fact"><div class="v">~16 %</div><div class="k">signal change from a wrist grab (noise ~0.1 %)</div></div>
+        <div class="fact"><div class="v">87 %</div><div class="k">of random wrist grabs caught in 120 trials</div></div>
+        <div class="fact"><div class="v">100 %</div><div class="k">of strap removals caught, no false alarms</div></div>
+        <div class="fact"><div class="v">0 %</div><div class="k">of forearm or shoulder grabs: needs motion + audio</div></div>
+      </div>
+      <div class="legend"><span style="--c: var(--base)">her baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
+      <canvas id="cv-sweep" height="170" role="img" aria-label="Sensor sweep across frequency, baseline and now"></canvas>
+      <p class="notes">Each reading is a sweep of 200 frequencies (1 kHz–3.5 MHz), 5 times a second. The physics uses values from 15 published papers; the circuit solver is checked against SPICE and the 3D field against MIT's FastCap. The sensor here is simulated; the decisions are the watch firmware's own, and it never sees which scene is playing. Gate 1 hardware will calibrate the numbers.</p>
+    </div>
+    <div class="card">
+      <p class="label">Firmware log</p>
+      <ul class="log" id="log"></ul>
+    </div>
+  </div>
+
+  <footer>SparshaGuard · RV University · simulation study. Names, contacts and location are made up.</footer>
 </div>
 
 <script>
@@ -218,135 +278,230 @@ footer { margin-top: 16px; font-size: 12.5px; color: var(--muted); display: grid
 (() => {
   const $ = (id) => document.getElementById(id);
   const FS = SGSensor.FS;
-  let sensor, fw, timer, simT = 0, scnActive = null, scnStart = 0, story = null, msgs = [], flash = null, callStart = 0;
-  const hist = [];                         // last 30 s of {t, score, active}
-  const START_CLOCK = 21 * 3600 + 47 * 60; // 21:47, on her watch face
+  let sensor, fw, timer, simT = 0, scn = null, scnStart = 0, runner = null, msgs = [], flash = null, callStart = 0;
+  const hist = [];
+  const START_CLOCK = 21 * 3600 + 47 * 60;
 
-  const PEOPLE = [
-    ["person", "wrist", "Stranger grabs her wrist", "hand over the watch"],
-    ["person", "forearm", "Stranger grabs her forearm", "1–5 cm from the strap"],
-    ["person", "shoulder", "Stranger grabs her shoulder", ""],
-    ["bystander", null, "Someone stands very close", "no touch"],
-  ];
-  const OTHER = [
-    ["self", null, "She adjusts her own watch", "her hand on the strap"],
-    ["object", "railing_wrist", "Strap pressed on a metal pole", ""],
-    ["object", "wood_table", "Wrist resting on a table", ""],
-    ["object", "phone", "Holding her phone", ""],
-    ["strap_off", null, "Strap pulled off her wrist", ""],
-  ];
-  const NAMES = Object.fromEntries([...PEOPLE, ...OTHER].map(([k, d, n]) => [`${k}:${d}`, n]));
+  // ------------------------------------------------------------------ sound (Web Audio, no files)
+  let actx = null, soundOn = true;
+  function tone(freq, dur, type = "sine", gain = 0.08, when = 0) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + when;
+      o.type = type; o.frequency.value = freq; g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { /* audio not available */ }
+  }
+  const sBuzz = () => { tone(170, 0.12, "square", 0.05); tone(170, 0.12, "square", 0.05, 0.18); };
+  const sAlert = () => { for (let i = 0; i < 4; i++) { tone(880, 0.22, "sawtooth", 0.05, i * 0.5); tone(660, 0.22, "sawtooth", 0.05, i * 0.5 + 0.25); } };
+  const sOk = () => { tone(660, 0.15, "sine", 0.07); tone(990, 0.25, "sine", 0.07, 0.12); };
+  const sKey = () => tone(1200, 0.04, "sine", 0.03);
 
-  function describe(e) {
-    if (!e) return "Nothing touching her.";
-    const k = `${e.kind}:${e.detail}`;
-    let s = `<b>${e.label || NAMES[k]}</b>`;
+  // ------------------------------------------------------------------ scenes
+  const TILES = [
+    { k: "person:wrist", name: "Grab her wrist", sub: "stranger", icon: "hand" },
+    { k: "person:forearm", name: "Grab her forearm", sub: "1–5 cm from strap", icon: "arm" },
+    { k: "person:shoulder", name: "Grab her shoulder", sub: "stranger", icon: "shoulder" },
+    { k: "bystander:null", name: "Stand very close", sub: "no touch", icon: "person" },
+    { k: "self:null", name: "Her own hand", sub: "adjusts the watch", icon: "self" },
+    { k: "object:railing_wrist", name: "Strap on a metal pole", sub: "on the bus", icon: "pole" },
+    { k: "strap_off:null", name: "Rip the watch off", sub: "strap removed", icon: "off" },
+  ];
+  const ICONS = {
+    hand: '<path d="M10 22 V10 a2 2 0 0 1 4 0 V18 M14 17 V7 a2 2 0 0 1 4 0 V17 M18 17 V8 a2 2 0 0 1 4 0 V18 M22 18 V11 a2 2 0 0 1 4 0 V22 Q26 31 18 31 Q11 31 10 22 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+    arm: '<path d="M4 26 L24 12 M8 30 L28 16" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="17" cy="20" r="4" fill="var(--touch)"/>',
+    shoulder: '<circle cx="17" cy="9" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 32 Q5 17 17 17 Q29 17 29 32" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="25" cy="20" r="3.5" fill="var(--touch)"/>',
+    person: '<circle cx="11" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 30 Q4 16 11 16 Q18 16 18 30" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="25" cy="11" r="4" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><path d="M19 30 Q19 18 25 18 Q31 18 31 30" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/>',
+    self: '<rect x="11" y="11" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 30 Q10 20 13 22" fill="none" stroke="var(--touch)" stroke-width="2.5"/>',
+    pole: '<rect x="21" y="2" width="5" height="30" rx="2" fill="currentColor" opacity=".6"/><rect x="8" y="12" width="12" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
+    off: '<rect x="14" y="5" width="12" height="10" rx="3" fill="none" stroke="var(--crit)" stroke-width="2"/><path d="M4 28 Q10 22 16 22 M10 18 L6 14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 18 L18 26" stroke="var(--crit)" stroke-width="2" stroke-dasharray="3 3"/>',
+  };
+  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander",
+    "self:null": "m-self", "object:railing_wrist": "m-pole", "strap_off:null": "m-strap", "object:wood_table": "m-table" };
+  const NAME = Object.fromEntries(TILES.map((t) => [t.k, t.name]));
+
+  function startScene(k, force) {
+    const [kind, d] = k.split(":"); const detail = d === "null" ? null : d;
+    sensor.startEvent(kind, detail); if (force) Object.assign(sensor.event, force);
+    scn = k; scnStart = simT; paintScene();
+  }
+  function endScene() { if (scn) { sensor.endEvent(); scn = null; paintScene(); } }
+  function paintScene() {
+    document.querySelectorAll(".figure .m").forEach((g) => g.classList.toggle("on", !!scn && MARK[scn] === g.id));
+    $("watchicon").style.opacity = scn === "strap_off:null" ? 0.15 : 1;
+    document.querySelectorAll(".tile").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.k === scn)));
+  }
+  function describe() {
+    const e = sensor.event;
+    if (!e) return `<span style="color:var(--muted)">Nobody is touching her.</span>`;
+    let s = `<b>${e.label || NAME[scn] || "Touch"}</b>`;
     if (e.kind === "person") {
-      s += e.bare ? " · bare skin" : ` · through clothing (${e.clothMm.toFixed(2)} mm)`;
-      if (e.detail === "wrist") s += e.offElectrode ? ` · his palm misses the outer electrode (${e.handPF.toFixed(1)} pF)` : " · his palm on the outer electrode";
-      if (e.detail === "forearm") s += ` · his hand ${e.gapCm.toFixed(1)} cm from the strap (${SG.handNearStrapPF(e.gapCm, "dual").toFixed(2)} pF, 3D solve)`;
+      s += e.bare ? " · bare skin" : " · through clothing";
+      if (e.detail === "wrist") s += e.offElectrode ? " · his palm misses the watch's outer electrode" : " · his palm on the watch's outer electrode";
+      if (e.detail === "forearm") s += ` · ${e.gapCm.toFixed(1)} cm from the strap`;
     }
-    return s + ` <span style="color:var(--muted)">· for ${((simT - scnStart) / FS).toFixed(1)} s</span>`;
+    return s + ` <span style="color:var(--muted)">· ${((simT - scnStart) / FS).toFixed(1)} s</span>`;
   }
 
-  // ---------------------------------------------------------------- world controls
-  function mkButtons(host, list) {
-    for (const [kind, detail, name, hint] of list) {
-      const b = document.createElement("button");
-      b.dataset.k = `${kind}:${detail}`; b.setAttribute("aria-pressed", "false");
-      b.innerHTML = `<span>${name}${hint ? `<br><span class="hint">${hint}</span>` : ""}</span><span class="tm"></span>`;
-      b.addEventListener("click", () => { stopStory(); toggleScenario(kind, detail); });
-      host.appendChild(b);
-    }
-  }
-  function toggleScenario(kind, detail, force) {
-    const key = `${kind}:${detail}`;
-    if (scnActive === key) { sensor.endEvent(); scnActive = null; }
-    else { sensor.startEvent(kind, detail); if (force) Object.assign(sensor.event, force); scnActive = key; scnStart = simT; }
-    document.querySelectorAll(".scn button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === scnActive)));
-  }
-  function endScenario() { if (scnActive) { const [k, d] = scnActive.split(":"); toggleScenario(k, d === "null" ? null : d); } }
-
-  // ---------------------------------------------------------------- stories (scripted demo)
-  // steps: [seconds after previous step, action]
-  const typePin = (pin) => [...pin].map((d) => [0.55, () => press(d)]);
-  const STORIES = [
-    ["1 · A stranger grabs her wrist", "No PIN: the alert goes out", [
-      [0, guardOn], [7, () => toggleScenario("person", "wrist", { offElectrode: false, bare: true })], [30, endScenario]]],
-    ["2 · A friend holds her hand", "She enters her PIN: cancelled", [
-      [0, guardOn], [7, () => toggleScenario("person", "wrist", { offElectrode: false, bare: true, label: "A friend holds her hand" })], [4.5, () => {}], ...typePin("1234"), [3, endScenario]]],
-    ["3 · Forced to cancel", "Duress PIN: looks cancelled, alerts silently", [
-      [0, guardOn], [7, () => toggleScenario("person", "wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist and forces her to cancel" })], [5, () => {}], ...typePin("9999"), [4, endScenario]]],
-    ["4 · The watch is ripped off", "Alert at once, no PIN asked", [
-      [0, guardOn], [7, () => toggleScenario("strap_off", null)], [10, endScenario]]],
-    ["5 · Everyday life", "Brief touches ignored; what it can't see", [
-      [0, guardOn], [6, () => toggleScenario("self", null)], [1.4, endScenario],
-      [3, () => toggleScenario("bystander", null)], [5, endScenario],
-      [2, () => toggleScenario("person", "shoulder")], [4, endScenario],
-      [2, () => toggleScenario("person", "forearm", { gapCm: 3, bare: true })], [5, endScenario]]],
+  // ------------------------------------------------------------------ guided chapters
+  // a step: { wait: seconds } or { until: () => bool }, then optional do() and say (caption)
+  const typePin = (pin) => [...pin].map((d) => ({ wait: 0.55, do: () => press(d) }));
+  const armed = () => fw.state === "armed" && !(flash && simT < flash.until);
+  const CHAPTERS = [
+    { t: "Guard Mode", steps: [
+      { fresh: true, say: "Ananya is walking home alone at night. She turns on Guard Mode.", sub: "One tap on the watch." },
+      { wait: 1.2, do: () => fw.setGuard(true), say: "First, the watch learns her: 5 seconds of her own body on the sensor.", sub: "Each reading sweeps 200 frequencies, 5 times a second." },
+      { until: () => fw.state === "armed", say: "Now it is guarding. The signal stays flat while nobody touches her.", sub: "That flat line is her own body, with sweat and movement, inside the noise." },
+      { wait: 3.5 } ] },
+    { t: "A stranger grabs her wrist", steps: [
+      { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }) },
+      { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %.", sub: "His palm closes a path through the watch's outer electrode on the strap." },
+      { until: () => fw.state === "prompt", say: "Held for 2 seconds: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
+      { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
+      { until: () => fw.state === "alert", say: "Alert: her live location goes to her contacts, 112 is called, audio is recorded.", sub: "No button needed. The touch itself raised the alarm." },
+      { wait: 4, do: endScene } ] },
+    { t: "A friend holds her hand", steps: [
+      { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A friend holds her hand" }) },
+      { until: () => fw.state === "prompt", say: "Any hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
+      { wait: 1.2, say: "She types her PIN, 1234.", sub: "" }, ...typePin("1234"),
+      { wait: 0.3, say: "Cancelled. The watch keeps guarding.", sub: "" },
+      { wait: 2.5, do: endScene }, { wait: 1 } ] },
+    { t: "Forced to cancel", steps: [
+      { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A stranger forces her to cancel" }) },
+      { until: () => fw.state === "prompt", say: "The watch asks for the PIN.", sub: "" },
+      { wait: 1.2, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
+      { wait: 0.3, say: "The screen says \"Cancelled\", so he thinks it worked…", sub: "" },
+      { wait: 2.2, say: "…but Amma gets a silent alert with her location, and 112 is called.", sub: "" },
+      { wait: 3.5, do: endScene } ] },
+    { t: "The watch is ripped off", steps: [
+      { ready: true, say: "He rips the watch off her wrist.", sub: "", do: () => startScene("strap_off:null") },
+      { until: () => fw.state === "alert", say: "The electrode loses her skin: alert in under a second, no PIN asked.", sub: "The watch compares each reading with its own off-the-wrist signature." },
+      { wait: 4, do: endScene } ] },
+    { t: "Everyday life", steps: [
+      { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
+      { wait: 1, do: () => startScene("self:null"), say: "She adjusts her watch for a moment.", sub: "Under 2 seconds: ignored." },
+      { wait: 1.4, do: endScene },
+      { wait: 2, do: () => startScene("bystander:null"), say: "A stranger stands very close on the bus.", sub: "No touch: the signal stays in the noise." },
+      { wait: 4, do: endScene },
+      { wait: 1, do: () => startScene("person:shoulder"), say: "Someone grabs her shoulder.", sub: "Honest limit: a wrist sensor can't feel this. Motion and audio sensing (planned) cover it." },
+      { wait: 5, do: endScene }, { wait: 1.5 } ] },
   ];
-  function playStory(i) {
-    stopStory(); resetAll(); const steps = STORIES[i][2]; let k = 0, wait = 0;
-    markStory(i);
-    story = { tick() { wait -= 1 / FS; while (k < steps.length && wait <= 0) { steps[k][1](); k++; if (k < steps.length) wait += steps[k][0]; } if (k >= steps.length) story = null; } };
-    wait = steps[0][0];
+  let chapter = 0, playAll = false;
+  function renderChapters() {
+    $("chapters").innerHTML = CHAPTERS.map((c, i) => `<button data-i="${i}" ${i === chapter ? 'aria-current="step"' : ""} class="${c.done ? "done" : ""}"><span class="n">${i + 1}</span>${c.t}</button>`).join("");
   }
-  function stopStory() { story = null; markStory(-1); }
-  function markStory(i) { document.querySelectorAll("#stories button").forEach((b, j) => b.setAttribute("aria-pressed", String(j === i))); }
-  function guardOn() { if (fw.state === "off") fw.setGuard(true); }
+  $("chapters").addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (!b) return; stopRunner(); chapter = +b.dataset.i; renderChapters(); setCaption(CHAPTERS[chapter].t, "Press “Play this chapter”."); });
+  function setCaption(t, sub) { $("caption").innerHTML = `${t}${sub ? `<span class="sub">${sub}</span>` : ""}`; }
 
-  // ---------------------------------------------------------------- watch UI
+  function runChapter(i) {
+    runner = null; chapter = i; renderChapters();
+    const steps = CHAPTERS[i].steps.slice(); let k = 0, wait = 0, pre = [];
+    const first = steps[0];
+    if (first.fresh) resetAll();
+    else if (first.ready && (fw.state === "off" || fw.state === "alert")) {
+      resetAll(); fw.setGuard(true);
+      pre = [{ say: "Guard Mode back on: the watch re-learns her for 5 seconds.", sub: "" }, { until: armed }];
+    } else if (first.ready) pre = [{ until: armed }];
+    const all = [...pre, ...steps];
+    runner = {
+      tick() {
+        while (k < all.length) {
+          const s = all[k];
+          if (s.wait !== undefined && !s._started) { s._started = true; wait = s.wait; }
+          if (s.wait !== undefined && (wait -= 1 / FS) > 0) return;
+          if (s.until && !s.until()) return;
+          if (s.do) s.do(); if (s.say !== undefined) setCaption(s.say, s.sub);
+          k++; if (k < all.length) delete all[k]._started;
+        }
+        CHAPTERS[i].done = true; runner = null; renderChapters();
+        if (playAll && i + 1 < CHAPTERS.length) { chapter = i + 1; runChapter(i + 1); }
+        else { playAll = false; if (i + 1 < CHAPTERS.length) { chapter = i + 1; renderChapters(); } }
+      },
+    };
+    all.forEach((s) => delete s._started);
+  }
+  function stopRunner() { runner = null; playAll = false; }
+  $("playall").addEventListener("click", () => { CHAPTERS.forEach((c) => (c.done = false)); playAll = true; runChapter(0); });
+  $("playone").addEventListener("click", () => { playAll = false; runChapter(chapter); });
+  $("next").addEventListener("click", () => { stopRunner(); chapter = (chapter + 1) % CHAPTERS.length; renderChapters(); runChapter(chapter); });
+
+  // ------------------------------------------------------------------ try it yourself
+  $("tiles").innerHTML = TILES.map((t) => `<button class="tile" data-k="${t.k}" aria-pressed="false"><svg viewBox="0 0 34 34" aria-hidden="true">${ICONS[t.icon]}</svg>${t.name}<span class="k">${t.sub}</span></button>`).join("");
+  $("tiles").addEventListener("click", (ev) => {
+    const b = ev.target.closest(".tile"); if (!b) return; stopRunner();
+    if (fw.state === "off") { fw.setGuard(true); setCaption("", ""); }
+    scn === b.dataset.k ? endScene() : (endScene(), startScene(b.dataset.k));
+  });
+  $("ctx").addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (!b) return;
+    document.querySelectorAll("#ctx button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); sensor.setContext(b.dataset.c); });
+  $("reset").addEventListener("click", () => { stopRunner(); resetAll(); });
+  function setMode(m) {
+    $("tab-guided").setAttribute("aria-selected", String(m === "guided")); $("tab-try").setAttribute("aria-selected", String(m === "try"));
+    $("bar-guided").hidden = m !== "guided"; $("bar-try").hidden = m !== "try";
+    stopRunner(); if (m === "try") { endScene(); if (fw.state === "off") fw.setGuard(true); }
+  }
+  $("tab-guided").addEventListener("click", () => setMode("guided"));
+  $("tab-try").addEventListener("click", () => setMode("try"));
+  $("sound").addEventListener("click", () => { soundOn = !soundOn; $("sound").setAttribute("aria-pressed", String(soundOn)); $("sound").textContent = soundOn ? "Sound on" : "Sound off"; });
+  $("sci").addEventListener("click", () => { const on = $("science").classList.toggle("open"); $("sci").setAttribute("aria-pressed", String(on)); $("sci").textContent = on ? "Hide the science" : "Show the science"; });
+
+  // ------------------------------------------------------------------ watch
   const clock = () => { const s = START_CLOCK + Math.floor(simT / FS); return `${String(Math.floor(s / 3600) % 24).padStart(2, "0")}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}`; };
-  const shield = (col) => `<svg class="shield" viewBox="0 0 54 62" aria-hidden="true"><path d="M27 2 L51 11 V30 C51 45 40 55 27 60 C14 55 3 45 3 30 V11 Z" fill="none" stroke="${col}" stroke-width="3"/><path d="M17 31 l7 7 l13 -15" fill="none" stroke="${col}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  let lastScreen = "";
+  const shield = (col) => `<svg class="shield" viewBox="0 0 54 62" aria-hidden="true"><path d="M27 2 L51 11 V30 C51 45 40 55 27 60 C14 55 3 45 3 30 V11 Z" fill="none" stroke="${col}" stroke-width="3.5"/><path d="M17 31 l7 7 l13 -15" fill="none" stroke="${col}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  let lastScreen = "", lastState = "";
   function renderWatch() {
-    const scr = $("screen"), w = $("watch"); let html = "", cls = "screen";
-    w.classList.toggle("buzz", fw.state === "prompt");
-    if (flash && simT < flash.until) html = `<div class="sclock">${clock()}</div><div class="sbig" style="margin-top:44px">Cancelled</div><div class="ssmall">Still guarding</div>`;
-    else if (fw.state === "off") html = `<div class="sclock">${clock()}</div>${shield("#5d6b78")}<div class="sbig">Guard Mode<br>off</div><button class="sbtn" data-act="on">Turn on Guard Mode</button>`;
-    else if (fw.state === "learning") html = `<div class="sclock">${clock()}</div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">Keep still for a moment</div>`;
-    else if (fw.state === "armed") html = `<div class="sclock">${clock()}</div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>Touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`;
-    else if (fw.state === "prompt") {
+    let html = "", cls = "screen", status = "", ringCol = "var(--grid)", frac = 0;
+    $("watch").classList.toggle("buzz", fw.state === "prompt");
+    const showCancel = flash && simT < flash.until;
+    if (showCancel) { html = `<div class="sclock">${clock()}</div><div class="sbig">Cancelled</div><div class="ssmall">Still guarding</div>`; status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
+    else if (fw.state === "off") { html = `<div class="sclock">${clock()}</div>${shield("#5d6b78")}<div class="sbig">Guard Mode off</div><button class="sbtn" data-act="on">Turn on</button>`; status = "Guard Mode off"; }
+    else if (fw.state === "learning") { html = `<div class="sclock">${clock()}</div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">keep still</div>`; status = "Learning her baseline"; ringCol = "var(--warn)"; frac = fw.learn.length / (5 * FS); }
+    else if (fw.state === "armed") {
+      html = `<div class="sclock">${clock()}</div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`;
+      if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
+      else { status = "Guarding"; ringCol = "var(--calm)"; frac = 1; }
+    } else if (fw.state === "prompt") {
       const dots = [0, 1, 2, 3].map((i) => `<i class="${i < fw.entry.length ? "on" : ""}"></i>`).join("");
       const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k) => k ? `<button data-key="${k}" aria-label="${k === "del" ? "delete" : k}">${k === "del" ? "⌫" : k}</button>` : "<span></span>").join("");
-      html = `<div class="ssmall" style="margin-top:0">Enter PIN</div><div class="count">${fw.pinSecondsLeft}</div><div class="dots">${dots}</div><div class="pad">${keys}</div>`;
+      html = `<div class="ssmall" style="margin:0">Enter PIN</div><div class="count">${fw.pinSecondsLeft}</div><div class="dots">${dots}</div><div class="pad">${keys}</div>`;
+      status = `Enter PIN: ${fw.pinSecondsLeft} s left`; ringCol = "var(--warn)"; frac = fw.pinLeft / (15 * FS);
     } else if (fw.state === "alert") {
       cls += " alert"; const s = Math.floor((simT - callStart) / FS);
-      html = `<div class="sclock" style="color:#ffb3b3">${clock()}</div><div class="sbig" style="margin-top:20px">Alert sent</div><div class="ssmall" style="color:#ffd0d0">SMS + location to 2 contacts</div><div class="ssmall" style="color:#fff;font-size:14px;margin-top:12px">Calling 112 · ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}</div><div class="rec">Recording audio</div>`;
+      html = `<div class="sclock" style="color:#ffb3b3">${clock()}</div><div class="sbig" style="color:#fff">Alert sent</div><div class="ssmall" style="color:#ffd0d0">location to 2 contacts</div><div class="ssmall" style="color:#fff;font-size:13.5px">Calling 112 · ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}</div><div class="rec">recording</div>`;
+      status = "Alert sent"; ringCol = "var(--crit)"; frac = 1;
     }
-    if (html !== lastScreen) { scr.className = cls; scr.innerHTML = html; lastScreen = html; }
+    if (html !== lastScreen) { const scr = $("screen"); scr.className = cls; scr.innerHTML = html; lastScreen = html; }
+    const ring = $("ring"); ring.style.stroke = ringCol; ring.style.strokeDashoffset = String(879.6 * (1 - Math.max(0, Math.min(1, frac))));
+    $("status").textContent = status; $("status").style.color = fw.state === "alert" ? "var(--crit)" : fw.state === "prompt" ? "var(--warn)" : "";
+    if (fw.state === "prompt" && simT % FS === 0) sBuzz();
+    lastState = fw.state;
   }
   $("screen").addEventListener("click", (ev) => {
     const b = ev.target.closest("button"); if (!b) return;
     if (b.dataset.act === "on") fw.setGuard(true);
     if (b.dataset.act === "off") fw.setGuard(false);
-    if (b.dataset.key) { stopStory(); press(b.dataset.key); }
+    if (b.dataset.key) { stopRunner(); press(b.dataset.key); }
     renderWatch();
   });
   function press(k) {
-    fw.pressKey(k); renderWatch();
+    fw.pressKey(k); sKey(); renderWatch();
     const b = document.querySelector(`.pad button[data-key="${k}"]`); if (b) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 180); }
   }
 
-  // ---------------------------------------------------------------- phone UI
-  const LAT = 12.9237, LON = 77.4987;      // made-up location near Bengaluru (simulated GPS)
-  function mapCard() {
-    return `<div class="map"><svg viewBox="0 0 260 90" width="100%" height="90" aria-label="Map pin at the shared location">
-      <rect width="260" height="90" fill="var(--paper)"/>
-      <path d="M0 62 L260 40 M60 0 L90 90 M170 0 L150 90 M0 20 L260 28" stroke="var(--line)" stroke-width="6" fill="none"/>
-      <circle cx="128" cy="47" r="16" fill="var(--crit-soft)"/><circle cx="128" cy="47" r="6" fill="var(--crit)"/></svg></div>`;
-  }
+  // ------------------------------------------------------------------ phone
+  const LAT = 12.9237, LON = 77.4987;           // made-up location near Bengaluru
+  const mapCard = () => `<div class="map"><svg viewBox="0 0 240 80" width="100%" height="80" aria-label="Map pin at the shared location"><rect width="240" height="80" fill="var(--paper)"/><path d="M0 56 L240 36 M56 0 L84 80 M160 0 L140 80 M0 18 L240 26" stroke="var(--line)" stroke-width="6" fill="none"/><circle cx="118" cy="42" r="15" fill="var(--crit-soft)"/><circle cx="118" cy="42" r="6" fill="var(--crit)"/></svg></div>`;
   function addMsg(kind) {
-    const time = clock();
     const loc = `${LAT.toFixed(4)}° N, ${LON.toFixed(4)}° E`;
     const txt = kind === "silent"
-      ? `<b>SparshaGuard SILENT ALERT</b><br>Ananya entered her duress PIN. She may be forced to cancel. Do not call her phone.<br>Location: ${loc}. 112 has been called.`
-      : `<b>SparshaGuard ALERT</b><br>Ananya may be in danger. Location: ${loc}. 112 has been called and audio is being recorded.`;
-    msgs.unshift(`<div class="msg crit">${txt}${mapCard()}<div class="mt">${time} · sent automatically</div></div>`);
-    $("msgs").innerHTML = msgs.join("");
+      ? `<b>SparshaGuard SILENT ALERT</b><br>Ananya used her duress PIN: she may be forced to cancel. Don't call her phone. Location ${loc}. 112 has been called.`
+      : `<b>SparshaGuard ALERT</b><br>Ananya may be in danger. Location ${loc}. 112 has been called and audio is being recorded.`;
+    msgs.unshift(`<div class="msg">${txt}${mapCard()}<div class="mt">${clock()} · sent automatically</div></div>`);
+    $("msgs").innerHTML = msgs.slice(0, 2).join("");
   }
 
-  // ---------------------------------------------------------------- charts
+  // ------------------------------------------------------------------ charts
   const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   function setup(cv) {
     const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, h = +cv.getAttribute("height");
@@ -354,74 +509,64 @@ footer { margin-top: 16px; font-size: 12.5px; color: var(--muted); display: grid
     const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, W: r.width, H: h };
   }
   function drawScore() {
-    const { g, W, H } = setup($("cv-score")); g.clearRect(0, 0, W, H);
-    const L = 44, R = 8, T = 6, B = 20, y0 = Math.log10(0.05), y1 = Math.log10(30);
+    const { g, W, H } = setup($("cv-score")); if (!W) return; g.clearRect(0, 0, W, H);
+    const L = 40, R = 6, T = 6, B = 16, y0 = Math.log10(0.05), y1 = Math.log10(30);
     const Y = (p) => T + (H - T - B) * (1 - (Math.log10(Math.max(p, 0.05)) - y0) / (y1 - y0));
     const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
-    g.font = `11px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
-    for (const p of [0.1, 0.3, 1, 3, 10]) { g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(W - R, Y(p)); g.stroke(); g.fillText(`${p}%`, 4, Y(p) + 4); }
-    for (let s = 0; s <= 30; s += 10) g.fillText(s === 0 ? "now" : `-${s} s`, X(simT - s * FS) - (s === 0 ? 24 : 12), H - 5);
+    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+    for (const p of [0.1, 1, 10]) { g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(W - R, Y(p)); g.stroke(); g.fillText(`${p}%`, 2, Y(p) + 4); }
+    g.fillText("now", W - R - 22, H - 3); g.fillText("30 s ago", L, H - 3);
     g.fillStyle = css("--touch-soft");
     for (const h of hist) if (h.active) g.fillRect(X(h.t) - 1, T, (W - L - R) / (30 * FS) + 1, H - T - B);
-    const line = (p, col, dash) => { g.setLineDash(dash); g.strokeStyle = col; g.lineWidth = 1.5; g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(W - R, Y(p)); g.stroke(); g.setLineDash([]); };
-    line(0.3, css("--warn"), [6, 4]); line(0.15, css("--base"), [3, 4]);
+    g.setLineDash([6, 4]); g.strokeStyle = css("--warn"); g.lineWidth = 1.5; g.beginPath(); g.moveTo(L, Y(0.3)); g.lineTo(W - R, Y(0.3)); g.stroke(); g.setLineDash([]);
+    g.fillStyle = css("--warn"); g.fillText("touch threshold 0.3 %", L + 4, Y(0.3) - 5);
     g.strokeStyle = css("--touch"); g.lineWidth = 2; g.beginPath();
     hist.forEach((h, i) => { const x = X(h.t), y = Y(h.score); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
   }
   function drawSweep(amp) {
-    const { g, W, H } = setup($("cv-sweep")); g.clearRect(0, 0, W, H);
-    const L = 44, R = 8, T = 6, B = 20, n = 46;   // first 46 points: 1-790 kHz, where the resonance lives
+    if (!$("science").classList.contains("open")) return;
+    const { g, W, H } = setup($("cv-sweep")); if (!W) return; g.clearRect(0, 0, W, H);
+    const L = 36, R = 8, T = 6, B = 18, n = 46;
     const X = (i) => L + (W - L - R) * i / (n - 1), Y = (a) => T + (H - T - B) * (1 - a / 1.2);
-    g.font = `11px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid");
-    for (const a of [0, 0.4, 0.8, 1.2]) { g.beginPath(); g.moveTo(L, Y(a)); g.lineTo(W - R, Y(a)); g.stroke(); g.fillText(a.toFixed(1), 12, Y(a) + 4); }
-    for (const i of [0, 11, 23, 34, 45]) { const lab = `${Math.round(SG.TOUCHE[i] / 1e3)} kHz`; g.fillText(lab, i === 45 ? X(i) - g.measureText(lab).width : X(i) - 18, H - 5); }
+    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid");
+    for (const a of [0, 0.4, 0.8, 1.2]) { g.beginPath(); g.moveTo(L, Y(a)); g.lineTo(W - R, Y(a)); g.stroke(); g.fillText(a.toFixed(1), 6, Y(a) + 4); }
+    for (const i of [0, 11, 23, 34, 45]) { const lab = `${Math.round(SG.TOUCHE[i] / 1e3)} kHz`; g.fillText(lab, i === 45 ? X(i) - g.measureText(lab).width : Math.max(L, X(i) - 18), H - 4); }
     const plot = (arr, col, w) => { if (!arr) return; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); for (let i = 0; i < n; i++) { i ? g.lineTo(X(i), Y(arr[i])) : g.moveTo(X(i), Y(arr[i])); } g.stroke(); };
     plot(fw.base, css("--base"), 2.5); plot(amp, css("--touch"), 1.8);
   }
 
-  // ---------------------------------------------------------------- loop
+  // ------------------------------------------------------------------ loop
+  const clockAt = (s) => { const x = START_CLOCK + Math.floor(s); return `${String(Math.floor(x / 3600) % 24).padStart(2, "0")}:${String(Math.floor(x / 60) % 60).padStart(2, "0")}:${String(x % 60).padStart(2, "0")}`; };
   function logEvent(e) {
     const li = document.createElement("li");
     li.innerHTML = `<span class="lt">${clockAt(e.t)}</span><span class="${e.type}">${e.text}</span>`;
     $("log").prepend(li);
-    if (e.type === "alert") { callStart = simT; addMsg("alert"); }
+    if (e.type === "alert") { callStart = simT; addMsg("alert"); sAlert(); }
     if (e.type === "silent") addMsg("silent");
-    if (e.type === "cancel") flash = { until: simT + 2 * FS };
+    if (e.type === "cancel") { flash = { until: simT + 2 * FS }; sOk(); }
   }
-  const clockAt = (s) => { const x = START_CLOCK + Math.floor(s); return `${String(Math.floor(x / 3600) % 24).padStart(2, "0")}:${String(Math.floor(x / 60) % 60).padStart(2, "0")}:${String(x % 60).padStart(2, "0")}`; };
-
   function step() {
     simT += 1;
-    if (story) story.tick();
+    if (runner) runner.tick();
     const amp = sensor.frame();
     fw.frame(amp);
-    hist.push({ t: simT, score: 100 * fw.score, active: fw.active && fw.state !== "off" }); while (hist.length > 30 * FS) hist.shift();
-    $("m-score").textContent = fw.state === "off" || fw.state === "learning" ? "–" : `${(100 * fw.score).toFixed(2)} %`;
-    $("m-hold").textContent = `${fw.holdSeconds.toFixed(1)} / 2.0 s`;
-    $("m-holdbar").style.width = `${Math.min(100, 50 * fw.holdSeconds)}%`;
-    $("m-off").textContent = `${(100 * fw.offDist).toFixed(2)} %`;
-    $("m-off").style.color = fw.offDist < fw.cfg.OFF_WRIST_TOL ? css("--crit") : "";
-    $("worldnow").innerHTML = `<span style="color:var(--muted)">World (hidden from the watch):</span> ${describe(sensor.event)}`;
-    document.querySelectorAll(".scn button[data-k] .tm").forEach((s) => { s.textContent = s.parentElement.dataset.k === scnActive ? `${((simT - scnStart) / FS).toFixed(1)} s` : ""; });
+    hist.push({ t: simT, score: fw.state === "off" || fw.state === "learning" ? 0.05 : 100 * fw.score, active: fw.active && fw.state !== "off" });
+    while (hist.length > 30 * FS) hist.shift();
+    $("sigval").textContent = fw.state === "off" || fw.state === "learning" ? "" : `${(100 * fw.score).toFixed(2)} %`;
+    $("touchnow").innerHTML = describe();
     renderWatch(); drawScore(); drawSweep(amp);
   }
-
   function resetAll() {
     clearInterval(timer);
-    const ctx = document.querySelector("#ctx button[aria-pressed=true]").dataset.c;
-    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: ctx });
+    const c = document.querySelector("#ctx button[aria-pressed=true]").dataset.c;
+    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: c });
     fw = new SGFirmware.Firmware(sensor.offWristReference()); fw.onEvent = logEvent;
-    simT = 0; scnActive = null; msgs = []; flash = null; hist.length = 0; lastScreen = "";
-    $("log").innerHTML = ""; $("msgs").innerHTML = `<div class="empty">No messages</div>`;
-    document.querySelectorAll(".scn button[data-k]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    simT = 0; scn = null; msgs = []; flash = null; hist.length = 0; lastScreen = "";
+    $("log").innerHTML = ""; $("msgs").innerHTML = `<div class="empty">No alerts</div>`;
+    paintScene();
     timer = setInterval(step, 1000 / FS);
   }
-
-  mkButtons($("scn-people"), PEOPLE); mkButtons($("scn-other"), OTHER);
-  STORIES.forEach(([t, d], i) => { const b = document.createElement("button"); b.innerHTML = `<span>${t}<br><span class="hint">${d}</span></span><span class="tm"></span>`; b.addEventListener("click", () => playStory(i)); $("stories").appendChild(b); });
-  $("ctx").addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (!b) return;
-    document.querySelectorAll("#ctx button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); sensor.setContext(b.dataset.c); });
-  $("reset").addEventListener("click", () => { stopStory(); resetAll(); });
-  resetAll();
+  resetAll(); renderChapters();
+  setCaption("Press “Play all” to watch the whole story", "Or pick a chapter, or switch to “Try it yourself” to touch her yourself.");
 })();
 </script>

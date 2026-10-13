@@ -188,8 +188,11 @@ for the hackathon demonstration. It is split the way the real device is:
   2 s hold, frozen baseline, no classifier gate), a strap-removal check against the watch's own
   off-the-wrist signature, and the PIN state machine (15 s window, correct / wrong / duress PIN).
   It never sees which scenario is playing.
-- **Page**: the world (scenario buttons and five scripted stories), her watch, her contact's
-  phone, and a live view of what the firmware sees.
+- **Page**: one stage (where she is touched, her watch with a hold/countdown ring and the live
+  sensor signal, her contact's phone) and two modes: *Guided demo* (six chapters with captions,
+  "Play all" runs the whole story in about 80 s, made for the 2-minute video) and *Try it
+  yourself* (seven touch tiles; answer the PIN on the watch). "Show the science" opens the
+  sweep, the firmware log and the headline numbers.
 
 `node demo/check_demo.js` runs the same two files headless, with no scripted outcomes: 87% of
 wrist grabs caught, 0% of forearm and shoulder grabs, 100% of strap removals, about 4 unwanted PIN
