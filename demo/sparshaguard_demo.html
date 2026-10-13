@@ -160,7 +160,7 @@ canvas { width: 100%; display: block; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink2); margin: 2px 0 4px; }
 .legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--c); margin-right: 5px; vertical-align: middle; }
 .log { list-style: none; margin: 0; padding: 0; font-size: 12.5px; max-height: 260px; overflow: auto; }
-.log li { display: grid; grid-template-columns: 66px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--grid); }
+.log li { display: grid; grid-template-columns: 92px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--grid); }
 .log .lt { font-family: var(--f-mono); color: var(--muted); }
 .log .prompt { color: var(--warn); font-weight: 600; } .log .alert, .log .silent { color: var(--crit); font-weight: 600; } .log .cancel { color: var(--calm); font-weight: 600; }
 .notes { font-size: 12.5px; color: var(--ink2); margin: 10px 0 0; }
@@ -680,7 +680,9 @@ const SG = (() => {
   const FS = SGSensor.FS;
   let sensor, fw, timer, simT = 0, scn = null, scnStart = 0, runner = null, msgs = [], flash = null, callStart = 0;
   const hist = [];
-  const START_CLOCK = 21 * 3600 + 47 * 60;
+  // real-time clock: the watch reads the device's clock, as the real watch reads its RTC chip
+  const rtcTime = (sec) => new Date().toLocaleTimeString([], sec ? { hour: "2-digit", minute: "2-digit", second: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
+  const rtcDate = () => new Date().toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
 
   // ------------------------------------------------------------------ sound (Web Audio, no files)
   let actx = null, soundOn = true;
@@ -750,7 +752,7 @@ const SG = (() => {
   const armed = () => fw.state === "armed" && !(flash && simT < flash.until);
   const CHAPTERS = [
     { t: "Guard Mode", steps: [
-      { fresh: true, say: "Ananya is walking home alone at night. She turns on Guard Mode.", sub: "One tap on the watch." },
+      { fresh: true, say: "Ananya is walking home alone. She turns on Guard Mode.", sub: "One tap on the watch." },
       { wait: 1.2, do: () => fw.setGuard(true), say: "First, the watch learns her: 5 seconds of her own body on the sensor.", sub: "Each reading sweeps 200 frequencies, 5 times a second." },
       { until: () => fw.state === "armed", say: "Now it is guarding. The signal stays flat while nobody touches her.", sub: "That flat line is her own body, with sweat and movement, inside the noise." },
       { wait: 3.5 } ] },
@@ -847,7 +849,8 @@ const SG = (() => {
   $("sci").addEventListener("click", () => { const on = $("science").classList.toggle("open"); $("sci").setAttribute("aria-pressed", String(on)); $("sci").textContent = on ? "Hide the science" : "Show the science"; });
 
   // ------------------------------------------------------------------ watch
-  const clock = () => { const s = START_CLOCK + Math.floor(simT / FS); return `${String(Math.floor(s / 3600) % 24).padStart(2, "0")}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}`; };
+  const clock = () => rtcTime(false);
+  const face = () => `<div class="sclock">${rtcDate()} · ${rtcTime(false)}</div>`;
   const shield = (col) => `<svg class="shield" viewBox="0 0 54 62" aria-hidden="true"><path d="M27 2 L51 11 V30 C51 45 40 55 27 60 C14 55 3 45 3 30 V11 Z" fill="none" stroke="${col}" stroke-width="3.5"/><path d="M17 31 l7 7 l13 -15" fill="none" stroke="${col}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   let lastScreen = "", lastState = "";
   function renderWatch() {
@@ -855,10 +858,10 @@ const SG = (() => {
     $("watch").classList.toggle("buzz", fw.state === "prompt");
     const showCancel = flash && simT < flash.until;
     if (showCancel) { html = `<div class="sclock">${clock()}</div><div class="sbig">Cancelled</div><div class="ssmall">Still guarding</div>`; status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
-    else if (fw.state === "off") { html = `<div class="sclock">${clock()}</div>${shield("#5d6b78")}<div class="sbig">Guard Mode off</div><button class="sbtn" data-act="on">Turn on</button>`; status = "Guard Mode off"; }
+    else if (fw.state === "off") { html = `${face()}${shield("#5d6b78")}<div class="sbig">Guard Mode off</div><button class="sbtn" data-act="on">Turn on</button>`; status = "Guard Mode off"; }
     else if (fw.state === "learning") { html = `<div class="sclock">${clock()}</div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">keep still</div>`; status = "Learning her baseline"; ringCol = "var(--warn)"; frac = fw.learn.length / (5 * FS); }
     else if (fw.state === "armed") {
-      html = `<div class="sclock">${clock()}</div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`;
+      html = `${face()}${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`;
       if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
       else { status = "Guarding"; ringCol = "var(--calm)"; frac = 1; }
     } else if (fw.state === "prompt") {
@@ -936,10 +939,9 @@ const SG = (() => {
   }
 
   // ------------------------------------------------------------------ loop
-  const clockAt = (s) => { const x = START_CLOCK + Math.floor(s); return `${String(Math.floor(x / 3600) % 24).padStart(2, "0")}:${String(Math.floor(x / 60) % 60).padStart(2, "0")}:${String(x % 60).padStart(2, "0")}`; };
   function logEvent(e) {
     const li = document.createElement("li");
-    li.innerHTML = `<span class="lt">${clockAt(e.t)}</span><span class="${e.type}">${e.text}</span>`;
+    li.innerHTML = `<span class="lt">${rtcTime(true)}</span><span class="${e.type}">${e.text}</span>`;
     $("log").prepend(li);
     if (e.type === "alert") { callStart = simT; addMsg("alert"); sAlert(); }
     if (e.type === "silent") addMsg("silent");
