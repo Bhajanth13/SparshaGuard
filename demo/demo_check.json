@@ -1,0 +1,39 @@
+{
+ "note": "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (0.3 %, 2 s, no classifier gate)",
+ "grabs_caught": {
+  "wrist": 0.8666666666666667,
+  "forearm": 0,
+  "shoulder": 0
+ },
+ "strap_removal_caught": 1,
+ "daily_life": {
+  "walking": {
+   "prompts_per_hour": 1,
+   "causes_per_hour": {
+    "self": 1
+   },
+   "false_strap_alerts": 0,
+   "closest_to_off_wrist_pct": 2.023184965739658
+  },
+  "bus": {
+   "prompts_per_hour": 5,
+   "causes_per_hour": {
+    "object:railing_wrist": 4.5,
+    "self": 0.5
+   },
+   "false_strap_alerts": 0,
+   "closest_to_off_wrist_pct": 2.068538018312
+  },
+  "desk": {
+   "prompts_per_hour": 6.5,
+   "causes_per_hour": {
+    "person:wrist": 1.5,
+    "object:wood_table": 3.5,
+    "self": 1.5
+   },
+   "false_strap_alerts": 0,
+   "closest_to_off_wrist_pct": 2.095593096325588
+  }
+ },
+ "mean_prompts_per_hour": 4.166666666666667
+}

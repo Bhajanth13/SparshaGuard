@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>SparshaGuard Digital Twin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: three columns. The world (what happens to her) | the device (watch + her contact's phone) | inside the watch (what the firmware sees). Stacks on narrow screens. */
+:root {
+  --paper: #eef2f5; --panel: #ffffff; --ink: #13202a; --ink2: #4a5866; --muted: #74818d; --line: #dbe1e7; --grid: #e8ecf0;
+  --base: #6b7a88; --touch: #c0306a; --touch-soft: rgba(192, 48, 106, 0.12); --warn: #b77700; --warn-soft: rgba(250, 178, 25, 0.18);
+  --crit: #d03b3b; --crit-soft: rgba(208, 59, 59, 0.12); --calm: #2f6f4f; --calm-soft: rgba(12, 163, 12, 0.10); --focus: #2a78d6;
+  --screen: #0b1015; --screen-ink: #e9f1f6; --screen-dim: #8a99a6; --case: #2b333b; --strap: #3b444d;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1419; --panel: #161f27; --ink: #e7edf2; --ink2: #b2bfca; --muted: #85929e; --line: #27333e; --grid: #1f2a33;
+    --base: #97a7b6; --touch: #ef6a9c; --touch-soft: rgba(239, 106, 156, 0.16); --warn: #fab219; --warn-soft: rgba(250, 178, 25, 0.16);
+    --crit: #ef7b7b; --crit-soft: rgba(239, 123, 123, 0.16); --calm: #5cc98a; --calm-soft: rgba(92, 201, 138, 0.14); --focus: #6da7ec;
+    --case: #3a444e; --strap: #4a5560; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1419; --panel: #161f27; --ink: #e7edf2; --ink2: #b2bfca; --muted: #85929e; --line: #27333e; --grid: #1f2a33;
+  --base: #97a7b6; --touch: #ef6a9c; --touch-soft: rgba(239, 106, 156, 0.16); --warn: #fab219; --warn-soft: rgba(250, 178, 25, 0.16);
+  --crit: #ef7b7b; --crit-soft: rgba(239, 123, 123, 0.16); --calm: #5cc98a; --calm-soft: rgba(92, 201, 138, 0.14); --focus: #6da7ec;
+  --case: #3a444e; --strap: #4a5560; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 14.5px; line-height: 1.45; }
+button { font: inherit; color: inherit; }
+.wrap { max-width: 1440px; margin: 0 auto; padding: 18px 20px 28px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; margin-bottom: 14px; }
+h1 { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 26px; margin: 0; letter-spacing: 0.2px; }
+h1 span { color: var(--touch); }
+.tag { font-size: 13px; color: var(--ink2); }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge { font-family: var(--f-mono); font-size: 11.5px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--ink2); }
+.cols { display: grid; grid-template-columns: 300px 400px minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1180px) { .cols { grid-template-columns: 300px minmax(0, 1fr); } .inside { grid-column: 1 / -1; } }
+@media (max-width: 760px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; min-width: 0; }
+.card + .card { margin-top: 12px; }
+.ctitle { font-family: var(--f-display); font-stretch: 90%; font-weight: 700; font-size: 15px; margin: 0 0 2px; }
+.csub { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--paper); padding: 3px; border-radius: 9px; }
+.seg button { border: 0; background: transparent; padding: 6px 4px; border-radius: 7px; font-size: 12.5px; cursor: pointer; color: var(--ink2); }
+.seg button[aria-pressed="true"] { background: var(--panel); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.group { margin-top: 10px; }
+.glabel { font-size: 11.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 0 0 5px; }
+.scn { display: grid; gap: 5px; }
+.scn button { display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--line); background: var(--panel);
+  padding: 7px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px; }
+.scn button:hover { border-color: var(--base); }
+.scn button[aria-pressed="true"] { border-color: var(--touch); background: var(--touch-soft); font-weight: 600; }
+.scn button .tm { font-family: var(--f-mono); font-size: 12px; color: var(--touch); }
+.scn button .hint { font-size: 11.5px; color: var(--muted); font-weight: 400; }
+.stories button { border-style: dashed; }
+.pinhint { font-family: var(--f-mono); font-size: 12.5px; color: var(--ink2); background: var(--paper); border-radius: 8px; padding: 7px 10px; margin-top: 10px; }
+.row { display: flex; gap: 8px; margin-top: 10px; }
+.btn { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; }
+.btn:hover { border-color: var(--base); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---- device column ---- */
+.device { display: grid; gap: 12px; justify-items: center; }
+.watchwrap { position: relative; width: 250px; padding: 46px 0; display: grid; justify-items: center; }
+.strap { position: absolute; left: 50%; width: 150px; height: 70px; transform: translateX(-50%); background: var(--strap); border-radius: 18px; }
+.strap.top { top: 0; } .strap.bot { bottom: 0; }
+.strap::after { content: ""; position: absolute; inset: 8px 22px; border-radius: 10px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 3px, transparent 3px 9px); }
+.watch { position: relative; width: 236px; height: 270px; background: var(--case); border-radius: 46px; padding: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.06); z-index: 1; }
+.watch.buzz { animation: buzz .16s linear infinite; }
+@keyframes buzz { 0% { transform: translate(0,0) } 25% { transform: translate(-2px,1px) } 50% { transform: translate(2px,-1px) } 75% { transform: translate(-1px,-1px) } }
+@media (prefers-reduced-motion: reduce) { .watch.buzz { animation: none; outline: 3px solid var(--warn); } }
+.crown { position: absolute; right: -8px; top: 96px; width: 10px; height: 42px; background: var(--case); border-radius: 4px; }
+.screen { width: 100%; height: 100%; background: var(--screen); border-radius: 34px; color: var(--screen-ink); padding: 16px 14px; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+.sclock { font-family: var(--f-mono); font-size: 12px; color: var(--screen-dim); }
+.sbig { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 30px; line-height: 1.05; margin-top: 10px; text-align: center; }
+.ssmall { font-size: 12px; color: var(--screen-dim); text-align: center; margin-top: 6px; }
+.sbtn { margin-top: auto; border: 0; border-radius: 999px; padding: 9px 16px; background: #2f6f4f; color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; }
+.sbtn.off { background: #3b4650; }
+.shield { width: 54px; height: 62px; margin-top: 12px; }
+.pulse { width: 8px; height: 8px; border-radius: 50%; background: #5cc98a; display: inline-block; margin-right: 6px; animation: pl 1.6s ease-in-out infinite; }
+@keyframes pl { 50% { opacity: .25 } }
+.count { font-family: var(--f-display); font-stretch: 80%; font-weight: 800; font-size: 40px; color: #fab219; line-height: 1; }
+.dots { display: flex; gap: 8px; margin: 6px 0 6px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--screen-dim); }
+.dots i.on { background: var(--screen-ink); border-color: var(--screen-ink); }
+.pad { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
+.pad button { height: 26px; border: 0; border-radius: 8px; background: #1e2832; color: var(--screen-ink); font-family: var(--f-mono); font-size: 13px; cursor: pointer; }
+.pad button:active, .pad button.hit { background: #3a4a59; }
+.screen.alert { background: #5a1414; }
+.screen.alert .sbig { color: #fff; }
+.rec { color: #ff8a8a; font-size: 12px; margin-top: 8px; font-family: var(--f-mono); }
+.rec::before { content: ""; display: inline-block; width: 8px; height: 8px; background: #ff5050; border-radius: 50%; margin-right: 6px; animation: pl 1s infinite; }
+
+.phone { width: 300px; background: var(--case); border-radius: 30px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); }
+.pscreen { background: var(--panel); border-radius: 22px; min-height: 230px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.phead { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--touch-soft); color: var(--touch); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.pname { font-weight: 600; font-size: 13.5px; } .psub { font-size: 11.5px; color: var(--muted); }
+.msgs { display: flex; flex-direction: column; gap: 8px; max-height: 330px; overflow: auto; }
+.msg { background: var(--paper); border-radius: 12px 12px 12px 4px; padding: 8px 10px; font-size: 12.5px; }
+.msg.crit { background: var(--crit-soft); border: 1px solid var(--crit); }
+.msg .mt { font-family: var(--f-mono); font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+.map { margin-top: 6px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
+.empty { color: var(--muted); font-size: 12.5px; text-align: center; margin: auto 0; }
+.sim { font-size: 11px; color: var(--muted); text-align: center; }
+
+/* ---- inside column ---- */
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+.metric { background: var(--paper); border-radius: 8px; padding: 7px 9px; }
+.metric .k { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.metric .v { font-family: var(--f-mono); font-size: 16px; font-weight: 500; }
+.bar { height: 6px; background: var(--grid); border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--touch); transition: width .15s; }
+canvas { width: 100%; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--ink2); margin: 4px 0 2px; }
+.legend span::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; background: var(--c); margin-right: 5px; vertical-align: middle; }
+.world-now { font-size: 12.5px; color: var(--ink2); background: var(--paper); border-radius: 8px; padding: 7px 10px; margin-bottom: 10px; }
+.world-now b { color: var(--ink); }
+.log { list-style: none; margin: 0; padding: 0; font-size: 12.5px; max-height: 210px; overflow: auto; display: grid; gap: 3px; }
+.log li { display: grid; grid-template-columns: 66px 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px dashed var(--grid); }
+.log .lt { font-family: var(--f-mono); color: var(--muted); }
+.log .prompt { color: var(--warn); font-weight: 600; } .log .alert, .log .silent { color: var(--crit); font-weight: 600; } .log .cancel { color: var(--calm); font-weight: 600; }
+footer { margin-top: 16px; font-size: 12.5px; color: var(--muted); display: grid; gap: 4px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Sparsha<span>Guard</span> digital twin</h1>
+      <div class="tag">The watch's firmware running on a simulated sensor. Only the sensor is simulated; the decisions are the watch's own.</div>
+    </div>
+    <div class="badges">
+      <span class="badge">Physics: 15 published sources</span>
+      <span class="badge">Circuit checked with SPICE</span>
+      <span class="badge">3D field checked with FastCap</span>
+    </div>
+  </header>
+
+  <div class="cols">
+    <!-- ================= the world ================= -->
+    <section aria-labelledby="w-t">
+      <div class="card" style="margin-bottom:12px">
+        <h2 class="ctitle">Play a story</h2>
+        <p class="csub">Scripted sequences for a demo. The sensor and firmware still decide everything.</p>
+        <div class="scn stories" id="stories"></div>
+        <div class="row"><button class="btn" id="reset">Reset</button></div>
+      </div>
+      <div class="card">
+        <h2 class="ctitle" id="w-t">The world</h2>
+        <p class="csub">What happens to her. The watch never sees these labels, only its sensor readings.</p>
+        <div class="seg" role="group" aria-label="Where she is" id="ctx">
+          <button data-c="walking" aria-pressed="true">Walking</button>
+          <button data-c="bus" aria-pressed="false">Bus / metro</button>
+          <button data-c="desk" aria-pressed="false">At a desk</button>
+        </div>
+        <div class="group"><p class="glabel">Another person (tap to start, tap to stop)</p>
+          <div class="scn" id="scn-people"></div></div>
+        <div class="group"><p class="glabel">Her and objects</p>
+          <div class="scn" id="scn-other"></div></div>
+        <div class="pinhint">Her PIN <b>1234</b> · duress PIN <b>9999</b></div>
+      </div>
+    </section>
+
+    <!-- ================= the device ================= -->
+    <section class="device" aria-label="Her watch and her contact's phone">
+      <div class="watchwrap">
+        <div class="strap top"></div><div class="strap bot"></div>
+        <div class="watch" id="watch"><div class="crown"></div><div class="screen" id="screen"></div></div>
+      </div>
+      <div class="phone">
+        <div class="pscreen">
+          <div class="phead"><div class="avatar">A</div><div><div class="pname">Amma's phone</div><div class="psub">Trusted contact · messages from SparshaGuard</div></div></div>
+          <div class="msgs" id="msgs"><div class="empty">No messages</div></div>
+          <div class="sim">Simulated. Nothing is actually sent or called.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= inside the watch ================= -->
+    <section class="inside" aria-labelledby="i-t">
+      <div class="card">
+        <h2 class="ctitle" id="i-t">Inside the watch</h2>
+        <p class="csub">5 readings a second, each the average of 16 sweeps over 200 frequencies (1 kHz–3.5 MHz).</p>
+        <div class="world-now" id="worldnow"></div>
+        <div class="metrics">
+          <div class="metric"><div class="k">Change vs baseline</div><div class="v" id="m-score">–</div></div>
+          <div class="metric"><div class="k">Touch held</div><div class="v" id="m-hold">0.0 / 2.0 s</div><div class="bar"><i id="m-holdbar"></i></div></div>
+          <div class="metric"><div class="k">Off-wrist match</div><div class="v" id="m-off">–</div></div>
+        </div>
+        <div class="legend"><span style="--c: var(--touch)">change, % of full scale (log)</span><span style="--c: var(--warn)">0.3 % touch threshold</span><span style="--c: var(--base)">0.15 % release</span></div>
+        <canvas id="cv-score" height="190" role="img" aria-label="Change against baseline over the last 30 seconds"></canvas>
+        <div class="legend" style="margin-top:10px"><span style="--c: var(--base)">baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
+        <canvas id="cv-sweep" height="150" role="img" aria-label="Sensor sweep, baseline and now"></canvas>
+      </div>
+      <div class="card">
+        <h2 class="ctitle">Firmware log</h2>
+        <ul class="log" id="log"></ul>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <div>Same model as the study: a wrist grab changes the reading by ~16 %, every other grab (forearm included) by about the noise (~0.1 %). In 120 random trials each, this twin catches ~87 % of wrist grabs (the rest: his palm misses the outer electrode), 0 % of forearm and shoulder grabs, and 100 % of strap removals; ~4 unwanted PIN prompts per hour of daily life (study: 93 %, 0 %, 0 %, ~5.5 per hour). Grabs away from the wrist need the planned motion and audio paths.</div>
+    <div>Sensor values are simulated from the published-source model (sg_model.py), not measured; Gate 1 hardware will calibrate them. Location and contacts are made up.</div>
+  </footer>
+</div>
+
+<script>
+// SparshaGuard circuit model v0.3, JavaScript port of sg_model.py ("typical" values).
+// Sources: see docs/parameter_sources.md
+const SG = (() => {
+  const EPS0 = 8.854e-12, pF = 1e-12, CM2 = 1e-4, TAU = 2 * Math.PI;
+  const c = (re, im = 0) => ({ re, im });
+  const add = (a, b) => c(a.re + b.re, a.im + b.im);
+  const sub = (a, b) => c(a.re - b.re, a.im - b.im);
+  const mul = (a, b) => c(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re);
+  const div = (a, b) => { const d = b.re * b.re + b.im * b.im; return c((a.re * b.re + a.im * b.im) / d, (a.im * b.re - a.re * b.im) / d); };
+  const inv = (a) => div(c(1), a);
+  const abs = (a) => Math.hypot(a.re, a.im);
+  const Z0 = c(0);
+  const yc = (w, C) => c(0, w * C);
+  const zc = (w, C) => inv(yc(w, C));
+  const plate = (er, area, gap) => EPS0 * er * area / gap;
+  const gm = (a, b) => Math.sqrt(a * b);
+  const mid = (a, b) => (a + b) / 2;
+
+  // Goyal et al. 2022: dry metal electrode on skin, per cm^2, hyd 0 (dry) .. 1 (hydrated)
+  const lerpLog = (a, b, h) => Math.exp(Math.log(a) + (Math.log(b) - Math.log(a)) * h);
+  const cpeY = (q, w, a) => { const m = q * Math.pow(w, a); return c(m * Math.cos(a * Math.PI / 2), m * Math.sin(a * Math.PI / 2)); };
+  function zSC(f, area, hyd, alpha) {            // stratum corneum: Rsc || CPE(Csc)
+    const w = TAU * f;
+    const rsc = lerpLog(6.4e6, 3.0e6, hyd) / area;
+    const qsc = lerpLog(41e-9, 190e-9, hyd) * area;
+    return inv(add(c(1 / rsc), cpeY(qsc, w, alpha)));
+  }
+  function zMetal(f, area, hyd, beta) {          // stainless-steel contact CPE
+    const qc = lerpLog(114e-9, 114e-9 * 420 / 267, hyd) * area;
+    return inv(cpeY(qc, TAU * f, beta));
+  }
+  const HIS = { hyd: 0.5, alpha: 0.9 };
+
+  // from data/summary_stats.json (no-touch drift, % of full scale, p50 and p90)
+  const DRIFT = { single: [0.112, 0.119], dual: [0.118, 0.145], dual_shield: [0.113, 0.123] };
+  const TRIGGER = 0.3;      // % of full scale; chosen from the event-stream trade-off (fig 9)
+  const NOISE = 0.112;      // % of full scale, per sweep point after averaging (ESP32 ADC)
+
+  // Touché grid: 1 kHz + 17.5 kHz * k, k = 0..199
+  const TOUCHE = Array.from({ length: 200 }, (_, k) => 1e3 + 17.5e3 * k);
+  function logFreqs(n) { const out = []; const a = 3, b = Math.log10(3.5e6); for (let i = 0; i < n; i++) out.push(Math.pow(10, a + (b - a) * i / (n - 1))); return out; }
+
+  function base(st) {
+    const env = st.env, d = st.design;
+    let cgb = plate(mid(1.5, 2.5), 10 * CM2, 3e-3);
+    if (d !== "single") cgb += plate(3.0, 25 * CM2, 2.25e-3);
+    if (d === "dual_shield") cgb *= 0.35;
+    let cge = (d === "single" ? gm(0.4, 1.5) : gm(0.6, 2.0)) * pF;
+    if (env === "car_seat") cge *= 1.65;
+    const cgeFree = cge;
+    if (st.bench) cge = 10e-9;
+    const cbe = { street_shoes: 140, sandals: 170, barefoot_tile: 217.5, car_seat: 225 }[env];
+    return {
+      Rs: 10e3, L: 10e-3, Ctank: 104.5 * pF,
+      elArea: 3, hyd: st.hyd, alpha: 0.9, beta: 0.55, Rbody: 350,
+      C_GB: cgb, C_BE: cbe * pF, C_GE: cge, C_GE_free: cgeFree, C_AE: (140 + (env === "car_seat" ? 85 : 0)) * pF,
+    };
+  }
+
+  // his hand near the strap: 3D boundary-element result (fem/), checked with FastCap; log-log interpolation
+  const FEM_GAP = [1, 2, 3, 5, 10];
+  const FEM_HAND = { dual: [1.4364, 0.4363, 0.2395, 0.1180, 0.0487], single: [0.3494, 0.1106, 0.0612, 0.0312, 0.0134] };
+  function handNearStrapPF(gapCm, design) {
+    const y = FEM_HAND[design === "single" ? "single" : "dual"], L = Math.log;
+    const g = Math.min(Math.max(gapCm, 1), 10);
+    let i = 0; while (i < FEM_GAP.length - 2 && g > FEM_GAP[i + 1]) i++;
+    const t = (L(g) - L(FEM_GAP[i])) / (L(FEM_GAP[i + 1]) - L(FEM_GAP[i]));
+    return Math.exp(L(y[i]) + t * (L(y[i + 1]) - L(y[i])));
+  }
+
+  function yOuterContact(w, f, design) {
+    if (design === "single") return yc(w, plate(2.0, 4 * CM2, 4.5e-3));
+    const area = 15;
+    return inv(add(zSC(f, area, HIS.hyd, HIS.alpha), zc(w, plate(3.0, area * CM2, 62.5e-6))));
+  }
+
+  function branches(f, p, st, withEvent) {
+    const w = TAU * f;
+    const b = {
+      Ysrc: inv(c(p.Rs, w * p.L)), Y_S0: yc(w, p.Ctank),
+      Y_SB: inv(add(add(zMetal(f, p.elArea, p.hyd, p.beta), zSC(f, p.elArea, p.hyd, p.alpha)), c(p.Rbody))),
+      Y_B0: yc(w, p.C_GB), Y_BE: yc(w, p.C_BE), Y_0E: yc(w, p.C_GE), Y_AE: yc(w, p.C_AE),
+      Y_BA: Z0, Y_A0: Z0,
+    };
+    if (!withEvent) return b;
+    const d = st.design;
+    if (st.touch === "bystander") {
+      b.Y_BA = yc(w, 30.5 * pF); b.Y_A0 = yc(w, p.C_GE_free * 0.055);
+    } else if (st.touch === "person") {
+      const area = 60;
+      const skins = add(zSC(f, area, HIS.hyd, HIS.alpha), zSC(f, area, HIS.hyd, HIS.alpha));
+      b.Y_BA = inv(st.bare ? skins : add(skins, zc(w, plate(3.15, area * CM2, st.clothMm * 1e-3))));
+      if (st.loc === "wrist") b.Y_A0 = st.offElectrode ? yc(w, (st.handPF ?? (d !== "single" ? 1.75 : 0.6)) * pF)
+                                                       : yOuterContact(w, f, d);
+      else if (st.loc === "forearm") b.Y_A0 = yc(w, handNearStrapPF(st.gapCm ?? 3, d) * pF);  // 3D solve
+      else b.Y_A0 = yc(w, p.C_GE_free * 0.11);
+    } else if (st.touch === "strap_off") {
+      // watch lifted off the wrist: electrode and ground plane 1-5 cm from the skin, in air [G]
+      b.Y_SB = yc(w, (st.offSBpF ?? 0.175) * pF); b.Y_B0 = yc(w, (st.offB0pF ?? 0.275) * pF);
+    } else if (st.touch === "self") {
+      b.Y_B0 = add(b.Y_B0, inv(add(inv(yOuterContact(w, f, d)), c(500))));
+    } else if (st.touch === "object") {
+      const o = st.object;
+      if (o === "railing_hand" || o === "railing_wrist") {
+        b.Y_BE = add(b.Y_BE, inv(add(zSC(f, 30, HIS.hyd, HIS.alpha), zMetal(f, 30, HIS.hyd, 0.55))));
+        if (o === "railing_wrist") b.Y_0E = add(b.Y_0E, yc(w, d === "single" ? plate(3.0, 2 * CM2, 2.25e-3) : plate(3.0, 6 * CM2, 62.5e-6)));
+      } else if (o === "phone") {
+        b.Y_BE = add(b.Y_BE, inv(add(zSC(f, 30, HIS.hyd, HIS.alpha), zc(w, 8 * pF))));
+      } else if (o === "wood_table") {
+        b.Y_0E = add(b.Y_0E, yc(w, 3 * pF)); b.Y_BE = add(b.Y_BE, yc(w, 12.5 * pF));
+      } else if (o === "bag") {
+        b.Y_BE = add(b.Y_BE, yc(w, 6 * pF));
+      }
+    }
+    return b;
+  }
+
+  // 4x4 complex nodal solve, nodes S B A E, reference = watch ground
+  function solve(b) {
+    const neg = (a) => c(-a.re, -a.im);
+    const M = [
+      [add(add(b.Ysrc, b.Y_S0), b.Y_SB), neg(b.Y_SB), Z0, Z0],
+      [neg(b.Y_SB), add(add(add(b.Y_SB, b.Y_B0), b.Y_BE), b.Y_BA), neg(b.Y_BA), neg(b.Y_BE)],
+      [Z0, neg(b.Y_BA), add(add(b.Y_BA, b.Y_AE), b.Y_A0), neg(b.Y_AE)],
+      [Z0, neg(b.Y_BE), neg(b.Y_AE), add(add(b.Y_BE, b.Y_AE), b.Y_0E)],
+    ];
+    const rhs = [b.Ysrc, Z0, Z0, Z0];
+    const n = 4;
+    for (let k = 0; k < n; k++) {
+      let piv = k;
+      for (let i = k + 1; i < n; i++) if (abs(M[i][k]) > abs(M[piv][k])) piv = i;
+      [M[k], M[piv]] = [M[piv], M[k]]; [rhs[k], rhs[piv]] = [rhs[piv], rhs[k]];
+      for (let i = k + 1; i < n; i++) {
+        const fct = div(M[i][k], M[k][k]);
+        for (let j = k; j < n; j++) M[i][j] = sub(M[i][j], mul(fct, M[k][j]));
+        rhs[i] = sub(rhs[i], mul(fct, rhs[k]));
+      }
+    }
+    const x = new Array(n);
+    for (let i = n - 1; i >= 0; i--) {
+      let s = rhs[i];
+      for (let j = i + 1; j < n; j++) s = sub(s, mul(M[i][j], x[j]));
+      x[i] = div(s, M[i][i]);
+    }
+    return x[0];
+  }
+
+  function sweepOn(st, F) {
+    const p = base(st);
+    const vb = [], ve = [];
+    for (const f of F) {
+      vb.push(solve(branches(f, p, st, false)));
+      ve.push(solve(branches(f, p, st, true)));
+    }
+    return { F, vb, ve };
+  }
+  const sweep = (st, n) => sweepOn(st, logFreqs(n));
+
+  function score(st) { // % of full scale, RMS amplitude change on the Touché grid
+    const { vb, ve } = sweepOn(st, TOUCHE);
+    let s = 0;
+    for (let i = 0; i < vb.length; i++) s += Math.pow(abs(ve[i]) - abs(vb[i]), 2);
+    return 100 * Math.sqrt(s / vb.length);
+  }
+
+  function skinOhmsAt(st, f) { return abs(add(zMetal(f, 3, st.hyd, 0.55), zSC(f, 3, st.hyd, 0.9))); }
+
+  return { sweep, score, abs, div, sub, c, DRIFT, TRIGGER, NOISE, skinOhmsAt,
+           base, branches, solve, TOUCHE, handNearStrapPF };
+})();
+
+
+// SparshaGuard sensor twin: what the watch's sense circuit would output, frame by frame.
+//
+// It wraps the circuit model in explorer/model.js (a faithful port of sg_model.py, checked
+// against SPICE) and adds what event_stream.py adds in Python:
+//   - slow sweat drift (skin hydration, minutes), strap jitter on the wrist coupling (~1 s) and
+//     feet lifting while walking (~0.5 s), as Ornstein-Uhlenbeck processes [E, as in event_stream.py]
+//   - ADC noise: 0.1 % of full scale per sweep point after averaging 16 sweeps [S15]
+//   - per-event random draws over the same ranges as sg_model.py (e.g. a wrist grab lands his palm
+//     on the outer electrode 85 % of the time; a forearm grip sits 1-5 cm from the strap)
+// The output is amplitude only (200 Touché frequencies), which is all an envelope detector gives.
+// The firmware never sees which scenario is playing, only these numbers.
+(function (root) {
+  const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
+  const NOISE = 1e-3;            // fraction of full scale, as in the Python pipeline
+  const DESIGN = "dual_shield";  // the recommended design
+  const pF = 1e-12;
+
+  // daily contexts, as in event_stream.py: footwear/floor, strap jitter, feet movement
+  const CONTEXTS = {
+    walking: { label: "Walking alone at night", env: "street_shoes", motion: 0.015, feet: 0.05 },
+    bus: { label: "Bus / metro commute", env: "street_shoes", motion: 0.010, feet: 0.03 },
+    desk: { label: "At a desk / home", env: "barefoot_tile", motion: 0.005, feet: 0.01 },
+  };
+
+  function rng(seed) {             // mulberry32 + Box-Muller
+    let a = seed >>> 0, spare = null;
+    const u = () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    const n = () => { if (spare !== null) { const s = spare; spare = null; return s; }
+      let x, y, r; do { x = 2 * u() - 1; y = 2 * u() - 1; r = x * x + y * y; } while (r >= 1 || r === 0);
+      const f = Math.sqrt(-2 * Math.log(r) / r); spare = y * f; return x * f; };
+    return { u, n, uni: (lo, hi) => lo + (hi - lo) * u(), p: (q) => u() < q };
+  }
+
+  class OU {                       // Ornstein-Uhlenbeck, stationary std sigma, time constant tau (s)
+    constructor(tau, sigma, R) { this.a = Math.exp(-1 / (FS * tau)); this.s = sigma; this.R = R; this.x = R.n() * sigma; }
+    step() { this.x = this.a * this.x + this.s * Math.sqrt(1 - this.a * this.a) * this.R.n(); return this.x; }
+  }
+
+  // one event = the sensor-relevant parameters of a touch, drawn like sg_model.py draws them
+  function drawEvent(kind, detail, R) {
+    const st = { touch: kind, loc: detail, object: detail, bare: true, clothMm: 0.555 };
+    const BARE = { wrist: 0.9, forearm: 0.6, shoulder: 0.1, other_arm: 0.5 };
+    if (kind === "person") {
+      st.bare = R.p(BARE[detail] ?? 0.5);
+      st.clothMm = R.uni(0.16, 0.58) * R.uni(1, 2);             // 1-2 fabric layers [S7]
+      if (detail === "wrist") { st.offElectrode = !R.p(0.85); st.handPF = R.uni(0.5, 3); }
+      if (detail === "forearm") st.gapCm = R.uni(1, 5);          // grip 1-5 cm from the strap [E]
+    }
+    if (kind === "strap_off") { st.offSBpF = R.uni(0.05, 0.3); st.offB0pF = R.uni(0.05, 0.5); }
+    return st;
+  }
+
+  class SensorTwin {
+    constructor(SG, opts = {}) {
+      this.SG = SG;
+      this.R = rng(opts.seed ?? 12);
+      this.setContext(opts.context ?? "walking");
+      this.hyd = new OU(300, 0.15, this.R);
+      this.event = null;
+      this.F = SG.TOUCHE;
+    }
+    setContext(name) {
+      this.ctx = CONTEXTS[name]; this.ctxName = name;
+      this.gb = new OU(1.0, this.ctx.motion, this.R);
+      this.be = new OU(0.5, this.ctx.feet, this.R);
+    }
+    startEvent(kind, detail) { this.event = drawEvent(kind, detail, this.R); this.event.kind = kind; this.event.detail = detail; }
+    endEvent() { this.event = null; }
+
+    // complex sense-node voltage for parameter set p and touch state st (or none)
+    _sweep(p, st) {
+      const SG = this.SG, out = new Array(this.F.length);
+      const full = Object.assign({ design: DESIGN, env: this.ctx.env, hyd: p.hyd }, st || { touch: "none" });
+      for (let i = 0; i < this.F.length; i++) out[i] = SG.solve(SG.branches(this.F[i], p, full, !!st));
+      return out;
+    }
+
+    frame() {                      // -> Float64Array of 200 amplitudes, fraction of full scale
+      const SG = this.SG;
+      const p = SG.base({ design: DESIGN, env: this.ctx.env, hyd: 0.5 });
+      p.hyd = Math.min(1, Math.max(0, 0.5 + this.hyd.step()));
+      p.C_GB *= 1 + this.gb.step();
+      p.C_BE *= Math.exp(this.be.step());
+      const v = this._sweep(p, this.event);
+      const out = new Float64Array(v.length);
+      for (let i = 0; i < v.length; i++)
+        out[i] = Math.hypot(v[i].re + NOISE * this.R.n(), v[i].im + NOISE * this.R.n());
+      return out;
+    }
+
+    // the watch alone in free air: what the factory would store as the "off the wrist" signature
+    offWristReference() {
+      const p = this.SG.base({ design: DESIGN, env: this.ctx.env, hyd: 0.5 });
+      const v = this._sweep(p, { touch: "strap_off", offSBpF: 0, offB0pF: 0 });
+      return Float64Array.from(v, (z) => Math.hypot(z.re, z.im));
+    }
+  }
+
+  const api = { SensorTwin, CONTEXTS, FS, NOISE, DESIGN };
+  if (typeof module !== "undefined") module.exports = api; else root.SGSensor = api;
+})(this);
+
+// SparshaGuard watch firmware logic (what would run on the ESP32), fed one sensor frame at a time.
+//
+// Detection is the pipeline of event_stream.py (run_pipeline, no classifier gate, the
+// recommended setting from fig 9):
+//   score = RMS over the sweep of (amplitude now - baseline amplitude), fraction of full scale
+//   baseline: 5 s start-up average, then follows slow drift (EMA, 60 s) but FREEZES during a
+//   suspected touch; re-learns if frozen 30 s without a prompt (e.g. wrist resting on a table)
+//   hysteresis: a touch starts above 0.3 % of full scale and ends below 0.15 %
+//   a PIN prompt fires when the touch has lasted 2 s
+// Strap removal: the sweep is compared with the watch's own "off the wrist" signature (stored at
+// the factory); a match for 0.6 s means the electrode has left the skin -> alert at once.
+// Then the product's state machine: 15 s PIN window; correct PIN cancels, wrong PIN or no PIN
+// alerts, the duress PIN shows "Cancelled" but alerts silently.
+(function (root) {
+  const FS = 5;
+  const CFG = {
+    T_ENTER: 0.003, EXIT_RATIO: 0.5, SUSTAIN_S: 2, TAU_BASE_S: 60, MAX_FREEZE_S: 30, LEARN_S: 5,
+    OFF_WRIST_TOL: 0.004, OFF_WRIST_FRAMES: 3, PIN_WINDOW_S: 15, PIN: "1234", DURESS_PIN: "9999",
+  };
+
+  const rmsDiff = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s / a.length); };
+
+  class Firmware {
+    constructor(offWristRef, cfg = {}) {
+      this.cfg = Object.assign({}, CFG, cfg);
+      this.offRef = offWristRef;
+      this.t = 0;                     // frames since power-on
+      this.state = "off";             // off | learning | armed | prompt | alert
+      this.log = [];
+      this.silentAlert = false;
+      this._reset();
+    }
+    _reset() {
+      this.base = null; this.learn = []; this.active = false; this.count = 0; this.frozen = 0;
+      this.prompted = false; this.offCount = 0; this.score = 0; this.offDist = 1;
+    }
+    _emit(type, text) { const e = { t: this.t / FS, type, text }; this.log.push(e); this.onEvent && this.onEvent(e); }
+
+    setGuard(on) {
+      if (on && this.state === "off") { this._reset(); this.state = "learning"; this.silentAlert = false;
+        this._emit("info", "Guard Mode on: learning her baseline for 5 s"); }
+      if (!on && this.state !== "off") { this.state = "off"; this._emit("info", "Guard Mode off"); }
+    }
+
+    frame(amp) {
+      this.t += 1;
+      const c = this.cfg;
+      this.offDist = rmsDiff(amp, this.offRef);
+      if (this.state === "off" || this.state === "alert") { this.score = this.base ? rmsDiff(amp, this.base) : 0; this._tickPrompt(); return; }
+
+      if (this.state === "learning") {
+        this.learn.push(amp);
+        if (this.learn.length >= c.LEARN_S * FS) {
+          this.base = new Float64Array(amp.length);
+          for (const a of this.learn) for (let i = 0; i < a.length; i++) this.base[i] += a[i] / this.learn.length;
+          this.state = "armed"; this._emit("info", "Armed: watching for a sustained touch");
+        }
+        return;
+      }
+
+      // strap removal check (independent of the baseline)
+      this.offCount = this.offDist < c.OFF_WRIST_TOL ? this.offCount + 1 : 0;
+      if (this.offCount >= c.OFF_WRIST_FRAMES) { this._alert("Strap removed: electrode lost skin contact"); return; }
+
+      // touch detection, exactly as run_pipeline in event_stream.py
+      const sc = rmsDiff(amp, this.base);
+      this.score = sc;
+      if (!this.active && sc > c.T_ENTER) { this.active = true; this.count = 0; this.frozen = 0; this.prompted = false;
+        this._emit("touch", `Change ${(100 * sc).toFixed(2)} % > 0.3 %: possible touch, baseline frozen`); }
+      else if (this.active && sc < c.EXIT_RATIO * c.T_ENTER) { this.active = false;
+        if (!this.prompted) this._emit("info", `Change back below 0.15 % after ${(this.count / FS).toFixed(1)} s: ignored`); }
+      if (this.active) {
+        this.frozen += 1; this.count += 1;
+        if (this.count >= c.SUSTAIN_S * FS && !this.prompted) { this.prompted = true; this._startPrompt(); }
+        if (this.frozen > c.MAX_FREEZE_S * FS && !this.prompted) {
+          this.base = Float64Array.from(amp); this.active = false;
+          this._emit("info", "Change lasted 30 s without a prompt: accepted as the new normal");
+        }
+      } else {
+        const a = 1 / (FS * c.TAU_BASE_S);
+        for (let i = 0; i < amp.length; i++) this.base[i] = (1 - a) * this.base[i] + a * amp[i];
+      }
+      this._tickPrompt();
+    }
+
+    _startPrompt() {
+      if (this.state !== "armed") return;
+      this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = "";
+      this._emit("prompt", "Touch held 2 s: vibrate, ask for PIN (15 s)");
+    }
+    _tickPrompt() {
+      if (this.state !== "prompt") return;
+      this.pinLeft -= 1;
+      if (this.pinLeft <= 0) this._alert("No PIN within 15 s");
+    }
+    get pinSecondsLeft() { return this.state === "prompt" ? Math.ceil(this.pinLeft / FS) : 0; }
+    get holdSeconds() { return this.active ? this.count / FS : 0; }
+
+    pressKey(k) {
+      if (this.state !== "prompt") return;
+      if (k === "del") { this.entry = this.entry.slice(0, -1); return; }
+      if (this.entry.length < 4) this.entry += k;
+      if (this.entry.length === 4) this.submitPin(this.entry);
+    }
+    submitPin(pin) {
+      if (this.state !== "prompt") return;
+      if (pin === this.cfg.PIN) { this.state = "armed"; this._emit("cancel", "Correct PIN: cancelled, still guarding"); }
+      else if (pin === this.cfg.DURESS_PIN) {
+        this.state = "armed"; this.silentAlert = true;
+        this._emit("cancel", "Screen shows \"Cancelled\"");
+        this._emit("silent", "Duress PIN: SMS + GPS sent and 112 called silently");
+      } else this._alert("Wrong PIN");
+      this.entry = "";
+    }
+    _alert(why) {
+      if (this.state === "alert") return;
+      this.state = "alert";
+      this._emit("alert", `${why}: SMS + GPS to contacts, calling 112, recording audio`);
+    }
+  }
+
+  const api = { Firmware, CFG, FS };
+  if (typeof module !== "undefined") module.exports = api; else root.SGFirmware = api;
+})(this);
+
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const FS = SGSensor.FS;
+  let sensor, fw, timer, simT = 0, scnActive = null, scnStart = 0, story = null, msgs = [], flash = null, callStart = 0;
+  const hist = [];                         // last 30 s of {t, score, active}
+  const START_CLOCK = 21 * 3600 + 47 * 60; // 21:47, on her watch face
+
+  const PEOPLE = [
+    ["person", "wrist", "Stranger grabs her wrist", "hand over the watch"],
+    ["person", "forearm", "Stranger grabs her forearm", "1–5 cm from the strap"],
+    ["person", "shoulder", "Stranger grabs her shoulder", ""],
+    ["bystander", null, "Someone stands very close", "no touch"],
+  ];
+  const OTHER = [
+    ["self", null, "She adjusts her own watch", "her hand on the strap"],
+    ["object", "railing_wrist", "Strap pressed on a metal pole", ""],
+    ["object", "wood_table", "Wrist resting on a table", ""],
+    ["object", "phone", "Holding her phone", ""],
+    ["strap_off", null, "Strap pulled off her wrist", ""],
+  ];
+  const NAMES = Object.fromEntries([...PEOPLE, ...OTHER].map(([k, d, n]) => [`${k}:${d}`, n]));
+
+  function describe(e) {
+    if (!e) return "Nothing touching her.";
+    const k = `${e.kind}:${e.detail}`;
+    let s = `<b>${e.label || NAMES[k]}</b>`;
+    if (e.kind === "person") {
+      s += e.bare ? " · bare skin" : ` · through clothing (${e.clothMm.toFixed(2)} mm)`;
+      if (e.detail === "wrist") s += e.offElectrode ? ` · his palm misses the outer electrode (${e.handPF.toFixed(1)} pF)` : " · his palm on the outer electrode";
+      if (e.detail === "forearm") s += ` · his hand ${e.gapCm.toFixed(1)} cm from the strap (${SG.handNearStrapPF(e.gapCm, "dual").toFixed(2)} pF, 3D solve)`;
+    }
+    return s + ` <span style="color:var(--muted)">· for ${((simT - scnStart) / FS).toFixed(1)} s</span>`;
+  }
+
+  // ---------------------------------------------------------------- world controls
+  function mkButtons(host, list) {
+    for (const [kind, detail, name, hint] of list) {
+      const b = document.createElement("button");
+      b.dataset.k = `${kind}:${detail}`; b.setAttribute("aria-pressed", "false");
+      b.innerHTML = `<span>${name}${hint ? `<br><span class="hint">${hint}</span>` : ""}</span><span class="tm"></span>`;
+      b.addEventListener("click", () => { stopStory(); toggleScenario(kind, detail); });
+      host.appendChild(b);
+    }
+  }
+  function toggleScenario(kind, detail, force) {
+    const key = `${kind}:${detail}`;
+    if (scnActive === key) { sensor.endEvent(); scnActive = null; }
+    else { sensor.startEvent(kind, detail); if (force) Object.assign(sensor.event, force); scnActive = key; scnStart = simT; }
+    document.querySelectorAll(".scn button[data-k]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === scnActive)));
+  }
+  function endScenario() { if (scnActive) { const [k, d] = scnActive.split(":"); toggleScenario(k, d === "null" ? null : d); } }
+
+  // ---------------------------------------------------------------- stories (scripted demo)
+  // steps: [seconds after previous step, action]
+  const typePin = (pin) => [...pin].map((d) => [0.55, () => press(d)]);
+  const STORIES = [
+    ["1 · A stranger grabs her wrist", "No PIN: the alert goes out", [
+      [0, guardOn], [7, () => toggleScenario("person", "wrist", { offElectrode: false, bare: true })], [30, endScenario]]],
+    ["2 · A friend holds her hand", "She enters her PIN: cancelled", [
+      [0, guardOn], [7, () => toggleScenario("person", "wrist", { offElectrode: false, bare: true, label: "A friend holds her hand" })], [4.5, () => {}], ...typePin("1234"), [3, endScenario]]],
+    ["3 · Forced to cancel", "Duress PIN: looks cancelled, alerts silently", [
+      [0, guardOn], [7, () => toggleScenario("person", "wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist and forces her to cancel" })], [5, () => {}], ...typePin("9999"), [4, endScenario]]],
+    ["4 · The watch is ripped off", "Alert at once, no PIN asked", [
+      [0, guardOn], [7, () => toggleScenario("strap_off", null)], [10, endScenario]]],
+    ["5 · Everyday life", "Brief touches ignored; what it can't see", [
+      [0, guardOn], [6, () => toggleScenario("self", null)], [1.4, endScenario],
+      [3, () => toggleScenario("bystander", null)], [5, endScenario],
+      [2, () => toggleScenario("person", "shoulder")], [4, endScenario],
+      [2, () => toggleScenario("person", "forearm", { gapCm: 3, bare: true })], [5, endScenario]]],
+  ];
+  function playStory(i) {
+    stopStory(); resetAll(); const steps = STORIES[i][2]; let k = 0, wait = 0;
+    markStory(i);
+    story = { tick() { wait -= 1 / FS; while (k < steps.length && wait <= 0) { steps[k][1](); k++; if (k < steps.length) wait += steps[k][0]; } if (k >= steps.length) story = null; } };
+    wait = steps[0][0];
+  }
+  function stopStory() { story = null; markStory(-1); }
+  function markStory(i) { document.querySelectorAll("#stories button").forEach((b, j) => b.setAttribute("aria-pressed", String(j === i))); }
+  function guardOn() { if (fw.state === "off") fw.setGuard(true); }
+
+  // ---------------------------------------------------------------- watch UI
+  const clock = () => { const s = START_CLOCK + Math.floor(simT / FS); return `${String(Math.floor(s / 3600) % 24).padStart(2, "0")}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}`; };
+  const shield = (col) => `<svg class="shield" viewBox="0 0 54 62" aria-hidden="true"><path d="M27 2 L51 11 V30 C51 45 40 55 27 60 C14 55 3 45 3 30 V11 Z" fill="none" stroke="${col}" stroke-width="3"/><path d="M17 31 l7 7 l13 -15" fill="none" stroke="${col}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  let lastScreen = "";
+  function renderWatch() {
+    const scr = $("screen"), w = $("watch"); let html = "", cls = "screen";
+    w.classList.toggle("buzz", fw.state === "prompt");
+    if (flash && simT < flash.until) html = `<div class="sclock">${clock()}</div><div class="sbig" style="margin-top:44px">Cancelled</div><div class="ssmall">Still guarding</div>`;
+    else if (fw.state === "off") html = `<div class="sclock">${clock()}</div>${shield("#5d6b78")}<div class="sbig">Guard Mode<br>off</div><button class="sbtn" data-act="on">Turn on Guard Mode</button>`;
+    else if (fw.state === "learning") html = `<div class="sclock">${clock()}</div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">Keep still for a moment</div>`;
+    else if (fw.state === "armed") html = `<div class="sclock">${clock()}</div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>Touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`;
+    else if (fw.state === "prompt") {
+      const dots = [0, 1, 2, 3].map((i) => `<i class="${i < fw.entry.length ? "on" : ""}"></i>`).join("");
+      const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k) => k ? `<button data-key="${k}" aria-label="${k === "del" ? "delete" : k}">${k === "del" ? "⌫" : k}</button>` : "<span></span>").join("");
+      html = `<div class="ssmall" style="margin-top:0">Enter PIN</div><div class="count">${fw.pinSecondsLeft}</div><div class="dots">${dots}</div><div class="pad">${keys}</div>`;
+    } else if (fw.state === "alert") {
+      cls += " alert"; const s = Math.floor((simT - callStart) / FS);
+      html = `<div class="sclock" style="color:#ffb3b3">${clock()}</div><div class="sbig" style="margin-top:20px">Alert sent</div><div class="ssmall" style="color:#ffd0d0">SMS + location to 2 contacts</div><div class="ssmall" style="color:#fff;font-size:14px;margin-top:12px">Calling 112 · ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}</div><div class="rec">Recording audio</div>`;
+    }
+    if (html !== lastScreen) { scr.className = cls; scr.innerHTML = html; lastScreen = html; }
+  }
+  $("screen").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button"); if (!b) return;
+    if (b.dataset.act === "on") fw.setGuard(true);
+    if (b.dataset.act === "off") fw.setGuard(false);
+    if (b.dataset.key) { stopStory(); press(b.dataset.key); }
+    renderWatch();
+  });
+  function press(k) {
+    fw.pressKey(k); renderWatch();
+    const b = document.querySelector(`.pad button[data-key="${k}"]`); if (b) { b.classList.add("hit"); setTimeout(() => b.classList.remove("hit"), 180); }
+  }
+
+  // ---------------------------------------------------------------- phone UI
+  const LAT = 12.9237, LON = 77.4987;      // made-up location near Bengaluru (simulated GPS)
+  function mapCard() {
+    return `<div class="map"><svg viewBox="0 0 260 90" width="100%" height="90" aria-label="Map pin at the shared location">
+      <rect width="260" height="90" fill="var(--paper)"/>
+      <path d="M0 62 L260 40 M60 0 L90 90 M170 0 L150 90 M0 20 L260 28" stroke="var(--line)" stroke-width="6" fill="none"/>
+      <circle cx="128" cy="47" r="16" fill="var(--crit-soft)"/><circle cx="128" cy="47" r="6" fill="var(--crit)"/></svg></div>`;
+  }
+  function addMsg(kind) {
+    const time = clock();
+    const loc = `${LAT.toFixed(4)}° N, ${LON.toFixed(4)}° E`;
+    const txt = kind === "silent"
+      ? `<b>SparshaGuard SILENT ALERT</b><br>Ananya entered her duress PIN. She may be forced to cancel. Do not call her phone.<br>Location: ${loc}. 112 has been called.`
+      : `<b>SparshaGuard ALERT</b><br>Ananya may be in danger. Location: ${loc}. 112 has been called and audio is being recorded.`;
+    msgs.unshift(`<div class="msg crit">${txt}${mapCard()}<div class="mt">${time} · sent automatically</div></div>`);
+    $("msgs").innerHTML = msgs.join("");
+  }
+
+  // ---------------------------------------------------------------- charts
+  const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  function setup(cv) {
+    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1, h = +cv.getAttribute("height");
+    if (cv.width !== Math.round(r.width * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px"; }
+    const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, W: r.width, H: h };
+  }
+  function drawScore() {
+    const { g, W, H } = setup($("cv-score")); g.clearRect(0, 0, W, H);
+    const L = 44, R = 8, T = 6, B = 20, y0 = Math.log10(0.05), y1 = Math.log10(30);
+    const Y = (p) => T + (H - T - B) * (1 - (Math.log10(Math.max(p, 0.05)) - y0) / (y1 - y0));
+    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
+    g.font = `11px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+    for (const p of [0.1, 0.3, 1, 3, 10]) { g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(W - R, Y(p)); g.stroke(); g.fillText(`${p}%`, 4, Y(p) + 4); }
+    for (let s = 0; s <= 30; s += 10) g.fillText(s === 0 ? "now" : `-${s} s`, X(simT - s * FS) - (s === 0 ? 24 : 12), H - 5);
+    g.fillStyle = css("--touch-soft");
+    for (const h of hist) if (h.active) g.fillRect(X(h.t) - 1, T, (W - L - R) / (30 * FS) + 1, H - T - B);
+    const line = (p, col, dash) => { g.setLineDash(dash); g.strokeStyle = col; g.lineWidth = 1.5; g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(W - R, Y(p)); g.stroke(); g.setLineDash([]); };
+    line(0.3, css("--warn"), [6, 4]); line(0.15, css("--base"), [3, 4]);
+    g.strokeStyle = css("--touch"); g.lineWidth = 2; g.beginPath();
+    hist.forEach((h, i) => { const x = X(h.t), y = Y(h.score); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+  }
+  function drawSweep(amp) {
+    const { g, W, H } = setup($("cv-sweep")); g.clearRect(0, 0, W, H);
+    const L = 44, R = 8, T = 6, B = 20, n = 46;   // first 46 points: 1-790 kHz, where the resonance lives
+    const X = (i) => L + (W - L - R) * i / (n - 1), Y = (a) => T + (H - T - B) * (1 - a / 1.2);
+    g.font = `11px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid");
+    for (const a of [0, 0.4, 0.8, 1.2]) { g.beginPath(); g.moveTo(L, Y(a)); g.lineTo(W - R, Y(a)); g.stroke(); g.fillText(a.toFixed(1), 12, Y(a) + 4); }
+    for (const i of [0, 11, 23, 34, 45]) { const lab = `${Math.round(SG.TOUCHE[i] / 1e3)} kHz`; g.fillText(lab, i === 45 ? X(i) - g.measureText(lab).width : X(i) - 18, H - 5); }
+    const plot = (arr, col, w) => { if (!arr) return; g.strokeStyle = col; g.lineWidth = w; g.beginPath(); for (let i = 0; i < n; i++) { i ? g.lineTo(X(i), Y(arr[i])) : g.moveTo(X(i), Y(arr[i])); } g.stroke(); };
+    plot(fw.base, css("--base"), 2.5); plot(amp, css("--touch"), 1.8);
+  }
+
+  // ---------------------------------------------------------------- loop
+  function logEvent(e) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="lt">${clockAt(e.t)}</span><span class="${e.type}">${e.text}</span>`;
+    $("log").prepend(li);
+    if (e.type === "alert") { callStart = simT; addMsg("alert"); }
+    if (e.type === "silent") addMsg("silent");
+    if (e.type === "cancel") flash = { until: simT + 2 * FS };
+  }
+  const clockAt = (s) => { const x = START_CLOCK + Math.floor(s); return `${String(Math.floor(x / 3600) % 24).padStart(2, "0")}:${String(Math.floor(x / 60) % 60).padStart(2, "0")}:${String(x % 60).padStart(2, "0")}`; };
+
+  function step() {
+    simT += 1;
+    if (story) story.tick();
+    const amp = sensor.frame();
+    fw.frame(amp);
+    hist.push({ t: simT, score: 100 * fw.score, active: fw.active && fw.state !== "off" }); while (hist.length > 30 * FS) hist.shift();
+    $("m-score").textContent = fw.state === "off" || fw.state === "learning" ? "–" : `${(100 * fw.score).toFixed(2)} %`;
+    $("m-hold").textContent = `${fw.holdSeconds.toFixed(1)} / 2.0 s`;
+    $("m-holdbar").style.width = `${Math.min(100, 50 * fw.holdSeconds)}%`;
+    $("m-off").textContent = `${(100 * fw.offDist).toFixed(2)} %`;
+    $("m-off").style.color = fw.offDist < fw.cfg.OFF_WRIST_TOL ? css("--crit") : "";
+    $("worldnow").innerHTML = `<span style="color:var(--muted)">World (hidden from the watch):</span> ${describe(sensor.event)}`;
+    document.querySelectorAll(".scn button[data-k] .tm").forEach((s) => { s.textContent = s.parentElement.dataset.k === scnActive ? `${((simT - scnStart) / FS).toFixed(1)} s` : ""; });
+    renderWatch(); drawScore(); drawSweep(amp);
+  }
+
+  function resetAll() {
+    clearInterval(timer);
+    const ctx = document.querySelector("#ctx button[aria-pressed=true]").dataset.c;
+    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: ctx });
+    fw = new SGFirmware.Firmware(sensor.offWristReference()); fw.onEvent = logEvent;
+    simT = 0; scnActive = null; msgs = []; flash = null; hist.length = 0; lastScreen = "";
+    $("log").innerHTML = ""; $("msgs").innerHTML = `<div class="empty">No messages</div>`;
+    document.querySelectorAll(".scn button[data-k]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    timer = setInterval(step, 1000 / FS);
+  }
+
+  mkButtons($("scn-people"), PEOPLE); mkButtons($("scn-other"), OTHER);
+  STORIES.forEach(([t, d], i) => { const b = document.createElement("button"); b.innerHTML = `<span>${t}<br><span class="hint">${d}</span></span><span class="tm"></span>`; b.addEventListener("click", () => playStory(i)); $("stories").appendChild(b); });
+  $("ctx").addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (!b) return;
+    document.querySelectorAll("#ctx button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); sensor.setContext(b.dataset.c); });
+  $("reset").addEventListener("click", () => { stopStory(); resetAll(); });
+  resetAll();
+})();
+</script>
+
+</html>

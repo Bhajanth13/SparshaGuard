@@ -27,10 +27,12 @@ python fem/hand_near_strap.py   # 3D field calculation: his hand near the strap 
 python whole_body.py        # whole-body touch study, fig10-fig12      (~5 s)
 python ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fig13 (~5 s, needs ngspice)
 FASTCAP=/path/to/fastcap python fem/fastcap_crosscheck.py  # check the 3D result against FastCap, fig14 (~2 min)
+python build_demo.py        # rebuild the digital-twin demo page
+node demo/check_demo.js     # check the demo's sensor + firmware headless (~3 min)
 ```
 
-Open `explorer/sparshaguard_explorer.html` in any browser for the interactive explorer
-(works offline except for web fonts).
+Open `explorer/sparshaguard_explorer.html` in any browser for the interactive explorer, and
+`demo/sparshaguard_demo.html` for the digital-twin demo (both work offline except for web fonts).
 
 ## Files
 
@@ -52,6 +54,8 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `data/*.json` | Numeric results behind every figure |
 | `models/svm_dual_shield.joblib` | Trained SVM for the recommended hardware design |
 | `explorer/sparshaguard_explorer.html` | Interactive explorer page (built from `page_src.html` + `model.js`) |
+| `demo/sparshaguard_demo.html` | Digital-twin demo: the watch firmware running on a simulated sensor (built by `build_demo.py` from `demo/page_src.html`, `demo/sensor.js`, `demo/firmware.js` and `explorer/model.js`) |
+| `demo/check_demo.js`, `demo/demo_check.json` | Headless check of the demo's sensor and firmware against the study's rates |
 | `build_explorer.py`, `rebuild_csv.py` | Rebuild the explorer page; rebuild the CSV from the `.npz` |
 | `docs/design_notes.md` | Hardware changes, sensing physics, false-trigger strategy, Gate 1 test rules |
 | `whole_body.py`, `docs/whole_body_detection.md` | Can it detect a touch anywhere on her body? Active-sweep limit, passive body-potential channel, proposed design (fig10–fig12) |
@@ -169,6 +173,30 @@ noise floor), and forearm grabs caught fell from ~43% to 0%. The active sweep se
 when his hand is on or within about 1 cm of the strap. Wrist-grab results did not change.
 Because forearm grabs are now invisible, the classifiers are trained only on grabs the sensor
 can see (wrist), as the script already did for shoulder, waist and other far grabs.
+
+## Digital-twin demo
+
+`demo/sparshaguard_demo.html` runs the watch's decision logic on a simulated sensor, in real time,
+for the hackathon demonstration. It is split the way the real device is:
+
+- **Sensor twin** (`demo/sensor.js`): the circuit model (`explorer/model.js`, the JavaScript port
+  of `sg_model.py`) plus sweat drift, strap jitter, foot movement and ADC noise, as in
+  `event_stream.py`. It outputs only what an envelope detector gives: 200 amplitudes, 5 times a
+  second. Each touch draws its details at random over the model's ranges (for example, his palm
+  misses the outer electrode in 15% of wrist grabs).
+- **Firmware** (`demo/firmware.js`): the detection pipeline of `event_stream.py` (0.3% threshold,
+  2 s hold, frozen baseline, no classifier gate), a strap-removal check against the watch's own
+  off-the-wrist signature, and the PIN state machine (15 s window, correct / wrong / duress PIN).
+  It never sees which scenario is playing.
+- **Page**: the world (scenario buttons and five scripted stories), her watch, her contact's
+  phone, and a live view of what the firmware sees.
+
+`node demo/check_demo.js` runs the same two files headless, with no scripted outcomes: 87% of
+wrist grabs caught, 0% of forearm and shoulder grabs, 100% of strap removals, about 4 unwanted PIN
+prompts per hour of daily life, and no false strap alarms (normal wearing never comes closer than
+2.0% to the off-wrist signature; the alarm needs 0.4%). That matches the Python study (93%, 0%,
+0%, ~5.5 per hour) within the run-to-run spread. Strap removal is a new event in `sg_model.py`
+(`strap_off`: electrode and ground plane 1–5 cm off the skin, in air).
 
 ## Calibrating with Gate 1
 

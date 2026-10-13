@@ -322,6 +322,11 @@ def event_branches(p_now: dict, s: Sampler, design: str, kind: str, detail: str 
         else:
             # his body 0.3-0.6 m from the watch: 2-20 % of the watch's return path [E, settled]
             br["Y_A0"] = yc(p_now["C_GE_free"] * s.u(0.02, 0.20))
+    elif kind == "strap_off":
+        # watch pulled off the wrist: electrode and ground plane end up 1-5 cm from her skin, in
+        # air -> fractions of a pF [G]; nothing touches the inner electrode
+        br["Y_SB"] = yc(s.u(0.05, 0.3) * pF)
+        br["Y_B0"] = yc(s.u(0.05, 0.5) * pF)
     elif kind == "self":
         r_arms = 2 * s.u(100, 400)                      # two limb segments [S5]
         br["Y_B0"] = br["Y_B0"] + 1.0 / (1.0 / y_outer_contact(s, design) + r_arms[:, None])

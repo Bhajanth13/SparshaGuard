@@ -12,6 +12,8 @@ This repo is a simulation study (no hardware yet). The next stage, "Gate 1", is 
 - Pipeline: `make_figures.py` (fig0–4) → `make_dataset.py` → `train_classifier.py` (fig5–7) → `event_stream.py` (fig8–9, about 30 min).
   `whole_body.py` (fig10–12) and `fem/` (boundary-element 3D field solver) cover the whole-body touch study.
 - `explorer/` is the interactive page; `explorer/model.js` must stay a faithful port of `sg_model.py` (rebuild with `build_explorer.py`).
+- `demo/` is the digital-twin demo for the hackathon: `sensor.js` (model + drift + noise), `firmware.js` (event_stream.py pipeline + PIN
+  state machine), built by `build_demo.py`; `node demo/check_demo.js` checks it headless against the study's rates.
 - `docs/parameter_sources.md` lists every value and its source; `docs/SparshaGuard_paper_values.xlsx` is the paper-values workbook
   (built by `tools/build_paper_values_xlsx.py` from the lists in `tools/build_sources_xlsx.py`).
 - `video/` holds the narrated explainer (its source code lives outside this repo).

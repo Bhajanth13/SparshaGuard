@@ -388,6 +388,17 @@ const SG = (() => {
     };
   }
 
+  // his hand near the strap: 3D boundary-element result (fem/), checked with FastCap; log-log interpolation
+  const FEM_GAP = [1, 2, 3, 5, 10];
+  const FEM_HAND = { dual: [1.4364, 0.4363, 0.2395, 0.1180, 0.0487], single: [0.3494, 0.1106, 0.0612, 0.0312, 0.0134] };
+  function handNearStrapPF(gapCm, design) {
+    const y = FEM_HAND[design === "single" ? "single" : "dual"], L = Math.log;
+    const g = Math.min(Math.max(gapCm, 1), 10);
+    let i = 0; while (i < FEM_GAP.length - 2 && g > FEM_GAP[i + 1]) i++;
+    const t = (L(g) - L(FEM_GAP[i])) / (L(FEM_GAP[i + 1]) - L(FEM_GAP[i]));
+    return Math.exp(L(y[i]) + t * (L(y[i + 1]) - L(y[i])));
+  }
+
   function yOuterContact(w, f, design) {
     if (design === "single") return yc(w, plate(2.0, 4 * CM2, 4.5e-3));
     const area = 15;
@@ -410,9 +421,13 @@ const SG = (() => {
       const area = 60;
       const skins = add(zSC(f, area, HIS.hyd, HIS.alpha), zSC(f, area, HIS.hyd, HIS.alpha));
       b.Y_BA = inv(st.bare ? skins : add(skins, zc(w, plate(3.15, area * CM2, st.clothMm * 1e-3))));
-      if (st.loc === "wrist") b.Y_A0 = yOuterContact(w, f, d);
-      else if (st.loc === "forearm") b.Y_A0 = yc(w, (d !== "single" ? 0.2395 : 0.0612) * pF);  // 3D solve, hand 3 cm from strap
+      if (st.loc === "wrist") b.Y_A0 = st.offElectrode ? yc(w, (st.handPF ?? (d !== "single" ? 1.75 : 0.6)) * pF)
+                                                       : yOuterContact(w, f, d);
+      else if (st.loc === "forearm") b.Y_A0 = yc(w, handNearStrapPF(st.gapCm ?? 3, d) * pF);  // 3D solve
       else b.Y_A0 = yc(w, p.C_GE_free * 0.11);
+    } else if (st.touch === "strap_off") {
+      // watch lifted off the wrist: electrode and ground plane 1-5 cm from the skin, in air [G]
+      b.Y_SB = yc(w, (st.offSBpF ?? 0.175) * pF); b.Y_B0 = yc(w, (st.offB0pF ?? 0.275) * pF);
     } else if (st.touch === "self") {
       b.Y_B0 = add(b.Y_B0, inv(add(inv(yOuterContact(w, f, d)), c(500))));
     } else if (st.touch === "object") {
@@ -481,7 +496,8 @@ const SG = (() => {
 
   function skinOhmsAt(st, f) { return abs(add(zMetal(f, 3, st.hyd, 0.55), zSC(f, 3, st.hyd, 0.9))); }
 
-  return { sweep, score, abs, div, sub, c, DRIFT, TRIGGER, NOISE, skinOhmsAt };
+  return { sweep, score, abs, div, sub, c, DRIFT, TRIGGER, NOISE, skinOhmsAt,
+           base, branches, solve, TOUCHE, handNearStrapPF };
 })();
 
 

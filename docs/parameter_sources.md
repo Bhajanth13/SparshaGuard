@@ -126,6 +126,7 @@ assumed [S11], which makes touches away from the electrode even harder to see.
 | Strap pressed on a metal pole | Coating over 2–10 cm² | [G] |
 | Holding a phone | Skin + phone self-capacitance 4–12 pF | [G]/[E] |
 | Wrist on a wooden table; bag | Small added couplings | [E] |
+| Strap pulled off (digital-twin demo) | Electrode and ground plane 1–5 cm off the skin, in air: 0.05–0.3 pF and 0.05–0.5 pF | [G] |
 | Sweat and strap movement | Hydration drift (minutes); strap-gap jitter 1.5–5% on the wrist coupling | [E] |
 
 
