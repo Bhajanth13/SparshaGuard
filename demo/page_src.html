@@ -71,7 +71,7 @@ header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center
 
 .center { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .watchbox { position: relative; width: 300px; height: 300px; display: grid; place-items: center; }
-.ringsvg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.ringsvg { position: absolute; inset: 0; transform: rotate(-90deg); pointer-events: none; }
 .ringsvg circle { fill: none; stroke-width: 9; stroke-linecap: round; }
 .ringsvg .track { stroke: var(--grid); }
 .watch { width: 250px; height: 250px; border-radius: 50%; background: var(--case); padding: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.25), inset 0 0 0 2px rgba(255,255,255,.07); }
@@ -448,37 +448,46 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
 
   // ------------------------------------------------------------------ watch
   const clock = () => rtcTime(false);
-  const face = () => `<div class="sclock">${rtcDate()} · ${rtcTime(false)}</div>`;
   const shield = (col) => `<svg class="shield" viewBox="0 0 54 62" aria-hidden="true"><path d="M27 2 L51 11 V30 C51 45 40 55 27 60 C14 55 3 45 3 30 V11 Z" fill="none" stroke="${col}" stroke-width="3.5"/><path d="M17 31 l7 7 l13 -15" fill="none" stroke="${col}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  let lastScreen = "", lastState = "", lastBuzz = false, lastStatus = "", lastRing = "";
+  // The watch screen is built once per state and then only its numbers are updated, so its
+  // buttons stay the same elements and a tap can never land on a button that was just replaced.
+  let lastScreen = "", lastBuzz = false, lastStatus = "", lastRing = "";
+  const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k) => k ? `<button data-key="${k}" aria-label="${k === "del" ? "delete" : k}">${k === "del" ? "⌫" : k}</button>` : "<span></span>").join("");
+  const LAYOUT = {
+    cancel: () => `<div class="sclock" data-v="time"></div><div class="sbig">Cancelled</div><div class="ssmall">Still guarding</div>`,
+    off: () => `<div class="sclock" data-v="face"></div>${shield("#5d6b78")}<div class="sbig">Guard Mode off</div><button class="sbtn" data-act="on">Turn on</button>`,
+    learning: () => `<div class="sclock" data-v="time"></div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">keep still</div>`,
+    armed: () => `<div class="sclock" data-v="face"></div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`,
+    prompt: () => `<div class="ssmall" style="margin:0">Enter PIN</div><div class="count" data-v="count"></div><div class="dots" data-v="dots"><i></i><i></i><i></i><i></i></div><div class="pad">${KEYS}</div>`,
+    alert: () => `<div class="sclock" style="color:#ffb3b3" data-v="time"></div><div class="sbig" style="color:#fff">Alert sent</div><div class="ssmall" style="color:#ffd0d0">location to 2 contacts</div><div class="ssmall" style="color:#fff;font-size:13.5px">Calling 112 · <span data-v="call"></span></div><div class="rec">recording</div>`,
+  };
+  const setText = (sel, txt) => { const el = $("screen").querySelector(`[data-v="${sel}"]`); if (el && el.textContent !== txt) el.textContent = txt; };
   function renderWatch() {
-    let html = "", cls = "screen", status = "", ringCol = "var(--grid)", frac = 0;
+    let status = "", ringCol = "var(--grid)", frac = 0;
     const buzz = fw.state === "prompt" && simT % FS < 2;
     if (buzz !== lastBuzz) { $("watch").classList.toggle("buzz", buzz); lastBuzz = buzz; }
-    const showCancel = flash && simT < flash.until;
-    if (showCancel) { html = `<div class="sclock">${clock()}</div><div class="sbig">Cancelled</div><div class="ssmall">Still guarding</div>`; status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
-    else if (fw.state === "off") { html = `${face()}${shield("#5d6b78")}<div class="sbig">Guard Mode off</div><button class="sbtn" data-act="on">Turn on</button>`; status = "Guard Mode off"; }
-    else if (fw.state === "learning") { html = `<div class="sclock">${clock()}</div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">keep still</div>`; status = "Learning her baseline"; ringCol = "var(--warn)"; frac = fw.learn.length / (5 * FS); }
-    else if (fw.state === "armed") {
-      html = `${face()}${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`;
+    const key = flash && simT < flash.until ? "cancel" : fw.state;
+    if (key !== lastScreen) { const scr = $("screen"); scr.className = key === "alert" ? "screen alert" : "screen"; scr.innerHTML = LAYOUT[key](); lastScreen = key; }
+    setText("time", clock()); setText("face", `${rtcDate()} · ${rtcTime(false)}`);
+    if (key === "cancel") { status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
+    else if (key === "off") status = "Guard Mode off";
+    else if (key === "learning") { status = "Learning her baseline"; ringCol = "var(--warn)"; frac = fw.learn.length / (5 * FS); }
+    else if (key === "armed") {
       if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
       else { status = "Guarding"; ringCol = "var(--calm)"; frac = 1; }
-    } else if (fw.state === "prompt") {
-      const dots = [0, 1, 2, 3].map((i) => `<i class="${i < fw.entry.length ? "on" : ""}"></i>`).join("");
-      const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map((k) => k ? `<button data-key="${k}" aria-label="${k === "del" ? "delete" : k}">${k === "del" ? "⌫" : k}</button>` : "<span></span>").join("");
-      html = `<div class="ssmall" style="margin:0">Enter PIN</div><div class="count">${fw.pinSecondsLeft}</div><div class="dots">${dots}</div><div class="pad">${keys}</div>`;
+    } else if (key === "prompt") {
+      setText("count", String(fw.pinSecondsLeft));
+      $("screen").querySelectorAll('[data-v="dots"] i').forEach((d, i) => d.classList.toggle("on", i < fw.entry.length));
       status = `Enter PIN: ${fw.pinSecondsLeft} s left`; ringCol = "var(--warn)"; frac = fw.pinLeft / (15 * FS);
-    } else if (fw.state === "alert") {
-      cls += " alert"; const s = Math.floor((simT - callStart) / FS);
-      html = `<div class="sclock" style="color:#ffb3b3">${clock()}</div><div class="sbig" style="color:#fff">Alert sent</div><div class="ssmall" style="color:#ffd0d0">location to 2 contacts</div><div class="ssmall" style="color:#fff;font-size:13.5px">Calling 112 · ${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}</div><div class="rec">recording</div>`;
+    } else if (key === "alert") {
+      const t = Math.floor((simT - callStart) / FS);
+      setText("call", `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`);
       status = "Alert sent"; ringCol = "var(--crit)"; frac = 1;
     }
-    if (html !== lastScreen) { const scr = $("screen"); scr.className = cls; scr.innerHTML = html; lastScreen = html; }
     const ringKey = ringCol + (879.6 * (1 - Math.max(0, Math.min(1, frac)))).toFixed(1);
     if (ringKey !== lastRing) { const ring = $("ring"); ring.style.stroke = ringCol; ring.style.strokeDashoffset = ringKey.slice(ringCol.length); lastRing = ringKey; }
     if (status !== lastStatus) { $("status").textContent = status; $("status").style.color = fw.state === "alert" ? "var(--crit)" : fw.state === "prompt" ? "var(--warn)" : ""; lastStatus = status; }
     if (fw.state === "prompt" && simT % FS === 0) sBuzz();
-    lastState = fw.state;
   }
   $("screen").addEventListener("click", (ev) => {
     const b = ev.target.closest("button"); if (!b) return;
@@ -507,7 +516,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   // ------------------------------------------------------------------ charts
   const COLS = {};
   const readCols = () => { const cs = getComputedStyle(document.documentElement); for (const v of ["--f-mono", "--muted", "--grid", "--touch", "--touch-soft", "--warn", "--base"]) COLS[v] = cs.getPropertyValue(v).trim(); };
-  readCols(); matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readCols);
+  readCols();
+  try { const mq = matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener ? mq.addEventListener("change", readCols) : mq.addListener(readCols); } catch (e) { /* colours stay as read */ }
   const css = (v) => COLS[v];
   function setup(cv) {
     if (!cv._w) { new ResizeObserver(([e]) => { cv._w = e.contentRect.width; cv._dirty = true; }).observe(cv); cv._w = cv.getBoundingClientRect().width; cv._dirty = true; }
