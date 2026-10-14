@@ -4,36 +4,36 @@
  "grabs_caught": {
   "wrist": {
    "active": 0.925,
-   "fused": 0.9583333333333334
+   "fused": 0.9416666666666667
   },
   "forearm": {
    "active": 0,
-   "fused": 0.6333333333333333
+   "fused": 0.6666666666666666
   },
   "upper_arm": {
    "active": 0,
-   "fused": 0.65
+   "fused": 0.6333333333333333
   },
   "other_arm": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6333333333333333
   },
   "shoulder": {
    "active": 0,
-   "fused": 0.6666666666666666
+   "fused": 0.65
   },
   "waist": {
    "active": 0,
-   "fused": 0.6666666666666666
+   "fused": 0.6583333333333333
   },
   "face_hair": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6416666666666667
   }
  },
  "body_average": {
   "active": 0.13214285714285715,
-  "fused": 0.6988095238095238
+  "fused": 0.6892857142857143
  },
  "strap_removal_caught": {
   "active": 1,
@@ -42,7 +42,7 @@
  "daily_life": {
   "walking": {
    "unwanted_prompts_per_hour": {
-    "active": 2,
+    "active": 1.3333333333333333,
     "fused": 0
    },
    "friend_wrist_prompts_per_hour": {
@@ -51,17 +51,17 @@
    },
    "causes_per_hour": {
     "active": {
-     "self": 1.9999999999999998
+     "self": 1.3333333333333333
     },
     "fused": {}
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.037767937259067
+   "closest_to_off_wrist_pct": 1.9585316176405936
   },
   "bus": {
    "unwanted_prompts_per_hour": {
-    "active": 6,
-    "fused": 0
+    "active": 4,
+    "fused": 0.3333333333333333
    },
    "friend_wrist_prompts_per_hour": {
     "active": 0,
@@ -69,36 +69,41 @@
    },
    "causes_per_hour": {
     "active": {
-     "object:railing_wrist": 4,
-     "self": 1.9999999999999998
+     "self": 1,
+     "object:railing_wrist": 3
     },
-    "fused": {}
+    "fused": {
+     "person:shoulder": 0.3333333333333333
+    }
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.0633038608397767
+   "closest_to_off_wrist_pct": 1.9810199459420994
   },
   "desk": {
    "unwanted_prompts_per_hour": {
-    "active": 4,
+    "active": 3.3333333333333335,
     "fused": 0
    },
    "friend_wrist_prompts_per_hour": {
-    "active": 0,
-    "fused": 0
+    "active": 0.3333333333333333,
+    "fused": 0.3333333333333333
    },
    "causes_per_hour": {
     "active": {
-     "object:wood_table": 3.666666666666667,
-     "self": 0.3333333333333333
+     "object:wood_table": 3,
+     "self": 0.3333333333333333,
+     "person:wrist": 0.3333333333333333
     },
-    "fused": {}
+    "fused": {
+     "person:wrist": 0.3333333333333333
+    }
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.09815053216052
+   "closest_to_off_wrist_pct": 2.021657932123452
   }
  },
  "mean_unwanted_prompts_per_hour": {
-  "active": 4,
-  "fused": 0
+  "active": 2.888888888888889,
+  "fused": 0.1111111111111111
  }
 }

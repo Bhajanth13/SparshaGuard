@@ -256,10 +256,10 @@ every sensor frame to two firmwares side by side (bodies at ~10 V; 70 % of grabs
 
 | | First design (sweep only) | Fused watch |
 |---|---|---|
-| Wrist grabs caught | 92.5 % | 95.8 % |
+| Wrist grabs caught | 92.5 % | 94.2 % |
 | Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 63–67 % |
-| Average over 7 places | 13 % | 70 % |
-| Unwanted PIN prompts, 9 h of walking, bus and desk | 36 (her own hand, a metal pole, a table) | 0 |
+| Average over 7 places | 13 % | 69 % |
+| Unwanted PIN prompts, 9 h of walking, bus and desk | 26 (a metal pole, a table, her own hand) | 1 (a stranger brushed her shoulder while she moved her arm briskly) |
 | Strap removals caught | 100 % | 100 % |
 
 No false strap alarms: normal wearing never comes closer than 2.0% to the off-wrist signature
