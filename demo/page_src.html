@@ -101,6 +101,9 @@ header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center
 .signal { width: 100%; max-width: 560px; }
 .signal .top { display: flex; justify-content: space-between; align-items: baseline; }
 .signal .val { font-family: var(--f-mono); font-size: 13px; color: var(--ink2); }
+.signal + .signal { margin-top: 6px; }
+.settings { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--ink2); margin: 0 0 10px; }
+.settings select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
 canvas { width: 100%; display: block; }
 
 .phonecol { display: flex; justify-content: center; }
@@ -131,8 +134,8 @@ canvas { width: 100%; display: block; }
 .btn.primary { background: var(--touch); border-color: var(--touch); color: #fff; }
 .btn:disabled { opacity: .45; cursor: default; }
 .hint { font-size: 12.5px; color: var(--muted); margin-left: auto; }
-.tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tiles { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .tile { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 10px 8px; cursor: pointer; display: grid; justify-items: center; gap: 4px; text-align: center; font-size: 13px; font-weight: 500; }
 .tile svg { width: 34px; height: 34px; }
@@ -193,6 +196,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <g id="m-forearm" class="m"><circle class="ring" cx="151" cy="148" r="14"/><circle class="dot" cx="151" cy="148" r="5"/></g>
         <g id="m-shoulder" class="m"><circle class="ring" cx="138" cy="84" r="16"/><circle class="dot" cx="138" cy="84" r="5"/></g>
         <g id="m-self" class="m"><path d="M52 190 Q100 214 150 184" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="5 5"/><circle class="dot" cx="152" cy="181" r="5"/></g>
+        <g id="m-otherarm" class="m"><circle class="ring" cx="56" cy="112" r="14"/><circle class="dot" cx="56" cy="112" r="5"/></g>
+        <g id="m-phone" class="m"><rect class="obj" x="140" y="186" width="12" height="20" rx="3"/></g>
         <g id="m-strap" class="m"><path d="M160 178 Q186 160 188 130" fill="none" stroke="var(--crit)" stroke-width="2.5" stroke-dasharray="5 5"/><rect x="180" y="118" width="16" height="13" rx="4" fill="var(--crit)"/></g>
       </svg>
       <div class="touchnow" id="touchnow"></div>
@@ -210,6 +215,10 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       <div class="signal">
         <div class="top"><p class="label" style="margin:0">Sensor signal (change from her baseline)</p><span class="val" id="sigval"></span></div>
         <canvas id="cv-score" height="110" role="img" aria-label="Sensor signal over the last 30 seconds against the 0.3 percent touch threshold"></canvas>
+      </div>
+      <div class="signal">
+        <div class="top"><p class="label" style="margin:0">Static on her body (passive channel) and arm jerks</p><span class="val" id="statval"></span></div>
+        <canvas id="cv-static" height="84" role="img" aria-label="Her body voltage as the watch sees it over the last 30 seconds, with contact steps and arm jerks marked"></canvas>
       </div>
     </div>
 
@@ -232,7 +241,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       <button class="btn primary" id="playall">Play all</button>
       <button class="btn" id="playone">Play this chapter</button>
       <button class="btn" id="next">Next chapter</button>
-      <span class="hint">About 1½ minutes for all six chapters</span>
+      <span class="hint">About 2 minutes for all seven chapters</span>
     </div>
   </div>
   <div class="card bar" id="bar-try" hidden>
@@ -250,15 +259,19 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   <div class="science" id="science">
     <div class="card">
       <p class="label">Proof, not promises</p>
+      <div class="settings">
+        <label>Watch logic <select id="rule"><option value="fused" selected>Fused: sweep + static + motion</option><option value="active">Sweep only (first design)</option></select></label>
+        <label>Static on bodies <select id="v0"><option value="1">Low (~1 V)</option><option value="10" selected>Medium (~10 V)</option><option value="100">High (~100 V)</option></select></label>
+      </div>
       <div class="facts">
-        <div class="fact"><div class="v">~16 %</div><div class="k">signal change from a wrist grab (noise ~0.1 %)</div></div>
-        <div class="fact"><div class="v">87 %</div><div class="k">of random wrist grabs caught in 120 trials</div></div>
-        <div class="fact"><div class="v">100 %</div><div class="k">of strap removals caught, no false alarms</div></div>
-        <div class="fact"><div class="v">0 %</div><div class="k">of forearm or shoulder grabs: needs motion + audio</div></div>
+        <div class="fact"><div class="v" id="f-body">/*FACT_BODY*/</div><div class="k">of grabs caught over 7 body places (sweep only: /*FACT_BODY_A*/)</div></div>
+        <div class="fact"><div class="v" id="f-fp">/*FACT_FP*/</div><div class="k">unwanted PIN prompts in /*FACT_HOURS*/ h of simulated daily life (sweep only: /*FACT_FP_A*/)</div></div>
+        <div class="fact"><div class="v">/*FACT_WRIST*/</div><div class="k">of wrist grabs caught (signal ~16 %, noise ~0.1 %)</div></div>
+        <div class="fact"><div class="v">/*FACT_STRAP*/</div><div class="k">of strap removals caught, no false alarms</div></div>
       </div>
       <div class="legend"><span style="--c: var(--base)">her baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
       <canvas id="cv-sweep" height="170" role="img" aria-label="Sensor sweep across frequency, baseline and now"></canvas>
-      <p class="notes">Each reading is a sweep of 200 frequencies (1 kHz–3.5 MHz), 5 times a second. The physics uses values from 15 published papers; the circuit solver is checked against SPICE and the 3D field against MIT's FastCap. The sensor here is simulated; the decisions are the watch firmware's own, and it never sees which scene is playing. Gate 1 hardware will calibrate the numbers.</p>
+      <p class="notes">Each reading is a sweep of 200 frequencies (1 kHz–3.5 MHz), 5 times a second. The static channel reads her body voltage 500 times a second: a touch by another person shares charge in under a millisecond, while her footsteps and movements are slower. Static levels on Indian floors are not measured yet, so the numbers above use ~10 V. The physics uses values from published papers; the circuit solver is checked against SPICE and the 3D field against MIT's FastCap. The sensor here is simulated; the decisions are the watch firmware's own, and it never sees which scene is playing. Gate 1 hardware will calibrate the numbers.</p>
     </div>
     <div class="card">
       <p class="label">Firmware log</p>
@@ -277,7 +290,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   const $ = (id) => document.getElementById(id);
   const FS = SGSensor.FS;
   let sensor, fw, timer, simT = 0, scn = null, scnStart = 0, runner = null, msgs = [], flash = null, callStart = 0;
-  const hist = [];
+  const hist = [], shist = [], marks = [];      // sweep score, static channel, contact steps / jerks
   // real-time clock: the watch reads the device's clock, as the real watch reads its RTC chip
   const rtcTime = (sec) => new Date().toLocaleTimeString([], sec ? { hour: "2-digit", minute: "2-digit", second: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
   const rtcDate = () => new Date().toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
@@ -302,10 +315,12 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   const TILES = [
     { k: "person:wrist", name: "Grab her wrist", sub: "stranger", icon: "hand" },
     { k: "person:forearm", name: "Grab her forearm", sub: "1–5 cm from strap", icon: "arm" },
-    { k: "person:shoulder", name: "Grab her shoulder", sub: "stranger", icon: "shoulder" },
+    { k: "person:shoulder", name: "Grab her shoulder", sub: "and pull", icon: "shoulder" },
+    { k: "brush:other_arm", name: "Brush past her", sub: "crowded bus", icon: "brush" },
     { k: "bystander:null", name: "Stand very close", sub: "no touch", icon: "person" },
-    { k: "self:null", name: "Her own hand", sub: "adjusts the watch", icon: "self" },
+    { k: "self:null", name: "Her own hand", sub: "holds the watch", icon: "self" },
     { k: "object:railing_wrist", name: "Strap on a metal pole", sub: "on the bus", icon: "pole" },
+    { k: "object:phone", name: "Hold her phone", sub: "wrist on it", icon: "phone" },
     { k: "strap_off:null", name: "Rip the watch off", sub: "strap removed", icon: "off" },
   ];
   const ICONS = {
@@ -315,15 +330,22 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     person: '<circle cx="11" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 30 Q4 16 11 16 Q18 16 18 30" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="25" cy="11" r="4" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><path d="M19 30 Q19 18 25 18 Q31 18 31 30" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/>',
     self: '<rect x="11" y="11" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 30 Q10 20 13 22" fill="none" stroke="var(--touch)" stroke-width="2.5"/>',
     pole: '<rect x="21" y="2" width="5" height="30" rx="2" fill="currentColor" opacity=".6"/><rect x="8" y="12" width="12" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
+    brush: '<circle cx="9" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 30 Q3 16 9 16 Q15 16 15 30" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 12 Q26 16 30 24" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="3 3"/>',
+    phone: '<rect x="11" y="4" width="13" height="26" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="25" r="1.6" fill="currentColor"/>',
     off: '<rect x="14" y="5" width="12" height="10" rx="3" fill="none" stroke="var(--crit)" stroke-width="2"/><path d="M4 28 Q10 22 16 22 M10 18 L6 14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 18 L18 26" stroke="var(--crit)" stroke-width="2" stroke-dasharray="3 3"/>',
   };
-  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander",
+  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander", "brush:other_arm": "m-otherarm", "object:phone": "m-phone",
     "self:null": "m-self", "object:railing_wrist": "m-pole", "strap_off:null": "m-strap", "object:wood_table": "m-table" };
   const NAME = Object.fromEntries(TILES.map((t) => [t.k, t.name]));
 
+  // a stranger's body voltage that clearly differs from hers (the guided story should not hang on a
+  // rare draw where both bodies sit at the same voltage; in "Try it" every draw is random)
+  const otherVoltage = () => { const P = sensor.passive, vb = P.q / P.cb; return -Math.sign(vb || 1) * P.v0 * 2; };
   function startScene(k, force) {
-    const [kind, d] = k.split(":"); const detail = d === "null" ? null : d;
-    sensor.startEvent(kind, detail); if (force) Object.assign(sensor.event, force);
+    let [kind, d] = k.split(":"); const detail = d === "null" ? null : d;
+    if (kind === "brush") { kind = "person"; force = Object.assign({ pull: false, brush: true }, force); }
+    else if (kind === "person" && !(force && "pull" in force)) force = Object.assign({ pull: true }, force);   // a grab pulls her
+    sensor.startEvent(kind, detail, force);
     scn = k; scnStart = simT; paintScene();
   }
   function endScene() { if (scn) { sensor.endEvent(); scn = null; paintScene(); } }
@@ -338,6 +360,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     let s = `<b>${e.label || NAME[scn] || "Touch"}</b>`;
     if (e.kind === "person") {
       s += e.bare ? " · bare skin" : " · through clothing";
+      if (e.pull) s += " · pulls her arm";
       if (e.detail === "wrist") s += e.offElectrode ? " · his palm misses the watch's outer electrode" : " · his palm on the watch's outer electrode";
       if (e.detail === "forearm") s += ` · ${e.gapCm.toFixed(1)} cm from the strap`;
     }
@@ -355,20 +378,20 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { until: () => fw.state === "armed", say: "Now it is guarding. The signal stays flat while nobody touches her.", sub: "That flat line is her own body, with sweat and movement, inside the noise." },
       { wait: 3.5 } ] },
     { t: "A stranger grabs her wrist", steps: [
-      { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }) },
-      { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %.", sub: "His palm closes a path through the watch's outer electrode on the strap." },
-      { until: () => fw.state === "prompt", say: "Held for 2 seconds: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
+      { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
+      { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %, and her body's static jumps too.", sub: "His palm closes a path through the strap electrode; touching her, his body shares its charge with hers." },
+      { until: () => fw.state === "prompt", say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
       { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
       { until: () => fw.state === "alert", say: "Alert: her live location goes to her contacts, 112 is called, audio is recorded.", sub: "No button needed. The touch itself raised the alarm." },
       { wait: 4, do: endScene } ] },
     { t: "A friend holds her hand", steps: [
-      { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A friend holds her hand" }) },
-      { until: () => fw.state === "prompt", say: "Any hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
+      { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, pull: false, vA: otherVoltage(), label: "A friend holds her hand" }) },
+      { until: () => fw.state === "prompt", say: "Another person's hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
       { wait: 1.2, say: "She types her PIN, 1234.", sub: "" }, ...typePin("1234"),
       { wait: 0.3, say: "Cancelled. The watch keeps guarding.", sub: "" },
       { wait: 2.5, do: endScene }, { wait: 1 } ] },
     { t: "Forced to cancel", steps: [
-      { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A stranger forces her to cancel" }) },
+      { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger forces her to cancel" }) },
       { until: () => fw.state === "prompt", say: "The watch asks for the PIN.", sub: "" },
       { wait: 1.2, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
       { wait: 0.3, say: "The screen says \"Cancelled\", so he thinks it worked…", sub: "" },
@@ -378,14 +401,23 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { ready: true, say: "He rips the watch off her wrist.", sub: "", do: () => startScene("strap_off:null") },
       { until: () => fw.state === "alert", say: "The electrode loses her skin: alert in under a second, no PIN asked.", sub: "The watch compares each reading with its own off-the-wrist signature." },
       { wait: 4, do: endScene } ] },
+    { t: "Grabbed anywhere", steps: [
+      { ready: true, say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
+      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the lower chart." },
+      { until: () => fw.state === "prompt", say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
+      { wait: 1.5, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 2, do: endScene }, { wait: 1 } ] },
     { t: "Everyday life", steps: [
       { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
-      { wait: 1, do: () => startScene("self:null"), say: "She adjusts her watch for a moment.", sub: "Under 2 seconds: ignored." },
-      { wait: 1.4, do: endScene },
-      { wait: 2, do: () => startScene("bystander:null"), say: "A stranger stands very close on the bus.", sub: "No touch: the signal stays in the noise." },
+      { wait: 1, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
       { wait: 4, do: endScene },
-      { wait: 1, do: () => startScene("person:shoulder"), say: "Someone grabs her shoulder.", sub: "Honest limit: a wrist sensor can't feel this. Motion and audio sensing (planned) cover it." },
-      { wait: 5, do: endScene }, { wait: 1.5 } ] },
+      { wait: 1.5, do: () => { sensor.setContext("bus"); startScene("object:railing_wrist"); }, say: "On the bus, her strap rests on a metal pole.", sub: "Metal pulls her body to 0 V and holds it there: not a person." },
+      { wait: 4.5, do: endScene },
+      { wait: 1.5, do: () => startScene("brush:other_arm", { vA: otherVoltage(), label: "A stranger brushes past her arm" }), say: "A stranger brushes past her arm.", sub: "Another body, but no pulling within 3 seconds: ignored." },
+      { wait: 2, do: endScene },
+      { wait: 3, do: () => startScene("bystander:null"), say: "Someone stands very close.", sub: "No touch: no sharp step, nothing on the sweep." },
+      { wait: 4, do: endScene },
+      { wait: 1.5, do: () => sensor.setContext("walking"), say: "No PIN prompts: in hours of simulated daily life, unwanted prompts drop to about one a day.", sub: "" }, { wait: 3 } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
@@ -443,6 +475,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   }
   $("tab-guided").addEventListener("click", () => setMode("guided"));
   $("tab-try").addEventListener("click", () => setMode("try"));
+  $("rule").addEventListener("change", () => { fw.cfg.RULE = $("rule").value; logEvent({ type: "info", text: $("rule").value === "fused" ? "Logic: fused (sweep + static + motion)" : "Logic: sweep only (first design)" }); });
+  $("v0").addEventListener("change", () => sensor.passive.setV0(+$("v0").value));
   $("sound").addEventListener("click", () => { soundOn = !soundOn; $("sound").setAttribute("aria-pressed", String(soundOn)); $("sound").textContent = soundOn ? "Sound on" : "Sound off"; });
   $("sci").addEventListener("click", () => { const on = $("science").classList.toggle("open"); $("sci").setAttribute("aria-pressed", String(on)); $("sci").textContent = on ? "Hide the science" : "Show the science"; });
 
@@ -469,11 +503,14 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     const key = flash && simT < flash.until ? "cancel" : fw.state;
     if (key !== lastScreen) { const scr = $("screen"); scr.className = key === "alert" ? "screen alert" : "screen"; scr.innerHTML = LAYOUT[key](); lastScreen = key; }
     setText("time", clock()); setText("face", `${rtcDate()} · ${rtcTime(false)}`);
+    const now = simT / FS;
     if (key === "cancel") { status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
     else if (key === "off") status = "Guard Mode off";
     else if (key === "learning") { status = "Learning her baseline"; ringCol = "var(--warn)"; frac = fw.learn.length / (5 * FS); }
     else if (key === "armed") {
-      if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
+      if (fw.watching !== null && fw.watching !== undefined) { status = "Another body touched her: is she being pulled?"; ringCol = "var(--touch)"; frac = Math.min(1, (now - fw.watching) / 3); }
+      else if (fw.active && fw.vetoed) { status = "Touch on the watch, but no other body: ignored"; ringCol = "var(--calm)"; frac = 1; }
+      else if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
       else { status = "Guarding"; ringCol = "var(--calm)"; frac = 1; }
     } else if (key === "prompt") {
       setText("count", String(fw.pinSecondsLeft));
@@ -548,6 +585,29 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     g.strokeStyle = css("--touch"); g.lineWidth = 2; g.beginPath();
     hist.forEach((h, i) => { const x = X(h.t), y = Y(h.score); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
   }
+  function drawStatic() {
+    const { g, W, H } = setup($("cv-static")); if (!W) return; g.clearRect(0, 0, W, H);
+    const L = 40, R = 6, T = 6, B = 14;
+    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
+    let lo = Infinity, hi = -Infinity; for (const h of shist) { lo = Math.min(lo, h.lo); hi = Math.max(hi, h.hi); }
+    if (!shist.length) return;
+    const pad = Math.max(0.02, 0.15 * (hi - lo)); lo -= pad; hi += pad;
+    const Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+    for (const v of [lo + pad, hi - pad]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillText(`${v.toFixed(2)} V`, 0, Y(v) + 4); }
+    for (const m of marks) {
+      const x = X(m.f); if (x < L) continue;
+      if (m.kind === "jerk") { g.fillStyle = css("--warn"); g.fillRect(x - 1.5, H - B - 6, 3, 6); continue; }
+      g.strokeStyle = m.kind === "person" ? css("--touch") : css("--muted"); g.lineWidth = 1.5; g.setLineDash(m.kind === "person" ? [] : [3, 3]);
+      g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke(); g.setLineDash([]);
+      g.fillStyle = m.kind === "person" ? css("--touch") : css("--muted");
+      const lab = { person: "another body", earthed: "metal / earth", object: "object" }[m.kind];
+      g.fillText(lab, Math.min(x + 3, W - R - g.measureText(lab).width), T + 9);
+    }
+    g.strokeStyle = css("--base"); g.lineWidth = 1.6; g.beginPath();
+    shist.forEach((h, i) => { const x = X(h.t), y = Y(h.v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    g.fillStyle = css("--warn"); g.fillText("▮ arm jerk", W - R - 64, H - 2);
+  }
   function drawSweep(amp) {
     if (!$("science").classList.contains("open")) return;
     const { g, W, H } = setup($("cv-sweep")); if (!W) return; g.clearRect(0, 0, W, H);
@@ -569,26 +629,35 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     if (e.type === "silent") addMsg("silent");
     if (e.type === "cancel") { flash = { until: simT + 2 * FS }; sOk(); }
   }
-  let lastSig = "", lastTouch = "";
+  let lastSig = "", lastTouch = "", lastStat = "";
   function step() {
     simT += 1;
     if (runner) runner.tick();
-    const amp = sensor.frame();
-    fw.frame(amp);
+    const amp = sensor.frame(), pas = sensor.passiveFrame();
+    const prevStep = fw.lastStep;
+    fw.frame(amp, pas);
+    if (fw.lastStep && fw.lastStep !== prevStep) marks.push({ f: Math.round(fw.lastStep.t * FS), kind: fw.lastStep.kind });
+    let lo = Infinity, hi = -Infinity; for (const x of pas.u) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+    shist.push({ t: simT, v: pas.u[pas.u.length - 1], lo, hi });
+    if (pas.acc.some((a) => Math.abs(a - 1) > fw.cfg.AGIT_G) && !(marks.length && marks[marks.length - 1].kind === "jerk" && marks[marks.length - 1].f === simT - 1)) marks.push({ f: simT, kind: "jerk" });
+    while (shist.length > 30 * FS) shist.shift();
+    while (marks.length && marks[0].f < simT - 30 * FS) marks.shift();
     hist.push({ t: simT, score: fw.state === "off" || fw.state === "learning" ? 0.05 : 100 * fw.score, active: fw.active && fw.state !== "off" });
     while (hist.length > 30 * FS) hist.shift();
     const sv = fw.state === "off" || fw.state === "learning" ? "" : `${(100 * fw.score).toFixed(2)} %`;
     if (sv !== lastSig) { $("sigval").textContent = sv; lastSig = sv; }
     const tn = describe();
     if (tn !== lastTouch) { $("touchnow").innerHTML = tn; lastTouch = tn; }
-    renderWatch(); drawScore(); drawSweep(amp);
+    const stv = `${pas.u[pas.u.length - 1].toFixed(2)} V`;
+    if (stv !== lastStat) { $("statval").textContent = stv; lastStat = stv; }
+    renderWatch(); drawScore(); drawStatic(); drawSweep(amp);
   }
   function resetAll() {
     clearInterval(timer);
     const c = document.querySelector("#ctx button[aria-pressed=true]").dataset.c;
-    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: c });
-    fw = new SGFirmware.Firmware(sensor.offWristReference()); fw.onEvent = logEvent;
-    simT = 0; scn = null; msgs = []; flash = null; hist.length = 0; lastScreen = "";
+    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: c, v0: +$("v0").value });
+    fw = new SGFirmware.Firmware(sensor.offWristReference(), { RULE: $("rule").value }); fw.onEvent = logEvent;
+    simT = 0; scn = null; msgs = []; flash = null; hist.length = 0; shist.length = 0; marks.length = 0; lastScreen = "";
     $("log").innerHTML = ""; $("msgs").innerHTML = `<div class="empty">No alerts</div>`;
     paintScene();
     timer = setInterval(step, 1000 / FS);

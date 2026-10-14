@@ -1,39 +1,104 @@
 {
- "note": "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (0.3 %, 2 s, no classifier gate)",
+ "note": "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (rule A) and data/passive_stream_results.json (rule F, improved input, v0 = 10 V)",
+ "body_voltage_v0": 10,
  "grabs_caught": {
-  "wrist": 0.8666666666666667,
-  "forearm": 0,
-  "shoulder": 0
- },
- "strap_removal_caught": 1,
- "daily_life": {
-  "walking": {
-   "prompts_per_hour": 1,
-   "causes_per_hour": {
-    "self": 1
-   },
-   "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.023184965739658
+  "wrist": {
+   "active": 0.925,
+   "fused": 0.9583333333333334
   },
-  "bus": {
-   "prompts_per_hour": 5,
-   "causes_per_hour": {
-    "object:railing_wrist": 4.5,
-    "self": 0.5
-   },
-   "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.068538018312
+  "forearm": {
+   "active": 0,
+   "fused": 0.6333333333333333
   },
-  "desk": {
-   "prompts_per_hour": 6.5,
-   "causes_per_hour": {
-    "person:wrist": 1.5,
-    "object:wood_table": 3.5,
-    "self": 1.5
-   },
-   "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.095593096325588
+  "upper_arm": {
+   "active": 0,
+   "fused": 0.65
+  },
+  "other_arm": {
+   "active": 0,
+   "fused": 0.6583333333333333
+  },
+  "shoulder": {
+   "active": 0,
+   "fused": 0.6666666666666666
+  },
+  "waist": {
+   "active": 0,
+   "fused": 0.6666666666666666
+  },
+  "face_hair": {
+   "active": 0,
+   "fused": 0.6583333333333333
   }
  },
- "mean_prompts_per_hour": 4.166666666666667
+ "body_average": {
+  "active": 0.13214285714285715,
+  "fused": 0.6988095238095238
+ },
+ "strap_removal_caught": {
+  "active": 1,
+  "fused": 1
+ },
+ "daily_life": {
+  "walking": {
+   "unwanted_prompts_per_hour": {
+    "active": 2,
+    "fused": 0
+   },
+   "friend_wrist_prompts_per_hour": {
+    "active": 0,
+    "fused": 0
+   },
+   "causes_per_hour": {
+    "active": {
+     "self": 1.9999999999999998
+    },
+    "fused": {}
+   },
+   "false_strap_alerts": 0,
+   "closest_to_off_wrist_pct": 2.037767937259067
+  },
+  "bus": {
+   "unwanted_prompts_per_hour": {
+    "active": 6,
+    "fused": 0
+   },
+   "friend_wrist_prompts_per_hour": {
+    "active": 0,
+    "fused": 0
+   },
+   "causes_per_hour": {
+    "active": {
+     "object:railing_wrist": 4,
+     "self": 1.9999999999999998
+    },
+    "fused": {}
+   },
+   "false_strap_alerts": 0,
+   "closest_to_off_wrist_pct": 2.0633038608397767
+  },
+  "desk": {
+   "unwanted_prompts_per_hour": {
+    "active": 4,
+    "fused": 0
+   },
+   "friend_wrist_prompts_per_hour": {
+    "active": 0,
+    "fused": 0
+   },
+   "causes_per_hour": {
+    "active": {
+     "object:wood_table": 3.666666666666667,
+     "self": 0.3333333333333333
+    },
+    "fused": {}
+   },
+   "false_strap_alerts": 0,
+   "closest_to_off_wrist_pct": 2.09815053216052
+  }
+ },
+ "mean_unwanted_prompts_per_hour": {
+  "active": 4,
+  "fused": 0
+ }
 }

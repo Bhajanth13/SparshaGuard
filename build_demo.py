@@ -6,8 +6,12 @@ demo/sensor.js      (sensor twin: drift, noise, per-event random draws)
 demo/firmware.js    (watch logic: detection pipeline of event_stream.py + PIN state machine)
   -> demo/sparshaguard_demo.html  (one self-contained page; open it in a browser)
 
-Run:  python build_demo.py        Check the logic headless with:  node demo/check_demo.js
+The four numbers in the science panel come from demo/demo_check.json (written by the headless
+check), so the page always quotes what this exact code measured.
+
+Run:  node demo/check_demo.js  then  python build_demo.py
 """
+import json
 from pathlib import Path
 
 root = Path(__file__).parent
@@ -17,6 +21,15 @@ page = (root / "demo/page_src.html").read_text(encoding="utf-8")
 page = (page.replace("/*MODEL*/", strip("explorer/model.js"))
             .replace("/*SENSOR*/", strip("demo/sensor.js"))
             .replace("/*FIRMWARE*/", strip("demo/firmware.js")))
+chk = json.loads((root / "demo/demo_check.json").read_text())
+pct = lambda x: f"{100 * x:.0f} %"
+fp = chk["mean_unwanted_prompts_per_hour"]
+hours = 3 * len(chk["daily_life"])                 # check_demo.js simulates 3 h per place
+for key, val in {"FACT_BODY": pct(chk["body_average"]["fused"]), "FACT_BODY_A": pct(chk["body_average"]["active"]),
+                 "FACT_FP": f"{round(fp['fused'] * hours)}", "FACT_FP_A": f"{round(fp['active'] * hours)}", "FACT_HOURS": str(hours),
+                 "FACT_WRIST": pct(chk["grabs_caught"]["wrist"]["fused"]),
+                 "FACT_STRAP": pct(chk["strap_removal_caught"]["fused"])}.items():
+    page = page.replace(f"/*{key}*/", val)
 out = '<!doctype html>\n<html lang="en">\n<meta charset="utf-8">\n' + page + "\n</html>\n"
 (root / "demo/sparshaguard_demo.html").write_text(out, encoding="utf-8")
 print("wrote demo/sparshaguard_demo.html")

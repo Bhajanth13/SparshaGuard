@@ -104,6 +104,9 @@ header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center
 .signal { width: 100%; max-width: 560px; }
 .signal .top { display: flex; justify-content: space-between; align-items: baseline; }
 .signal .val { font-family: var(--f-mono); font-size: 13px; color: var(--ink2); }
+.signal + .signal { margin-top: 6px; }
+.settings { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--ink2); margin: 0 0 10px; }
+.settings select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
 canvas { width: 100%; display: block; }
 
 .phonecol { display: flex; justify-content: center; }
@@ -134,8 +137,8 @@ canvas { width: 100%; display: block; }
 .btn.primary { background: var(--touch); border-color: var(--touch); color: #fff; }
 .btn:disabled { opacity: .45; cursor: default; }
 .hint { font-size: 12.5px; color: var(--muted); margin-left: auto; }
-.tiles { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.tiles { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .tile { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 10px 8px; cursor: pointer; display: grid; justify-items: center; gap: 4px; text-align: center; font-size: 13px; font-weight: 500; }
 .tile svg { width: 34px; height: 34px; }
@@ -196,6 +199,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <g id="m-forearm" class="m"><circle class="ring" cx="151" cy="148" r="14"/><circle class="dot" cx="151" cy="148" r="5"/></g>
         <g id="m-shoulder" class="m"><circle class="ring" cx="138" cy="84" r="16"/><circle class="dot" cx="138" cy="84" r="5"/></g>
         <g id="m-self" class="m"><path d="M52 190 Q100 214 150 184" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="5 5"/><circle class="dot" cx="152" cy="181" r="5"/></g>
+        <g id="m-otherarm" class="m"><circle class="ring" cx="56" cy="112" r="14"/><circle class="dot" cx="56" cy="112" r="5"/></g>
+        <g id="m-phone" class="m"><rect class="obj" x="140" y="186" width="12" height="20" rx="3"/></g>
         <g id="m-strap" class="m"><path d="M160 178 Q186 160 188 130" fill="none" stroke="var(--crit)" stroke-width="2.5" stroke-dasharray="5 5"/><rect x="180" y="118" width="16" height="13" rx="4" fill="var(--crit)"/></g>
       </svg>
       <div class="touchnow" id="touchnow"></div>
@@ -213,6 +218,10 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       <div class="signal">
         <div class="top"><p class="label" style="margin:0">Sensor signal (change from her baseline)</p><span class="val" id="sigval"></span></div>
         <canvas id="cv-score" height="110" role="img" aria-label="Sensor signal over the last 30 seconds against the 0.3 percent touch threshold"></canvas>
+      </div>
+      <div class="signal">
+        <div class="top"><p class="label" style="margin:0">Static on her body (passive channel) and arm jerks</p><span class="val" id="statval"></span></div>
+        <canvas id="cv-static" height="84" role="img" aria-label="Her body voltage as the watch sees it over the last 30 seconds, with contact steps and arm jerks marked"></canvas>
       </div>
     </div>
 
@@ -235,7 +244,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       <button class="btn primary" id="playall">Play all</button>
       <button class="btn" id="playone">Play this chapter</button>
       <button class="btn" id="next">Next chapter</button>
-      <span class="hint">About 1½ minutes for all six chapters</span>
+      <span class="hint">About 2 minutes for all seven chapters</span>
     </div>
   </div>
   <div class="card bar" id="bar-try" hidden>
@@ -253,15 +262,19 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   <div class="science" id="science">
     <div class="card">
       <p class="label">Proof, not promises</p>
+      <div class="settings">
+        <label>Watch logic <select id="rule"><option value="fused" selected>Fused: sweep + static + motion</option><option value="active">Sweep only (first design)</option></select></label>
+        <label>Static on bodies <select id="v0"><option value="1">Low (~1 V)</option><option value="10" selected>Medium (~10 V)</option><option value="100">High (~100 V)</option></select></label>
+      </div>
       <div class="facts">
-        <div class="fact"><div class="v">~16 %</div><div class="k">signal change from a wrist grab (noise ~0.1 %)</div></div>
-        <div class="fact"><div class="v">87 %</div><div class="k">of random wrist grabs caught in 120 trials</div></div>
+        <div class="fact"><div class="v" id="f-body">70 %</div><div class="k">of grabs caught over 7 body places (sweep only: 13 %)</div></div>
+        <div class="fact"><div class="v" id="f-fp">0</div><div class="k">unwanted PIN prompts in 9 h of simulated daily life (sweep only: 36)</div></div>
+        <div class="fact"><div class="v">96 %</div><div class="k">of wrist grabs caught (signal ~16 %, noise ~0.1 %)</div></div>
         <div class="fact"><div class="v">100 %</div><div class="k">of strap removals caught, no false alarms</div></div>
-        <div class="fact"><div class="v">0 %</div><div class="k">of forearm or shoulder grabs: needs motion + audio</div></div>
       </div>
       <div class="legend"><span style="--c: var(--base)">her baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
       <canvas id="cv-sweep" height="170" role="img" aria-label="Sensor sweep across frequency, baseline and now"></canvas>
-      <p class="notes">Each reading is a sweep of 200 frequencies (1 kHz–3.5 MHz), 5 times a second. The physics uses values from 15 published papers; the circuit solver is checked against SPICE and the 3D field against MIT's FastCap. The sensor here is simulated; the decisions are the watch firmware's own, and it never sees which scene is playing. Gate 1 hardware will calibrate the numbers.</p>
+      <p class="notes">Each reading is a sweep of 200 frequencies (1 kHz–3.5 MHz), 5 times a second. The static channel reads her body voltage 500 times a second: a touch by another person shares charge in under a millisecond, while her footsteps and movements are slower. Static levels on Indian floors are not measured yet, so the numbers above use ~10 V. The physics uses values from published papers; the circuit solver is checked against SPICE and the 3D field against MIT's FastCap. The sensor here is simulated; the decisions are the watch firmware's own, and it never sees which scene is playing. Gate 1 hardware will calibrate the numbers.</p>
     </div>
     <div class="card">
       <p class="label">Firmware log</p>
@@ -455,6 +468,16 @@ const SG = (() => {
 //   - per-event random draws over the same ranges as sg_model.py (e.g. a wrist grab lands his palm
 //     on the outer electrode 85 % of the time; a forearm grip sits 1-5 cm from the strap)
 // The output is amplitude only (200 Touché frequencies), which is all an envelope detector gives.
+//
+// PassiveTwin adds the second, passive channel on the same electrode (port of sg_passive.py):
+// her body voltage from static charge, sampled at 500 Hz, and a wrist accelerometer at 50 Hz.
+//   body capacitance 110-250 pF [S4]; charge leaks with tau = R C_B, R ~ 2e10 ohm, and walking
+//   charges her with V_peak = R n dq [S18]; contact shares charge between the two bodies (fabric as
+//   a series capacitor [S7, S13]); a charged person nearby induces V_A C_AB/(C_B + C_AB), with
+//   C_AB = 21 pF at 1 m [S12]; earthed metal holds her at 0 V and removes the 50 Hz hum indoors
+//   [S22]; a phone or bag (4-12 pF) takes a few % of her voltage; the watch sees k = C_GE /
+//   (C_GE + C_GB + C_in) of it (bootstrapped input, C_GB 2 pF, C_in 0.5 pF) plus ADS1115 noise
+//   (2 mV, rms 0.5 mV) [S15]. The typical body voltage v0 is not yet measured on Indian floors [E].
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -487,15 +510,114 @@ const SG = (() => {
   // one event = the sensor-relevant parameters of a touch, drawn like sg_model.py draws them
   function drawEvent(kind, detail, R) {
     const st = { touch: kind, loc: detail, object: detail, bare: true, clothMm: 0.555 };
-    const BARE = { wrist: 0.9, forearm: 0.6, shoulder: 0.1, other_arm: 0.5 };
+    const BARE = { wrist: 0.9, forearm: 0.6, upper_arm: 0.3, shoulder: 0.1, other_arm: 0.5, waist: 0.05, face_hair: 0.8 };
     if (kind === "person") {
       st.bare = R.p(BARE[detail] ?? 0.5);
       st.clothMm = R.uni(0.16, 0.58) * R.uni(1, 2);             // 1-2 fabric layers [S7]
       if (detail === "wrist") { st.offElectrode = !R.p(0.85); st.handPF = R.uni(0.5, 3); }
       if (detail === "forearm") st.gapCm = R.uni(1, 5);          // grip 1-5 cm from the strap [E]
+      st.pull = false;                                           // a grab that pulls or shakes her arm
     }
     if (kind === "strap_off") { st.offSBpF = R.uni(0.05, 0.3); st.offB0pF = R.uni(0.05, 0.5); }
     return st;
+  }
+
+
+  // ------------------------------------------------------------------ passive channel
+  const PFS = 500, IMU_FS = 50, R_GROUND = 2e10, CADENCE = 1.7;
+  const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
+  const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
+  const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
+
+  class PassiveTwin {
+    constructor(R, ctxName, v0 = 10, front = "improved") {
+      this.R = R; this.v0 = v0; this.front = front; this.f = FRONT[front];
+      this.cb = R.uni(110, 250) * pF;
+      this.cge = Math.exp(R.uni(Math.log(0.6), Math.log(2.0))) * pF;            // [S5/S11]
+      this.k = this.cge / (this.cge + this.f.cgb + this.f.cin);
+      this.a = Math.exp(-1 / (PFS * R_GROUND * this.cb));
+      this.sign = R.p(0.5) ? 1 : -1;
+      this.setContext(ctxName, true);
+      this.q = this.sign * this.vpeak * this.cb * R.uni(0.3, 1.0);           // charge she already carries
+      const am = Math.exp(-1 / (PFS * 0.3));                                    // arm movement: two 0.3 s lags
+      this.am = am; this.m1 = 0; this.m2 = 0; this.mnorm = 1 / Math.sqrt(Math.pow(1 - am, 4) * (1 + am * am) / Math.pow(1 - am * am, 3));
+      this.inj = [];                                                            // charge being separated [{left, per}]
+      this.app = null; this.pinned = false; this.small = null; this.hum = 1;
+      this.sway = 0; this.phase = R.uni(0, 6.3); this.pulses = []; this.n = 0; this.ni = 0;
+    }
+    setContext(name, first) {
+      this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
+      if (first || this.vpeak === undefined) this.vpeak0 = this.v0 * Math.exp(0.7 * this.R.n());
+      this.vpeak = name === "desk" ? 0.1 * this.vpeak0 : this.vpeak0;
+      this.nextHeel = this.R.uni(0, 1 / CADENCE);
+    }
+    setV0(v0) { this.v0 = v0; this.setContext(this.ctxName, true); }
+    strangerVoltage() { return this.v0 * Math.exp(0.7 * this.R.n()) * (this.R.p(0.5) ? 1 : -1); }
+
+    start(ev) {                                                                 // ev: the drawn event of SensorTwin
+      const R = this.R, vb = this.q / this.cb;
+      this.contact = ev;
+      if (ev.kind === "person") {
+        const va = ev.vA ?? this.strangerVoltage();
+        const cc = ev.bare ? null : 8.854e-12 * R.uni(1.2, 5.1) * R.uni(40, 80) * 1e-4 / (R.uni(0.16e-3, 0.58e-3) * R.uni(1, 2));
+        this.q = share(va, vb, R.uni(110, 250) * pF, this.cb, cc) * this.cb;
+        this.hum = R.uni(0.6, 1.6);
+        if (ev.pull) {                                                          // 2-5 jerks of 1.5-3 g in 3 s [E]
+          const times = ev.pullTimes || Array.from({ length: 2 + Math.floor(R.u() * 4) }, () => R.uni(0.2, 3.0));
+          for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0) });
+        }
+      } else if (ev.kind === "bystander") {
+        this.app = { va: this.strangerVoltage(), dmin: R.uni(0.2, 0.6), s: 0, leaving: false };
+      } else if (ev.kind === "object" && /railing|pole|metal/.test(ev.detail || "")) {
+        this.pinned = true; this.q = 0; this.hum = 0.05;
+      } else if (ev.kind === "object" && /phone|bag|keys/.test(ev.detail || "")) {
+        this.q = share(0, vb, R.uni(4, 12) * pF, this.cb) * this.cb;
+      }
+    }
+    end() {
+      if (this.pinned) { this.pinned = false; this.q = -this._vind() * this.cb * this._cm; }   // keeps the charge that cancelled vind
+      if (this.app) { this.app.leaving = true; this.app.s = 0; }
+      this.hum = 1; this.contact = null;
+    }
+    _vind() {
+      const A = this.app; if (!A) return 0;
+      const r = PFS, x = Math.min(1, A.s / r);
+      const d = A.leaving ? A.dmin + (3 - A.dmin) * x : 3 + (A.dmin - 3) * x;
+      const c = cAB(d) - cAB(3.0);
+      return A.va * c / (this.cb + c);
+    }
+    // one firmware frame (0.2 s): 100 passive samples, 10 accelerometer samples
+    frame(nP = PFS / FS) {
+      const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), rms = this.f.adc / 4;
+      const dq = this.sign * this.vpeak / (R_GROUND * CADENCE);
+      for (let i = 0; i < nP; i++, this.n++) {
+        const t = this.n / PFS;
+        if (this.walking && t >= this.nextHeel) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); this.nextHeel += 1 / CADENCE; }
+        if (this.ctxName === "bus" && R.u() < 0.2 / PFS) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); }
+        let add = 0; for (const s of this.inj) { add += s.per; s.left--; }
+        this.inj = this.inj.filter((s) => s.left > 0);
+        this.q = this.pinned ? 0 : this.a * this.q + add;
+        this.m1 = this.am * this.m1 + (1 - this.am) * R.n(); this.m2 = this.am * this.m2 + (1 - this.am) * this.m1;
+        this._cm = 1 + 0.03 * this.m2 * this.mnorm;                             // her arm movement changes C_B ~3 % [E]
+        if (this.app) { this.app.s++; if (this.app.leaving && this.app.s >= PFS) this.app = null; }
+        const v = this.pinned ? 0 : this.q / (this.cb * this._cm) + this._vind();
+        u[i] = this.k * v + rms * R.n();
+        hum[i] = this.indoor ? this.hum : 0;
+      }
+      const nI = IMU_FS / FS, acc = new Float64Array(nI);
+      const sw = { walking: 0.05, bus: 0.10, desk: 0.02 }[this.ctxName], ai = Math.exp(-1 / IMU_FS);
+      for (let i = 0; i < nI; i++, this.ni++) {
+        const t = this.ni / IMU_FS;
+        this.sway = ai * this.sway + Math.sqrt(1 - Math.exp(-2 / IMU_FS)) * sw * R.n();
+        let a = 1 + this.sway + (this.walking ? 0.35 * Math.sin(2 * Math.PI * CADENCE * t + this.phase) : 0);
+        if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2) });   // her own gestures [E]
+        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.3, 1.5) });   // braking jolts [E]
+        for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) a += p.g * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); }
+        this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
+        acc[i] = a;
+      }
+      return { u, hum, acc, rms, indoor: this.indoor };
+    }
   }
 
   class SensorTwin {
@@ -506,14 +628,22 @@ const SG = (() => {
       this.hyd = new OU(300, 0.15, this.R);
       this.event = null;
       this.F = SG.TOUCHE;
+      this.passive = new PassiveTwin(this.R, this.ctxName, opts.v0 ?? 10, opts.front ?? "improved");
     }
     setContext(name) {
       this.ctx = CONTEXTS[name]; this.ctxName = name;
+      if (this.passive) this.passive.setContext(name);
       this.gb = new OU(1.0, this.ctx.motion, this.R);
       this.be = new OU(0.5, this.ctx.feet, this.R);
     }
-    startEvent(kind, detail) { this.event = drawEvent(kind, detail, this.R); this.event.kind = kind; this.event.detail = detail; }
-    endEvent() { this.event = null; }
+    // force: values that override the random draw (e.g. { pull: true } for a grab that pulls her arm)
+    startEvent(kind, detail, force) {
+      this.event = drawEvent(kind, detail, this.R); this.event.kind = kind; this.event.detail = detail;
+      if (force) Object.assign(this.event, force);
+      this.passive.start(this.event);
+    }
+    endEvent() { if (this.event) this.passive.end(); this.event = null; }
+    passiveFrame() { return this.passive.frame(); }
 
     // complex sense-node voltage for parameter set p and touch state st (or none)
     _sweep(p, st) {
@@ -544,7 +674,7 @@ const SG = (() => {
     }
   }
 
-  const api = { SensorTwin, CONTEXTS, FS, NOISE, DESIGN };
+  const api = { SensorTwin, PassiveTwin, CONTEXTS, FS, NOISE, DESIGN, PFS, IMU_FS, FRONT };
   if (typeof module !== "undefined") module.exports = api; else root.SGSensor = api;
 })(this);
 
@@ -559,6 +689,17 @@ const SG = (() => {
 //   a PIN prompt fires when the touch has lasted 2 s
 // Strap removal: the sweep is compared with the watch's own "off the wrist" signature (stored at
 // the factory); a match for 0.6 s means the electrode has left the skin -> alert at once.
+// Passive channel (sg_passive.py, passive_stream.py): the same electrode also reads her body voltage
+// at 500 Hz. When another person touches her ANYWHERE, the two bodies share static charge and her
+// voltage jumps in under 1 ms. A "contact step" must be sharp (> 6x noise in one sample), settle at
+// once, and stand out from the signal's local roughness (her footsteps and arm movements are slower).
+// Steps are classed: earthed metal (pulled to and held at 0 V, or the 50 Hz hum gone indoors), a
+// small object (pulls her < 12 % toward 0 V: phone, bag), or another person.
+// Fused rule F (recommended by passive_stream.py, fig 17):
+//   wrist path    the active sweep held 2 s AND a person step within 4 s before the hold began
+//   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
+//                 within 3 s): a grab that pulls or shakes her, anywhere on her body
+// Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
 // Then the product's state machine: 15 s PIN window; correct PIN cancels, wrong PIN or no PIN
 // alerts, the duress PIN shows "Cancelled" but alerts silently.
 (function (root) {
@@ -566,7 +707,50 @@ const SG = (() => {
   const CFG = {
     T_ENTER: 0.003, EXIT_RATIO: 0.5, SUSTAIN_S: 2, TAU_BASE_S: 60, MAX_FREEZE_S: 30, LEARN_S: 5,
     OFF_WRIST_TOL: 0.004, OFF_WRIST_FRAMES: 3, PIN_WINDOW_S: 15, PIN: "1234", DURESS_PIN: "9999",
+    RULE: "fused",            // "fused" (rule F) or "active" (today's rule A: active sweep alone)
+    PFS: 500, IMU_FS: 50, STEP_K: 6, SETTLE: 0.3, LOCAL_K: 8, OBJECT_FRAC: 0.12,
+    PERSON_BEFORE_S: 4, AGIT_G: 1.25, AGIT_N: 2, AGIT_S: 3,
   };
+  const median = (a) => { const b = Float64Array.from(a).sort(), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+  const mean = (a, i0, i1) => { let s = 0; for (let i = i0; i < i1; i++) s += a[i]; return s / (i1 - i0); };
+
+  // contact-step detector on a stream (port of sg_passive.contact_steps); decides 0.5 s late
+  class StepDetector {
+    constructor(c) { this.c = c; this.u = []; this.hum = []; this.off = 0; this.next = 0; this.last = -10; this.indoor = false; this.rms = 5e-4; }
+    push(p) {
+      for (let i = 0; i < p.u.length; i++) { this.u.push(p.u[i]); this.hum.push(p.hum[i]); }
+      this.rms = p.rms; this.indoor = p.indoor;
+      const out = [], c = this.c, FSP = c.PFS, u = this.u, rms = this.rms, thr = c.STEP_K * rms * Math.SQRT2;
+      const N = this.off + u.length, at = (g) => u[g - this.off], d = (g) => at(g + 1) - at(g);
+      if (this.next < this.off + 30) this.next = this.off + 30;
+      for (; this.next + 252 < N; this.next++) {
+        const i = this.next, di = d(i);
+        if (Math.abs(di) <= thr) continue;
+        const t = (i + 1) / FSP;
+        if (t - this.last < 0.25) continue;
+        if (Math.abs(at(i + 16) - at(i + 1)) > c.SETTLE * Math.abs(di) + 4 * rms) continue;   // still moving 30 ms later
+        const around = []; for (let j = i - 25; j < i - 2; j++) around.push(d(j)); for (let j = i + 3; j < i + 26; j++) around.push(d(j));
+        const md = median(around), rough = 1.4826 * median(around.map((x) => Math.abs(x - md)));
+        if (Math.abs(at(i + 2) - at(i - 1)) < c.LOCAL_K * rough) continue;           // rough signal: her own movement
+        if (Math.abs(at(i) - at(i - 7)) > c.SETTLE * Math.abs(di) + 4 * rms) continue; // already moving before
+        let kind = "person";
+        let pm = 0, ps = 0; for (let j = i + 1; j < i + 251; j++) pm += at(j); pm /= 250;
+        for (let j = i + 1; j < i + 251; j++) ps += (at(j) - pm) ** 2; ps = Math.sqrt(ps / 250);
+        if (Math.abs(pm) < Math.max(4 * rms, 0.03 * Math.abs(di)) && ps < 4 * rms + 0.03 * Math.abs(di)) kind = "earthed";
+        let u0 = 0; for (let j = i - 25; j < i; j++) u0 += at(j); u0 /= 25;
+        if (kind === "person" && Math.abs(u0) > 10 * rms && di / u0 > -c.OBJECT_FRAC && di / u0 < 0) kind = "object";
+        if (this.indoor) {
+          const h = this.hum, o = this.off, h0 = mean(h, Math.max(0, i - 250 - o), i + 1 - o), h1 = mean(h, i + 1 - o, i + 251 - o);
+          if (h0 > 0 && h1 < 0.3 * h0) kind = "earthed";
+        }
+        out.push({ t, size: di, kind, u0 });
+        this.last = t;
+      }
+      const keep = 3 * FSP;                                    // keep the last 3 s
+      if (u.length > keep) { const cut = u.length - keep; this.u = u.slice(cut); this.hum = this.hum.slice(cut); this.off += cut; }
+      return out;
+    }
+  }
 
   const rmsDiff = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s / a.length); };
 
@@ -578,11 +762,15 @@ const SG = (() => {
       this.state = "off";             // off | learning | armed | prompt | alert
       this.log = [];
       this.silentAlert = false;
+      this.steps = new StepDetector(this.cfg);
+      this.imu = [];                  // [t, |a| in g] over the last 5 s
+      this.passiveSeen = false;
       this._reset();
     }
     _reset() {
       this.base = null; this.learn = []; this.active = false; this.count = 0; this.frozen = 0;
       this.prompted = false; this.offCount = 0; this.score = 0; this.offDist = 1;
+      this.personSteps = []; this.lastStep = null; this.watching = null; this.holdStart = 0; this.vetoed = false;
     }
     _emit(type, text) { const e = { t: this.t / FS, type, text }; this.log.push(e); this.onEvent && this.onEvent(e); }
 
@@ -592,9 +780,54 @@ const SG = (() => {
       if (!on && this.state !== "off") { this.state = "off"; this._emit("info", "Guard Mode off"); }
     }
 
-    frame(amp) {
+    get fused() { return this.cfg.RULE === "fused" && this.passiveSeen; }
+
+    // the passive channel and accelerometer of this frame (optional: without them the watch runs rule A)
+    _passive(p) {
+      const c = this.cfg, now = this.t / FS;
+      this.passiveSeen = true;
+      const n = p.acc.length;
+      for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i]]);
+      while (this.imu.length && this.imu[0][0] < now - 5) this.imu.shift();
+      const guarding = this.state === "armed";
+      for (const s of this.steps.push(p)) {
+        this.lastStep = s;
+        if (!guarding) continue;
+        const v = `${(1000 * Math.abs(s.size)).toFixed(0)} mV`;
+        if (s.kind === "earthed") this._emit("info", `Static: her body pulled to 0 V (${v} step), metal or earth: not a person`);
+        else if (s.kind === "object") this._emit("info", `Static: small pull toward 0 V (${v}), a phone or bag: not a person`);
+        else {
+          this.personSteps.push(s.t);
+          this._emit("touch", `Static: charge-sharing step ${v} in under 2 ms: another body touched her`);
+          if (this.fused && !this.watching) { this.watching = s.t; this._emit("info", "Watching her arm for 3 s: is she being pulled?"); }
+        }
+      }
+      this.personSteps = this.personSteps.filter((t) => t > now - 10);
+      if (this.watching !== null) {
+        const jerks = this.jerksSince(this.watching);
+        if (guarding && this.fused && jerks >= c.AGIT_N) {
+          this.watching = null; this.prompted = true;
+          this._startPrompt(`Another person touched her and her arm was pulled (${jerks} jerks): ask for PIN (15 s)`);
+        } else if (now > this.watching + c.AGIT_S) {
+          this._emit("info", "No pulling within 3 s: a brush, ignored"); this.watching = null;
+        }
+      }
+    }
+    jerksSince(t0) {                  // rising edges of |a - 1 g| > 1.25 g in [t0, t0 + 3 s]
+      let n = 0, prev = null;
+      for (const [t, a] of this.imu) {
+        if (t < t0 || t > t0 + this.cfg.AGIT_S) continue;
+        const x = Math.abs(a - 1) > this.cfg.AGIT_G;
+        if (prev === false && x) n++;
+        prev = x;
+      }
+      return n;
+    }
+
+    frame(amp, pas) {
       this.t += 1;
       const c = this.cfg;
+      if (pas) this._passive(pas);
       this.offDist = rmsDiff(amp, this.offRef);
       if (this.state === "off" || this.state === "alert") { this.score = this.base ? rmsDiff(amp, this.base) : 0; this._tickPrompt(); return; }
 
@@ -615,13 +848,20 @@ const SG = (() => {
       // touch detection, exactly as run_pipeline in event_stream.py
       const sc = rmsDiff(amp, this.base);
       this.score = sc;
-      if (!this.active && sc > c.T_ENTER) { this.active = true; this.count = 0; this.frozen = 0; this.prompted = false;
+      if (!this.active && sc > c.T_ENTER) { this.active = true; this.count = 0; this.frozen = 0; this.prompted = false; this.vetoed = false; this.holdStart = this.t / FS;
         this._emit("touch", `Change ${(100 * sc).toFixed(2)} % > 0.3 %: possible touch, baseline frozen`); }
       else if (this.active && sc < c.EXIT_RATIO * c.T_ENTER) { this.active = false;
-        if (!this.prompted) this._emit("info", `Change back below 0.15 % after ${(this.count / FS).toFixed(1)} s: ignored`); }
+        if (!this.prompted && !this.vetoed) this._emit("info", `Change back below 0.15 % after ${(this.count / FS).toFixed(1)} s: ignored`); }
       if (this.active) {
         this.frozen += 1; this.count += 1;
-        if (this.count >= c.SUSTAIN_S * FS && !this.prompted) { this.prompted = true; this._startPrompt(); }
+        if (this.count >= c.SUSTAIN_S * FS && !this.prompted && !this.vetoed) {
+          const person = this.personSteps.some((t) => t >= this.holdStart - c.PERSON_BEFORE_S);
+          if (!this.fused || person) { this.prompted = true; this._startPrompt(person ? "Touch held 2 s and another body touched her: vibrate, ask for PIN (15 s)" : undefined); }
+          else if (this.count >= c.SUSTAIN_S * FS + 3) {                         // allow the 0.5 s static decision
+            this.vetoed = true;
+            this._emit("info", "Held 2 s but no other body touched her (no static step): her own hand, metal or an object, ignored");
+          }
+        }
         if (this.frozen > c.MAX_FREEZE_S * FS && !this.prompted) {
           this.base = Float64Array.from(amp); this.active = false;
           this._emit("info", "Change lasted 30 s without a prompt: accepted as the new normal");
@@ -633,10 +873,10 @@ const SG = (() => {
       this._tickPrompt();
     }
 
-    _startPrompt() {
+    _startPrompt(why) {
       if (this.state !== "armed") return;
-      this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = "";
-      this._emit("prompt", "Touch held 2 s: vibrate, ask for PIN (15 s)");
+      this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = ""; this.watching = null;
+      this._emit("prompt", why || "Touch held 2 s: vibrate, ask for PIN (15 s)");
     }
     _tickPrompt() {
       if (this.state !== "prompt") return;
@@ -669,7 +909,7 @@ const SG = (() => {
     }
   }
 
-  const api = { Firmware, CFG, FS };
+  const api = { Firmware, StepDetector, CFG, FS };
   if (typeof module !== "undefined") module.exports = api; else root.SGFirmware = api;
 })(this);
 
@@ -677,7 +917,7 @@ const SG = (() => {
   const $ = (id) => document.getElementById(id);
   const FS = SGSensor.FS;
   let sensor, fw, timer, simT = 0, scn = null, scnStart = 0, runner = null, msgs = [], flash = null, callStart = 0;
-  const hist = [];
+  const hist = [], shist = [], marks = [];      // sweep score, static channel, contact steps / jerks
   // real-time clock: the watch reads the device's clock, as the real watch reads its RTC chip
   const rtcTime = (sec) => new Date().toLocaleTimeString([], sec ? { hour: "2-digit", minute: "2-digit", second: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
   const rtcDate = () => new Date().toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
@@ -702,10 +942,12 @@ const SG = (() => {
   const TILES = [
     { k: "person:wrist", name: "Grab her wrist", sub: "stranger", icon: "hand" },
     { k: "person:forearm", name: "Grab her forearm", sub: "1–5 cm from strap", icon: "arm" },
-    { k: "person:shoulder", name: "Grab her shoulder", sub: "stranger", icon: "shoulder" },
+    { k: "person:shoulder", name: "Grab her shoulder", sub: "and pull", icon: "shoulder" },
+    { k: "brush:other_arm", name: "Brush past her", sub: "crowded bus", icon: "brush" },
     { k: "bystander:null", name: "Stand very close", sub: "no touch", icon: "person" },
-    { k: "self:null", name: "Her own hand", sub: "adjusts the watch", icon: "self" },
+    { k: "self:null", name: "Her own hand", sub: "holds the watch", icon: "self" },
     { k: "object:railing_wrist", name: "Strap on a metal pole", sub: "on the bus", icon: "pole" },
+    { k: "object:phone", name: "Hold her phone", sub: "wrist on it", icon: "phone" },
     { k: "strap_off:null", name: "Rip the watch off", sub: "strap removed", icon: "off" },
   ];
   const ICONS = {
@@ -715,15 +957,22 @@ const SG = (() => {
     person: '<circle cx="11" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 30 Q4 16 11 16 Q18 16 18 30" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="25" cy="11" r="4" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/><path d="M19 30 Q19 18 25 18 Q31 18 31 30" fill="none" stroke="currentColor" stroke-width="2" opacity=".5"/>',
     self: '<rect x="11" y="11" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 30 Q10 20 13 22" fill="none" stroke="var(--touch)" stroke-width="2.5"/>',
     pole: '<rect x="21" y="2" width="5" height="30" rx="2" fill="currentColor" opacity=".6"/><rect x="8" y="12" width="12" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
+    brush: '<circle cx="9" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 30 Q3 16 9 16 Q15 16 15 30" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 12 Q26 16 30 24" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="3 3"/>',
+    phone: '<rect x="11" y="4" width="13" height="26" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="25" r="1.6" fill="currentColor"/>',
     off: '<rect x="14" y="5" width="12" height="10" rx="3" fill="none" stroke="var(--crit)" stroke-width="2"/><path d="M4 28 Q10 22 16 22 M10 18 L6 14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 18 L18 26" stroke="var(--crit)" stroke-width="2" stroke-dasharray="3 3"/>',
   };
-  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander",
+  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander", "brush:other_arm": "m-otherarm", "object:phone": "m-phone",
     "self:null": "m-self", "object:railing_wrist": "m-pole", "strap_off:null": "m-strap", "object:wood_table": "m-table" };
   const NAME = Object.fromEntries(TILES.map((t) => [t.k, t.name]));
 
+  // a stranger's body voltage that clearly differs from hers (the guided story should not hang on a
+  // rare draw where both bodies sit at the same voltage; in "Try it" every draw is random)
+  const otherVoltage = () => { const P = sensor.passive, vb = P.q / P.cb; return -Math.sign(vb || 1) * P.v0 * 2; };
   function startScene(k, force) {
-    const [kind, d] = k.split(":"); const detail = d === "null" ? null : d;
-    sensor.startEvent(kind, detail); if (force) Object.assign(sensor.event, force);
+    let [kind, d] = k.split(":"); const detail = d === "null" ? null : d;
+    if (kind === "brush") { kind = "person"; force = Object.assign({ pull: false, brush: true }, force); }
+    else if (kind === "person" && !(force && "pull" in force)) force = Object.assign({ pull: true }, force);   // a grab pulls her
+    sensor.startEvent(kind, detail, force);
     scn = k; scnStart = simT; paintScene();
   }
   function endScene() { if (scn) { sensor.endEvent(); scn = null; paintScene(); } }
@@ -738,6 +987,7 @@ const SG = (() => {
     let s = `<b>${e.label || NAME[scn] || "Touch"}</b>`;
     if (e.kind === "person") {
       s += e.bare ? " · bare skin" : " · through clothing";
+      if (e.pull) s += " · pulls her arm";
       if (e.detail === "wrist") s += e.offElectrode ? " · his palm misses the watch's outer electrode" : " · his palm on the watch's outer electrode";
       if (e.detail === "forearm") s += ` · ${e.gapCm.toFixed(1)} cm from the strap`;
     }
@@ -755,20 +1005,20 @@ const SG = (() => {
       { until: () => fw.state === "armed", say: "Now it is guarding. The signal stays flat while nobody touches her.", sub: "That flat line is her own body, with sweat and movement, inside the noise." },
       { wait: 3.5 } ] },
     { t: "A stranger grabs her wrist", steps: [
-      { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }) },
-      { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %.", sub: "His palm closes a path through the watch's outer electrode on the strap." },
-      { until: () => fw.state === "prompt", say: "Held for 2 seconds: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
+      { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
+      { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %, and her body's static jumps too.", sub: "His palm closes a path through the strap electrode; touching her, his body shares its charge with hers." },
+      { until: () => fw.state === "prompt", say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
       { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
       { until: () => fw.state === "alert", say: "Alert: her live location goes to her contacts, 112 is called, audio is recorded.", sub: "No button needed. The touch itself raised the alarm." },
       { wait: 4, do: endScene } ] },
     { t: "A friend holds her hand", steps: [
-      { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A friend holds her hand" }) },
-      { until: () => fw.state === "prompt", say: "Any hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
+      { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, pull: false, vA: otherVoltage(), label: "A friend holds her hand" }) },
+      { until: () => fw.state === "prompt", say: "Another person's hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
       { wait: 1.2, say: "She types her PIN, 1234.", sub: "" }, ...typePin("1234"),
       { wait: 0.3, say: "Cancelled. The watch keeps guarding.", sub: "" },
       { wait: 2.5, do: endScene }, { wait: 1 } ] },
     { t: "Forced to cancel", steps: [
-      { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, label: "A stranger forces her to cancel" }) },
+      { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger forces her to cancel" }) },
       { until: () => fw.state === "prompt", say: "The watch asks for the PIN.", sub: "" },
       { wait: 1.2, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
       { wait: 0.3, say: "The screen says \"Cancelled\", so he thinks it worked…", sub: "" },
@@ -778,14 +1028,23 @@ const SG = (() => {
       { ready: true, say: "He rips the watch off her wrist.", sub: "", do: () => startScene("strap_off:null") },
       { until: () => fw.state === "alert", say: "The electrode loses her skin: alert in under a second, no PIN asked.", sub: "The watch compares each reading with its own off-the-wrist signature." },
       { wait: 4, do: endScene } ] },
+    { t: "Grabbed anywhere", steps: [
+      { ready: true, say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
+      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the lower chart." },
+      { until: () => fw.state === "prompt", say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
+      { wait: 1.5, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 2, do: endScene }, { wait: 1 } ] },
     { t: "Everyday life", steps: [
       { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
-      { wait: 1, do: () => startScene("self:null"), say: "She adjusts her watch for a moment.", sub: "Under 2 seconds: ignored." },
-      { wait: 1.4, do: endScene },
-      { wait: 2, do: () => startScene("bystander:null"), say: "A stranger stands very close on the bus.", sub: "No touch: the signal stays in the noise." },
+      { wait: 1, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
       { wait: 4, do: endScene },
-      { wait: 1, do: () => startScene("person:shoulder"), say: "Someone grabs her shoulder.", sub: "Honest limit: a wrist sensor can't feel this. Motion and audio sensing (planned) cover it." },
-      { wait: 5, do: endScene }, { wait: 1.5 } ] },
+      { wait: 1.5, do: () => { sensor.setContext("bus"); startScene("object:railing_wrist"); }, say: "On the bus, her strap rests on a metal pole.", sub: "Metal pulls her body to 0 V and holds it there: not a person." },
+      { wait: 4.5, do: endScene },
+      { wait: 1.5, do: () => startScene("brush:other_arm", { vA: otherVoltage(), label: "A stranger brushes past her arm" }), say: "A stranger brushes past her arm.", sub: "Another body, but no pulling within 3 seconds: ignored." },
+      { wait: 2, do: endScene },
+      { wait: 3, do: () => startScene("bystander:null"), say: "Someone stands very close.", sub: "No touch: no sharp step, nothing on the sweep." },
+      { wait: 4, do: endScene },
+      { wait: 1.5, do: () => sensor.setContext("walking"), say: "No PIN prompts: in hours of simulated daily life, unwanted prompts drop to about one a day.", sub: "" }, { wait: 3 } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
@@ -843,6 +1102,8 @@ const SG = (() => {
   }
   $("tab-guided").addEventListener("click", () => setMode("guided"));
   $("tab-try").addEventListener("click", () => setMode("try"));
+  $("rule").addEventListener("change", () => { fw.cfg.RULE = $("rule").value; logEvent({ type: "info", text: $("rule").value === "fused" ? "Logic: fused (sweep + static + motion)" : "Logic: sweep only (first design)" }); });
+  $("v0").addEventListener("change", () => sensor.passive.setV0(+$("v0").value));
   $("sound").addEventListener("click", () => { soundOn = !soundOn; $("sound").setAttribute("aria-pressed", String(soundOn)); $("sound").textContent = soundOn ? "Sound on" : "Sound off"; });
   $("sci").addEventListener("click", () => { const on = $("science").classList.toggle("open"); $("sci").setAttribute("aria-pressed", String(on)); $("sci").textContent = on ? "Hide the science" : "Show the science"; });
 
@@ -869,11 +1130,14 @@ const SG = (() => {
     const key = flash && simT < flash.until ? "cancel" : fw.state;
     if (key !== lastScreen) { const scr = $("screen"); scr.className = key === "alert" ? "screen alert" : "screen"; scr.innerHTML = LAYOUT[key](); lastScreen = key; }
     setText("time", clock()); setText("face", `${rtcDate()} · ${rtcTime(false)}`);
+    const now = simT / FS;
     if (key === "cancel") { status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
     else if (key === "off") status = "Guard Mode off";
     else if (key === "learning") { status = "Learning her baseline"; ringCol = "var(--warn)"; frac = fw.learn.length / (5 * FS); }
     else if (key === "armed") {
-      if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
+      if (fw.watching !== null && fw.watching !== undefined) { status = "Another body touched her: is she being pulled?"; ringCol = "var(--touch)"; frac = Math.min(1, (now - fw.watching) / 3); }
+      else if (fw.active && fw.vetoed) { status = "Touch on the watch, but no other body: ignored"; ringCol = "var(--calm)"; frac = 1; }
+      else if (fw.active && !fw.prompted) { status = `Touch held ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
       else { status = "Guarding"; ringCol = "var(--calm)"; frac = 1; }
     } else if (key === "prompt") {
       setText("count", String(fw.pinSecondsLeft));
@@ -948,6 +1212,29 @@ const SG = (() => {
     g.strokeStyle = css("--touch"); g.lineWidth = 2; g.beginPath();
     hist.forEach((h, i) => { const x = X(h.t), y = Y(h.score); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
   }
+  function drawStatic() {
+    const { g, W, H } = setup($("cv-static")); if (!W) return; g.clearRect(0, 0, W, H);
+    const L = 40, R = 6, T = 6, B = 14;
+    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
+    let lo = Infinity, hi = -Infinity; for (const h of shist) { lo = Math.min(lo, h.lo); hi = Math.max(hi, h.hi); }
+    if (!shist.length) return;
+    const pad = Math.max(0.02, 0.15 * (hi - lo)); lo -= pad; hi += pad;
+    const Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+    for (const v of [lo + pad, hi - pad]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillText(`${v.toFixed(2)} V`, 0, Y(v) + 4); }
+    for (const m of marks) {
+      const x = X(m.f); if (x < L) continue;
+      if (m.kind === "jerk") { g.fillStyle = css("--warn"); g.fillRect(x - 1.5, H - B - 6, 3, 6); continue; }
+      g.strokeStyle = m.kind === "person" ? css("--touch") : css("--muted"); g.lineWidth = 1.5; g.setLineDash(m.kind === "person" ? [] : [3, 3]);
+      g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke(); g.setLineDash([]);
+      g.fillStyle = m.kind === "person" ? css("--touch") : css("--muted");
+      const lab = { person: "another body", earthed: "metal / earth", object: "object" }[m.kind];
+      g.fillText(lab, Math.min(x + 3, W - R - g.measureText(lab).width), T + 9);
+    }
+    g.strokeStyle = css("--base"); g.lineWidth = 1.6; g.beginPath();
+    shist.forEach((h, i) => { const x = X(h.t), y = Y(h.v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    g.fillStyle = css("--warn"); g.fillText("▮ arm jerk", W - R - 64, H - 2);
+  }
   function drawSweep(amp) {
     if (!$("science").classList.contains("open")) return;
     const { g, W, H } = setup($("cv-sweep")); if (!W) return; g.clearRect(0, 0, W, H);
@@ -969,26 +1256,35 @@ const SG = (() => {
     if (e.type === "silent") addMsg("silent");
     if (e.type === "cancel") { flash = { until: simT + 2 * FS }; sOk(); }
   }
-  let lastSig = "", lastTouch = "";
+  let lastSig = "", lastTouch = "", lastStat = "";
   function step() {
     simT += 1;
     if (runner) runner.tick();
-    const amp = sensor.frame();
-    fw.frame(amp);
+    const amp = sensor.frame(), pas = sensor.passiveFrame();
+    const prevStep = fw.lastStep;
+    fw.frame(amp, pas);
+    if (fw.lastStep && fw.lastStep !== prevStep) marks.push({ f: Math.round(fw.lastStep.t * FS), kind: fw.lastStep.kind });
+    let lo = Infinity, hi = -Infinity; for (const x of pas.u) { lo = Math.min(lo, x); hi = Math.max(hi, x); }
+    shist.push({ t: simT, v: pas.u[pas.u.length - 1], lo, hi });
+    if (pas.acc.some((a) => Math.abs(a - 1) > fw.cfg.AGIT_G) && !(marks.length && marks[marks.length - 1].kind === "jerk" && marks[marks.length - 1].f === simT - 1)) marks.push({ f: simT, kind: "jerk" });
+    while (shist.length > 30 * FS) shist.shift();
+    while (marks.length && marks[0].f < simT - 30 * FS) marks.shift();
     hist.push({ t: simT, score: fw.state === "off" || fw.state === "learning" ? 0.05 : 100 * fw.score, active: fw.active && fw.state !== "off" });
     while (hist.length > 30 * FS) hist.shift();
     const sv = fw.state === "off" || fw.state === "learning" ? "" : `${(100 * fw.score).toFixed(2)} %`;
     if (sv !== lastSig) { $("sigval").textContent = sv; lastSig = sv; }
     const tn = describe();
     if (tn !== lastTouch) { $("touchnow").innerHTML = tn; lastTouch = tn; }
-    renderWatch(); drawScore(); drawSweep(amp);
+    const stv = `${pas.u[pas.u.length - 1].toFixed(2)} V`;
+    if (stv !== lastStat) { $("statval").textContent = stv; lastStat = stv; }
+    renderWatch(); drawScore(); drawStatic(); drawSweep(amp);
   }
   function resetAll() {
     clearInterval(timer);
     const c = document.querySelector("#ctx button[aria-pressed=true]").dataset.c;
-    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: c });
-    fw = new SGFirmware.Firmware(sensor.offWristReference()); fw.onEvent = logEvent;
-    simT = 0; scn = null; msgs = []; flash = null; hist.length = 0; lastScreen = "";
+    sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: c, v0: +$("v0").value });
+    fw = new SGFirmware.Firmware(sensor.offWristReference(), { RULE: $("rule").value }); fw.onEvent = logEvent;
+    simT = 0; scn = null; msgs = []; flash = null; hist.length = 0; shist.length = 0; marks.length = 0; lastScreen = "";
     $("log").innerHTML = ""; $("msgs").innerHTML = `<div class="empty">No alerts</div>`;
     paintScene();
     timer = setInterval(step, 1000 / FS);

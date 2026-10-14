@@ -4,7 +4,7 @@ Goal set by the team: maximise how much of her body a grab is detected on, while
 unwanted PIN prompts low. Script: `fusion_study.py`. Figures: `figures/fig15_fusion_voltage.png`,
 `figures/fig16_fusion_locations.png`. Numbers: `data/fusion_results.json`. New paper values are
 in `docs/SparshaGuard_paper_values.xlsx`, tagged "Fusion study (doc)" or "Accuracy benchmark".
-Nothing here changes `sg_model.py` or the demo.
+`sg_model.py` (the active sweep) is unchanged; the demo and explorer now include the passive channel (see the last section).
 
 ## What was added
 
@@ -78,9 +78,55 @@ Three alarm rules were compared:
 - **Audio:** distress-scream detection with a context filter drops false alarms from about 10 % to
   about 1 % of the time (arXiv 2608.04176 [S30]); still too many alone, useful as a confirmation.
 
-## Suggested next modelling step
+## Time-domain simulation and the fused watch (14 October 2026)
 
-Build a time-domain version of the passive channel (like `event_stream.py`): her charging and
-discharging while walking and sitting, her own arm movements changing her capacitance, a stranger
-approaching and touching, earthed objects, and the 50 Hz hum; then test the rise-time and hum
-filters directly instead of assuming them.
+The step suggested above is now built. `sg_passive.py` simulates her body voltage at 500 Hz and a
+wrist accelerometer at 50 Hz: walking charge and leak (V = R n dq, tau about 3 s [S18]), charge
+shared at contact (bare skin or fabric [S7, S13]), a charged person walking up (C_AB [S12]),
+earthed metal holding her at 0 V (and removing the 50 Hz hum indoors [S22]), a phone or bag
+(4–12 pF) pulling her a few % toward 0 V, and her own arm movement changing her capacitance by
+about 3 %. `passive_stream.py` runs grabs at 7 body places and hours of walking, bus and desk life
+through the firmware detectors (fig 17, 18; `data/passive_stream_results.json`).
+
+**Firmware contact-step detector** (tested, not assumed). A step must:
+1. exceed 6x the noise in one 2 ms sample;
+2. settle at once (move under 30 % of the step over the next 30 ms) and not be moving before it;
+3. stand out from the signal around it: the 3-sample jump must exceed 8x the local roughness
+   (median absolute deviation over ±50 ms). This removed the last false steps from her own
+   footsteps and arm movements, and made heel-strike gating unnecessary.
+
+It then classes the step: **earthed metal** (pulled to and held at 0 V, or the hum gone indoors),
+**small object** (pulls her less than 12 % toward 0 V), or **another person**. In 90 simulated
+minutes of walking, bus and desk life at body voltages of 1, 100 and 1,000 V it found no false
+steps; it caught 93–97 % of contacts with the improved input at 1–10 V.
+
+**Fused rule F** (now the default in the digital twin):
+- *wrist path:* the active sweep held 2 s AND a person step within 4 s before the hold began;
+- *anywhere path:* a person step AND agitation (2 or more jerks over 1.25 g within 3 s).
+
+Her own hand on the watch, a metal pole, a phone and a table make no person step, so they never
+prompt; a brush on a bus makes a person step but no pulling.
+
+**Results** (improved input + ADS1115; 40 grabs per place and voltage, 6 h per place):
+
+| Body voltage | Rule A (today) body coverage | Rule F body coverage | Unwanted prompts/h, A | Unwanted prompts/h, F |
+|---|---|---|---|---|
+| 1 V | 13 % | 71 % | 4.3 | 0.00 |
+| 10 V | 13 % | 67 % | 4.8 | 0.00 |
+| 100 V | 13 % | 70 % | 5.0 | 0.06 |
+
+Unwanted prompts exclude a friend holding her wrist (a real touch by another person: the PIN is
+the right answer there, about 0.3 per hour at a desk). Rule F catches 90–93 % of wrist grabs
+(rule A also 90–93 %) and 58–73 % at every other place. Across all voltages F averaged 0.05 unwanted
+prompts per hour, about one every 20 hours, against about 5 per hour today.
+
+With today's input and the ESP32 ADC the fused rule needs body voltages of 10 V or more; below
+3 V it would miss even wrist grabs. **The bootstrapped input with an ADS1115 is required.** A
+fallback (F+: active hold for 6 s with no earthed step) keeps wrist grabs at low voltages but
+brings back about 2.5 prompts per hour, so it is not recommended.
+
+**What limits coverage:** a grab that only holds, without pulling, is missed away from the wrist
+(30 % of grabs here, an estimate). **What the numbers rest on:** body voltages on Indian floors,
+how often a grab pulls her arm, her reaction, and real arm-movement statistics are all estimates
+until measured; the digital-twin check (`node demo/check_demo.js`) reproduces the Python rates
+with the same physics in JavaScript.

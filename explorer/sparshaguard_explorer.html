@@ -132,6 +132,18 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 .tblwrap { overflow-x: auto; }
 .note { font-size: 13px; color: var(--ink2); margin: 10px 0 0; }
 .tag.ok { color: var(--calm); border-color: var(--calm); }
+.fusedopts { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--ink2); margin: 2px 0 10px; }
+.fusedopts select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); }
+.fpath { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.fpath li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; align-items: start; }
+.fpath .ic { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #fff; margin-top: 1px; }
+.fpath .y { background: var(--calm); } .fpath .n { background: var(--muted); }
+.locbars { display: grid; grid-template-columns: max-content 1fr; gap: 6px 10px; align-items: center; font-size: 13px; margin-top: 8px; }
+.locbars .bars { display: grid; gap: 3px; }
+.locbars .bar { height: 9px; border-radius: 3px; background: var(--grid); position: relative; overflow: hidden; }
+.locbars .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+.kv { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 10px; }
+.kv div { font-size: 12.5px; color: var(--ink2); } .kv b { display: block; font-size: 22px; color: var(--ink); font-family: var(--f-mono); }
 .tabs { display: inline-flex; gap: 4px; margin-top: 10px; padding: 3px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; justify-self: start; }
 .tabs button { font: inherit; font-size: 14px; font-weight: 500; border: 0; background: transparent; color: var(--ink2); padding: 7px 16px; border-radius: 999px; cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--ink); color: var(--panel); }
@@ -273,6 +285,18 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
         </div>
       </section>
 
+      <section class="card" id="fused-card" aria-live="polite">
+        <div class="chead"><h2>The fused watch: sweep + static + motion <span class="tag ok">simulated · fig 17–18</span></h2></div>
+        <p class="sub">The same electrode also reads her body's static voltage. Another person touching her anywhere shares charge and makes her voltage jump in under a millisecond; metal, a phone or her own hand do not look like that. A PIN prompt needs another body.</p>
+        <div class="fusedopts">
+          <label>Static difference between the two bodies <select id="f-dv"><option value="1">~1 V (humid, conductive floor)</option><option value="10" selected>~10 V</option><option value="100">~100 V (dry day)</option></select></label>
+          <label class="check" style="margin:0"><input type="checkbox" id="f-pull" checked> he pulls or shakes her arm</label>
+        </div>
+        <span class="pill" id="f-pill"></span>
+        <ul class="fpath" id="f-path"></ul>
+        <p class="note" id="f-note"></p>
+      </section>
+
       <section class="card">
         <div class="chead"><h2>Would the watch notice?</h2></div>
         <p class="sub">This touch against measurement noise, everyday drift (sweat, strap movement), and the 0.3 % level that starts the PIN countdown. Log scale.</p>
@@ -302,12 +326,12 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
     <header>
       <div class="eyebrow">Whole-body study · 11 October 2026 · fig 10–12</div>
       <h2 class="sec" id="beyond-h">Touches anywhere on her body</h2>
-      <p class="lede">The touch explorer shows that the sweep sees a hand at the wrist. A touch on her shoulder or back reaches the watch through the same weak link as walking past a wall, so the sweep can't tell them apart. A passive channel on the same electrode could see the moment of contact anywhere.</p>
+      <p class="lede">The sweep sees a hand at the wrist. A touch on her shoulder or back reaches the watch through the same weak link as walking past a wall, so the sweep can't tell them apart. A passive static channel on the same electrode sees the moment another body touches her, anywhere; the wrist accelerometer tells a grab that pulls her from a brush.</p>
     </header>
 
     <div class="bgrid">
       <section class="card" id="pc-card">
-        <div class="chead"><h2>Passive body-potential channel <span class="tag">proposed</span></h2></div>
+        <div class="chead"><h2>Passive body-potential channel <span class="tag ok">simulated in time · fig 17–18</span></h2></div>
         <p class="sub">When two people at different voltages touch, they share charge and her whole body's voltage jumps. The floating watch sees a fixed fraction of that jump at its electrode.</p>
         <div class="group">
           <div class="label" id="lbl-dv">Voltage difference between the two bodies</div>
@@ -326,10 +350,18 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
           <div class="adcs" id="pc-adcs"></div>
         </div>
         <div class="plot" id="pc-plot"></div>
-        <p class="note">Walking alone charges a person to hundreds or thousands of volts (Desco: 250–12,000 V on vinyl), so a 1 V difference is modest. The catch: her own footsteps make larger jumps, so the accelerometer has to filter them out, and two people at the same voltage give no signal. Gate 1 must measure how big real steps are.</p>
+        <p class="note">Walking charges a person to hundreds or thousands of volts on vinyl (Desco: 250–12,000 V), so a 1 V difference is modest; Indian floors are not measured yet. Her own footsteps and arm movements make bigger changes, but they take 20–300 ms; a contact settles in under 1 ms. The firmware keeps only sharp steps that stand out from the signal around them: in simulated hours of walking, bus and desk life at 1–1,000 V it found no false steps. Two people at the same voltage still give no signal.</p>
       </section>
 
       <div style="display:grid; gap:16px; min-width:0">
+        <section class="card" id="fz-card">
+          <div class="chead"><h2>Fused watch: where a grab is caught <span class="tag ok">simulated</span></h2></div>
+          <p class="sub">Time-domain simulation (passive_stream.py): static channel at 500 Hz, wrist accelerometer, active sweep; walking, bus and desk; bootstrapped input + ADS1115.</p>
+          <div class="fusedopts"><label>Typical body voltage <select id="fz-v0"><option value="1.0">~1 V</option><option value="10.0" selected>~10 V</option><option value="100.0">~100 V</option></select></label></div>
+          <div class="locbars" id="fz-bars"></div>
+          <div class="kv" id="fz-kv"></div>
+          <p class="note">Grabs that only hold (about 30 %, an estimate) give no pulling and are missed away from the wrist. A friend holding her wrist still prompts; her PIN cancels it. Motion rates and street body voltages are estimates until Gate 1.</p>
+        </section>
         <section class="card">
           <div class="chead"><h2>His hand near the strap <span class="tag ok">in the model · FastCap-checked</span></h2></div>
           <p class="sub">3D boundary-element calculation: extra coupling when his hand grips her forearm a given distance from the strap edge.</p>
@@ -364,7 +396,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   </div>
   <footer>
     <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché, amplitude only. Body capacitance from Jonassen's footwear measurements, skin under a dry steel electrode from Goyal et al., fabric from Ng &amp; Reaz, the watch's return path from Datta et al. and Maity et al., body-to-body coupling from Nath et al., shield performance from TI, ADC noise from an ESP32 measurement. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/parameter_sources.md.</p>
-    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (Whole-body study tab), checked with FastCap; the forearm case uses it with his hand 3 cm from the strap. The passive channel is analysed on paper, not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
+    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (Whole-body study tab), checked with FastCap; the forearm case uses it with his hand 3 cm from the strap. The passive static channel and the fused logic are simulated in time (sg_passive.py, passive_stream.py), not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
   </footer>
 </div>
 
@@ -758,6 +790,51 @@ const SG = (() => {
     }
   }
 
+  // ------------------------------------------------------------- fused watch (sg_passive.py physics)
+  // Contact shares charge: dV_B = dV * C_A / (C_A + C_B) bare, or with fabric in series
+  // (C_A = C_B = 180 pF [S4]; fabric eps 3.15 over 60 cm^2 of hand [S7, S13]). The watch sees
+  // k = C_GE / (C_GE + C_GB + C_in) = 1.1 / (1.1 + 2 + 0.5) with the bootstrapped input, and a step must
+  // beat 6x the ADS1115 noise in one sample (6 x 0.5 mV x sqrt 2 = 4.2 mV).
+  const F_K = 1.1 / (1.1 + 2 + 0.5), F_THR = 6 * 0.5 * Math.SQRT2, CBODY = 180e-12;
+  function staticStep(st, dv) {
+    if (st.touch !== "person") return 0;
+    const cc = st.bare ? null : 8.854e-12 * 3.15 * 60e-4 / (st.clothMm * 1e-3);
+    const dvb = cc ? dv / (CBODY * (1 / CBODY + 1 / CBODY + 1 / cc)) : dv / 2;
+    return 1000 * F_K * dvb;                                         // mV at the watch
+  }
+  function fused(st, sc) {
+    const dv = +$("f-dv").value, pull = $("f-pull").checked, mv = staticStep(st, dv);
+    const sweep = st.touch !== "none" && sc >= SG.TRIGGER;
+    let kind = "none", what = "No sharp step: nothing touched her, so her body voltage only drifts slowly.";
+    if (st.touch === "person") { kind = mv >= F_THR ? "person" : "small";
+      what = mv >= F_THR ? `Another body: her voltage jumps ${mv >= 1000 ? (mv / 1000).toFixed(1) + " V" : mv.toFixed(0) + " mV"} at the watch in under 1 ms (detection level ${F_THR.toFixed(1)} mV).`
+                         : `Step of ${mv.toFixed(1)} mV is under the ${F_THR.toFixed(1)} mV detection level: the two bodies are too close in voltage.`; }
+    if (st.touch === "self") what = "Her own hand: one body, no charge to share, no step.";
+    if (st.touch === "bystander") what = "No touch: a person walking up shifts her voltage over about a second, far too slowly to count as a contact.";
+    if (st.touch === "object") {
+      const o = st.object;
+      if (/railing/.test(o)) { kind = "earthed"; what = "Earthed metal pulls her body to 0 V and holds it there (and removes the 50 Hz hum indoors): classed as metal, not a person."; }
+      else if (o === "phone" || o === "bag") { kind = "object"; what = "A small object (4–12 pF) pulls her voltage a few % toward 0 V: classed as an object, not a person."; }
+      else what = "An insulating table shares no charge: no step.";
+    }
+    const person = kind === "person", atWrist = st.touch === "person" && st.loc === "wrist";
+    const wristPath = sweep && person, anyPath = person && pull, fire = wristPath || anyPath;
+    const pill = $("f-pill");
+    const cls = fire ? "trig" : "hid";
+    pill.className = "pill " + cls; pill.innerHTML = ICON[cls] + "<span></span>";
+    pill.lastChild.textContent = st.touch === "none" ? "Nothing to detect" : fire ? "PIN prompt" : "Ignored: no prompt";
+    const li = (ok, t) => `<li><span class="ic ${ok ? "y" : "n"}">${ok ? "✓" : "–"}</span><span>${t}</span></li>`;
+    $("f-path").innerHTML = li(person, "<b>Static channel.</b> " + what) +
+      li(sweep, `<b>Sweep.</b> ${sweep ? `Changes by ${fmtPct(sc)} %, above 0.3 %: a touch at the watch.` : "Below the 0.3 % level: no touch at the watch."}`) +
+      li(person && pull, `<b>Motion.</b> ${st.touch === "person" ? (pull ? "Her arm is jerked 2–5 times within 3 s: she is being pulled." : "No pulling within 3 s: a brush, or a friend's hand.") : "Not checked: no other body touched her."}`);
+    $("f-note").textContent = st.touch === "none" ? "" :
+      fire ? (wristPath ? "Wrist path: a held touch at the watch AND another body. " : "Anywhere path: another body AND pulling, wherever he touched her. ") + "She has 15 s to enter her PIN; a friend's touch is cancelled the same way." :
+      st.touch === "person" ? (person ? "Another body touched her, but without a held touch at the watch or pulling this is treated as a brush. In the simulation a brush on a crowded bus never prompted." : "Both bodies at nearly the same voltage give no step. Then only the sweep can catch a wrist grab; this is the main thing Gate 1 must measure.")
+      : sweep ? "The first design would have asked for the PIN here; the fused watch ignores it because no other body touched her." : "";
+  }
+  $("f-dv").addEventListener("change", () => last && fused(last.st, last.sc));
+  $("f-pull").addEventListener("change", () => last && fused(last.st, last.sc));
+
   // ------------------------------------------------------------- wiring
   function render() {
     const st = state();
@@ -783,6 +860,7 @@ const SG = (() => {
       dual: "Adds an outer electrode on the case and strap, so a hand at the wrist closes a loop.",
       dual_shield: "Adds a driven shield as well. Recommended design." }[st.design];
     verdict(st, sc);
+    fused(st, sc);
     drawSweep(sw);
     drawGauge(st, sc);
     changes(st);
@@ -896,6 +974,19 @@ const SG = (() => {
       marks: [[g, cd, "var(--touch)"]] });
   }
 
+  const FZ = {"1.0": {"loc": {"wrist": {"A": 0.933, "F": 0.908}, "forearm": {"A": 0.0, "F": 0.733}, "upper_arm": {"A": 0.0, "F": 0.717}, "other_arm": {"A": 0.0, "F": 0.608}, "shoulder": {"A": 0.0, "F": 0.592}, "waist": {"A": 0.0, "F": 0.717}, "face_hair": {"A": 0.0, "F": 0.692}}, "body": {"A": 0.133, "F": 0.71}, "fp": {"A": 4.333, "F": 0.0}}, "10.0": {"loc": {"wrist": {"A": 0.9, "F": 0.9}, "forearm": {"A": 0.0, "F": 0.633}, "upper_arm": {"A": 0.0, "F": 0.675}, "other_arm": {"A": 0.0, "F": 0.583}, "shoulder": {"A": 0.0, "F": 0.583}, "waist": {"A": 0.0, "F": 0.658}, "face_hair": {"A": 0.0, "F": 0.642}}, "body": {"A": 0.129, "F": 0.668}, "fp": {"A": 4.833, "F": 0.0}}, "100.0": {"loc": {"wrist": {"A": 0.925, "F": 0.933}, "forearm": {"A": 0.0, "F": 0.683}, "upper_arm": {"A": 0.0, "F": 0.692}, "other_arm": {"A": 0.0, "F": 0.708}, "shoulder": {"A": 0.0, "F": 0.633}, "waist": {"A": 0.0, "F": 0.617}, "face_hair": {"A": 0.0, "F": 0.617}}, "body": {"A": 0.132, "F": 0.698}, "fp": {"A": 5.0, "F": 0.056}}};
+  const LOCN = { wrist: "Wrist", forearm: "Forearm", upper_arm: "Upper arm", other_arm: "Other arm", shoulder: "Shoulder", waist: "Waist", face_hair: "Face / hair" };
+  function renderFZ() {
+    const r = FZ[$("fz-v0").value];
+    $("fz-bars").innerHTML = Object.keys(LOCN).map((l) => `<span>${LOCN[l]}</span><div class="bars">` +
+      `<div class="bar" title="Fused: ${Math.round(100 * r.loc[l].F)} %"><i style="width:${100 * r.loc[l].F}%;background:var(--touch)"></i></div>` +
+      `<div class="bar" title="Sweep only: ${Math.round(100 * r.loc[l].A)} %"><i style="width:${100 * r.loc[l].A}%;background:var(--base)"></i></div></div>`).join("") +
+      `<span></span><div class="legend" style="margin:4px 0 0"><span><i style="background:var(--touch)"></i>Fused</span><span><i style="background:var(--base)"></i>Sweep only</span></div>`;
+    $("fz-kv").innerHTML = `<div><b>${Math.round(100 * r.body.F)} %</b>grabs caught, whole body (sweep only ${Math.round(100 * r.body.A)} %)</div>` +
+      `<div><b>${(16 * r.fp.F).toFixed(1)}</b>unwanted PIN prompts in a 16-hour day (sweep only ${Math.round(16 * r.fp.A)})</div>`;
+  }
+  $("fz-v0").addEventListener("change", renderFZ);
+  renderFZ();
   $("dv").addEventListener("input", renderPC);
   document.querySelectorAll('input[name="inp"]').forEach((r) => r.addEventListener("change", renderPC));
   $("gap").addEventListener("input", renderGap);

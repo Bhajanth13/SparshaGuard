@@ -9,6 +9,17 @@
 //   a PIN prompt fires when the touch has lasted 2 s
 // Strap removal: the sweep is compared with the watch's own "off the wrist" signature (stored at
 // the factory); a match for 0.6 s means the electrode has left the skin -> alert at once.
+// Passive channel (sg_passive.py, passive_stream.py): the same electrode also reads her body voltage
+// at 500 Hz. When another person touches her ANYWHERE, the two bodies share static charge and her
+// voltage jumps in under 1 ms. A "contact step" must be sharp (> 6x noise in one sample), settle at
+// once, and stand out from the signal's local roughness (her footsteps and arm movements are slower).
+// Steps are classed: earthed metal (pulled to and held at 0 V, or the 50 Hz hum gone indoors), a
+// small object (pulls her < 12 % toward 0 V: phone, bag), or another person.
+// Fused rule F (recommended by passive_stream.py, fig 17):
+//   wrist path    the active sweep held 2 s AND a person step within 4 s before the hold began
+//   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
+//                 within 3 s): a grab that pulls or shakes her, anywhere on her body
+// Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
 // Then the product's state machine: 15 s PIN window; correct PIN cancels, wrong PIN or no PIN
 // alerts, the duress PIN shows "Cancelled" but alerts silently.
 (function (root) {
@@ -16,7 +27,50 @@
   const CFG = {
     T_ENTER: 0.003, EXIT_RATIO: 0.5, SUSTAIN_S: 2, TAU_BASE_S: 60, MAX_FREEZE_S: 30, LEARN_S: 5,
     OFF_WRIST_TOL: 0.004, OFF_WRIST_FRAMES: 3, PIN_WINDOW_S: 15, PIN: "1234", DURESS_PIN: "9999",
+    RULE: "fused",            // "fused" (rule F) or "active" (today's rule A: active sweep alone)
+    PFS: 500, IMU_FS: 50, STEP_K: 6, SETTLE: 0.3, LOCAL_K: 8, OBJECT_FRAC: 0.12,
+    PERSON_BEFORE_S: 4, AGIT_G: 1.25, AGIT_N: 2, AGIT_S: 3,
   };
+  const median = (a) => { const b = Float64Array.from(a).sort(), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+  const mean = (a, i0, i1) => { let s = 0; for (let i = i0; i < i1; i++) s += a[i]; return s / (i1 - i0); };
+
+  // contact-step detector on a stream (port of sg_passive.contact_steps); decides 0.5 s late
+  class StepDetector {
+    constructor(c) { this.c = c; this.u = []; this.hum = []; this.off = 0; this.next = 0; this.last = -10; this.indoor = false; this.rms = 5e-4; }
+    push(p) {
+      for (let i = 0; i < p.u.length; i++) { this.u.push(p.u[i]); this.hum.push(p.hum[i]); }
+      this.rms = p.rms; this.indoor = p.indoor;
+      const out = [], c = this.c, FSP = c.PFS, u = this.u, rms = this.rms, thr = c.STEP_K * rms * Math.SQRT2;
+      const N = this.off + u.length, at = (g) => u[g - this.off], d = (g) => at(g + 1) - at(g);
+      if (this.next < this.off + 30) this.next = this.off + 30;
+      for (; this.next + 252 < N; this.next++) {
+        const i = this.next, di = d(i);
+        if (Math.abs(di) <= thr) continue;
+        const t = (i + 1) / FSP;
+        if (t - this.last < 0.25) continue;
+        if (Math.abs(at(i + 16) - at(i + 1)) > c.SETTLE * Math.abs(di) + 4 * rms) continue;   // still moving 30 ms later
+        const around = []; for (let j = i - 25; j < i - 2; j++) around.push(d(j)); for (let j = i + 3; j < i + 26; j++) around.push(d(j));
+        const md = median(around), rough = 1.4826 * median(around.map((x) => Math.abs(x - md)));
+        if (Math.abs(at(i + 2) - at(i - 1)) < c.LOCAL_K * rough) continue;           // rough signal: her own movement
+        if (Math.abs(at(i) - at(i - 7)) > c.SETTLE * Math.abs(di) + 4 * rms) continue; // already moving before
+        let kind = "person";
+        let pm = 0, ps = 0; for (let j = i + 1; j < i + 251; j++) pm += at(j); pm /= 250;
+        for (let j = i + 1; j < i + 251; j++) ps += (at(j) - pm) ** 2; ps = Math.sqrt(ps / 250);
+        if (Math.abs(pm) < Math.max(4 * rms, 0.03 * Math.abs(di)) && ps < 4 * rms + 0.03 * Math.abs(di)) kind = "earthed";
+        let u0 = 0; for (let j = i - 25; j < i; j++) u0 += at(j); u0 /= 25;
+        if (kind === "person" && Math.abs(u0) > 10 * rms && di / u0 > -c.OBJECT_FRAC && di / u0 < 0) kind = "object";
+        if (this.indoor) {
+          const h = this.hum, o = this.off, h0 = mean(h, Math.max(0, i - 250 - o), i + 1 - o), h1 = mean(h, i + 1 - o, i + 251 - o);
+          if (h0 > 0 && h1 < 0.3 * h0) kind = "earthed";
+        }
+        out.push({ t, size: di, kind, u0 });
+        this.last = t;
+      }
+      const keep = 3 * FSP;                                    // keep the last 3 s
+      if (u.length > keep) { const cut = u.length - keep; this.u = u.slice(cut); this.hum = this.hum.slice(cut); this.off += cut; }
+      return out;
+    }
+  }
 
   const rmsDiff = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s / a.length); };
 
@@ -28,11 +82,15 @@
       this.state = "off";             // off | learning | armed | prompt | alert
       this.log = [];
       this.silentAlert = false;
+      this.steps = new StepDetector(this.cfg);
+      this.imu = [];                  // [t, |a| in g] over the last 5 s
+      this.passiveSeen = false;
       this._reset();
     }
     _reset() {
       this.base = null; this.learn = []; this.active = false; this.count = 0; this.frozen = 0;
       this.prompted = false; this.offCount = 0; this.score = 0; this.offDist = 1;
+      this.personSteps = []; this.lastStep = null; this.watching = null; this.holdStart = 0; this.vetoed = false;
     }
     _emit(type, text) { const e = { t: this.t / FS, type, text }; this.log.push(e); this.onEvent && this.onEvent(e); }
 
@@ -42,9 +100,54 @@
       if (!on && this.state !== "off") { this.state = "off"; this._emit("info", "Guard Mode off"); }
     }
 
-    frame(amp) {
+    get fused() { return this.cfg.RULE === "fused" && this.passiveSeen; }
+
+    // the passive channel and accelerometer of this frame (optional: without them the watch runs rule A)
+    _passive(p) {
+      const c = this.cfg, now = this.t / FS;
+      this.passiveSeen = true;
+      const n = p.acc.length;
+      for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i]]);
+      while (this.imu.length && this.imu[0][0] < now - 5) this.imu.shift();
+      const guarding = this.state === "armed";
+      for (const s of this.steps.push(p)) {
+        this.lastStep = s;
+        if (!guarding) continue;
+        const v = `${(1000 * Math.abs(s.size)).toFixed(0)} mV`;
+        if (s.kind === "earthed") this._emit("info", `Static: her body pulled to 0 V (${v} step), metal or earth: not a person`);
+        else if (s.kind === "object") this._emit("info", `Static: small pull toward 0 V (${v}), a phone or bag: not a person`);
+        else {
+          this.personSteps.push(s.t);
+          this._emit("touch", `Static: charge-sharing step ${v} in under 2 ms: another body touched her`);
+          if (this.fused && !this.watching) { this.watching = s.t; this._emit("info", "Watching her arm for 3 s: is she being pulled?"); }
+        }
+      }
+      this.personSteps = this.personSteps.filter((t) => t > now - 10);
+      if (this.watching !== null) {
+        const jerks = this.jerksSince(this.watching);
+        if (guarding && this.fused && jerks >= c.AGIT_N) {
+          this.watching = null; this.prompted = true;
+          this._startPrompt(`Another person touched her and her arm was pulled (${jerks} jerks): ask for PIN (15 s)`);
+        } else if (now > this.watching + c.AGIT_S) {
+          this._emit("info", "No pulling within 3 s: a brush, ignored"); this.watching = null;
+        }
+      }
+    }
+    jerksSince(t0) {                  // rising edges of |a - 1 g| > 1.25 g in [t0, t0 + 3 s]
+      let n = 0, prev = null;
+      for (const [t, a] of this.imu) {
+        if (t < t0 || t > t0 + this.cfg.AGIT_S) continue;
+        const x = Math.abs(a - 1) > this.cfg.AGIT_G;
+        if (prev === false && x) n++;
+        prev = x;
+      }
+      return n;
+    }
+
+    frame(amp, pas) {
       this.t += 1;
       const c = this.cfg;
+      if (pas) this._passive(pas);
       this.offDist = rmsDiff(amp, this.offRef);
       if (this.state === "off" || this.state === "alert") { this.score = this.base ? rmsDiff(amp, this.base) : 0; this._tickPrompt(); return; }
 
@@ -65,13 +168,20 @@
       // touch detection, exactly as run_pipeline in event_stream.py
       const sc = rmsDiff(amp, this.base);
       this.score = sc;
-      if (!this.active && sc > c.T_ENTER) { this.active = true; this.count = 0; this.frozen = 0; this.prompted = false;
+      if (!this.active && sc > c.T_ENTER) { this.active = true; this.count = 0; this.frozen = 0; this.prompted = false; this.vetoed = false; this.holdStart = this.t / FS;
         this._emit("touch", `Change ${(100 * sc).toFixed(2)} % > 0.3 %: possible touch, baseline frozen`); }
       else if (this.active && sc < c.EXIT_RATIO * c.T_ENTER) { this.active = false;
-        if (!this.prompted) this._emit("info", `Change back below 0.15 % after ${(this.count / FS).toFixed(1)} s: ignored`); }
+        if (!this.prompted && !this.vetoed) this._emit("info", `Change back below 0.15 % after ${(this.count / FS).toFixed(1)} s: ignored`); }
       if (this.active) {
         this.frozen += 1; this.count += 1;
-        if (this.count >= c.SUSTAIN_S * FS && !this.prompted) { this.prompted = true; this._startPrompt(); }
+        if (this.count >= c.SUSTAIN_S * FS && !this.prompted && !this.vetoed) {
+          const person = this.personSteps.some((t) => t >= this.holdStart - c.PERSON_BEFORE_S);
+          if (!this.fused || person) { this.prompted = true; this._startPrompt(person ? "Touch held 2 s and another body touched her: vibrate, ask for PIN (15 s)" : undefined); }
+          else if (this.count >= c.SUSTAIN_S * FS + 3) {                         // allow the 0.5 s static decision
+            this.vetoed = true;
+            this._emit("info", "Held 2 s but no other body touched her (no static step): her own hand, metal or an object, ignored");
+          }
+        }
         if (this.frozen > c.MAX_FREEZE_S * FS && !this.prompted) {
           this.base = Float64Array.from(amp); this.active = false;
           this._emit("info", "Change lasted 30 s without a prompt: accepted as the new normal");
@@ -83,10 +193,10 @@
       this._tickPrompt();
     }
 
-    _startPrompt() {
+    _startPrompt(why) {
       if (this.state !== "armed") return;
-      this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = "";
-      this._emit("prompt", "Touch held 2 s: vibrate, ask for PIN (15 s)");
+      this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = ""; this.watching = null;
+      this._emit("prompt", why || "Touch held 2 s: vibrate, ask for PIN (15 s)");
     }
     _tickPrompt() {
       if (this.state !== "prompt") return;
@@ -119,6 +229,6 @@
     }
   }
 
-  const api = { Firmware, CFG, FS };
+  const api = { Firmware, StepDetector, CFG, FS };
   if (typeof module !== "undefined") module.exports = api; else root.SGFirmware = api;
 })(this);

@@ -8,6 +8,16 @@
 //   - per-event random draws over the same ranges as sg_model.py (e.g. a wrist grab lands his palm
 //     on the outer electrode 85 % of the time; a forearm grip sits 1-5 cm from the strap)
 // The output is amplitude only (200 Touché frequencies), which is all an envelope detector gives.
+//
+// PassiveTwin adds the second, passive channel on the same electrode (port of sg_passive.py):
+// her body voltage from static charge, sampled at 500 Hz, and a wrist accelerometer at 50 Hz.
+//   body capacitance 110-250 pF [S4]; charge leaks with tau = R C_B, R ~ 2e10 ohm, and walking
+//   charges her with V_peak = R n dq [S18]; contact shares charge between the two bodies (fabric as
+//   a series capacitor [S7, S13]); a charged person nearby induces V_A C_AB/(C_B + C_AB), with
+//   C_AB = 21 pF at 1 m [S12]; earthed metal holds her at 0 V and removes the 50 Hz hum indoors
+//   [S22]; a phone or bag (4-12 pF) takes a few % of her voltage; the watch sees k = C_GE /
+//   (C_GE + C_GB + C_in) of it (bootstrapped input, C_GB 2 pF, C_in 0.5 pF) plus ADS1115 noise
+//   (2 mV, rms 0.5 mV) [S15]. The typical body voltage v0 is not yet measured on Indian floors [E].
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -40,15 +50,114 @@
   // one event = the sensor-relevant parameters of a touch, drawn like sg_model.py draws them
   function drawEvent(kind, detail, R) {
     const st = { touch: kind, loc: detail, object: detail, bare: true, clothMm: 0.555 };
-    const BARE = { wrist: 0.9, forearm: 0.6, shoulder: 0.1, other_arm: 0.5 };
+    const BARE = { wrist: 0.9, forearm: 0.6, upper_arm: 0.3, shoulder: 0.1, other_arm: 0.5, waist: 0.05, face_hair: 0.8 };
     if (kind === "person") {
       st.bare = R.p(BARE[detail] ?? 0.5);
       st.clothMm = R.uni(0.16, 0.58) * R.uni(1, 2);             // 1-2 fabric layers [S7]
       if (detail === "wrist") { st.offElectrode = !R.p(0.85); st.handPF = R.uni(0.5, 3); }
       if (detail === "forearm") st.gapCm = R.uni(1, 5);          // grip 1-5 cm from the strap [E]
+      st.pull = false;                                           // a grab that pulls or shakes her arm
     }
     if (kind === "strap_off") { st.offSBpF = R.uni(0.05, 0.3); st.offB0pF = R.uni(0.05, 0.5); }
     return st;
+  }
+
+
+  // ------------------------------------------------------------------ passive channel
+  const PFS = 500, IMU_FS = 50, R_GROUND = 2e10, CADENCE = 1.7;
+  const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
+  const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
+  const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
+
+  class PassiveTwin {
+    constructor(R, ctxName, v0 = 10, front = "improved") {
+      this.R = R; this.v0 = v0; this.front = front; this.f = FRONT[front];
+      this.cb = R.uni(110, 250) * pF;
+      this.cge = Math.exp(R.uni(Math.log(0.6), Math.log(2.0))) * pF;            // [S5/S11]
+      this.k = this.cge / (this.cge + this.f.cgb + this.f.cin);
+      this.a = Math.exp(-1 / (PFS * R_GROUND * this.cb));
+      this.sign = R.p(0.5) ? 1 : -1;
+      this.setContext(ctxName, true);
+      this.q = this.sign * this.vpeak * this.cb * R.uni(0.3, 1.0);           // charge she already carries
+      const am = Math.exp(-1 / (PFS * 0.3));                                    // arm movement: two 0.3 s lags
+      this.am = am; this.m1 = 0; this.m2 = 0; this.mnorm = 1 / Math.sqrt(Math.pow(1 - am, 4) * (1 + am * am) / Math.pow(1 - am * am, 3));
+      this.inj = [];                                                            // charge being separated [{left, per}]
+      this.app = null; this.pinned = false; this.small = null; this.hum = 1;
+      this.sway = 0; this.phase = R.uni(0, 6.3); this.pulses = []; this.n = 0; this.ni = 0;
+    }
+    setContext(name, first) {
+      this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
+      if (first || this.vpeak === undefined) this.vpeak0 = this.v0 * Math.exp(0.7 * this.R.n());
+      this.vpeak = name === "desk" ? 0.1 * this.vpeak0 : this.vpeak0;
+      this.nextHeel = this.R.uni(0, 1 / CADENCE);
+    }
+    setV0(v0) { this.v0 = v0; this.setContext(this.ctxName, true); }
+    strangerVoltage() { return this.v0 * Math.exp(0.7 * this.R.n()) * (this.R.p(0.5) ? 1 : -1); }
+
+    start(ev) {                                                                 // ev: the drawn event of SensorTwin
+      const R = this.R, vb = this.q / this.cb;
+      this.contact = ev;
+      if (ev.kind === "person") {
+        const va = ev.vA ?? this.strangerVoltage();
+        const cc = ev.bare ? null : 8.854e-12 * R.uni(1.2, 5.1) * R.uni(40, 80) * 1e-4 / (R.uni(0.16e-3, 0.58e-3) * R.uni(1, 2));
+        this.q = share(va, vb, R.uni(110, 250) * pF, this.cb, cc) * this.cb;
+        this.hum = R.uni(0.6, 1.6);
+        if (ev.pull) {                                                          // 2-5 jerks of 1.5-3 g in 3 s [E]
+          const times = ev.pullTimes || Array.from({ length: 2 + Math.floor(R.u() * 4) }, () => R.uni(0.2, 3.0));
+          for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0) });
+        }
+      } else if (ev.kind === "bystander") {
+        this.app = { va: this.strangerVoltage(), dmin: R.uni(0.2, 0.6), s: 0, leaving: false };
+      } else if (ev.kind === "object" && /railing|pole|metal/.test(ev.detail || "")) {
+        this.pinned = true; this.q = 0; this.hum = 0.05;
+      } else if (ev.kind === "object" && /phone|bag|keys/.test(ev.detail || "")) {
+        this.q = share(0, vb, R.uni(4, 12) * pF, this.cb) * this.cb;
+      }
+    }
+    end() {
+      if (this.pinned) { this.pinned = false; this.q = -this._vind() * this.cb * this._cm; }   // keeps the charge that cancelled vind
+      if (this.app) { this.app.leaving = true; this.app.s = 0; }
+      this.hum = 1; this.contact = null;
+    }
+    _vind() {
+      const A = this.app; if (!A) return 0;
+      const r = PFS, x = Math.min(1, A.s / r);
+      const d = A.leaving ? A.dmin + (3 - A.dmin) * x : 3 + (A.dmin - 3) * x;
+      const c = cAB(d) - cAB(3.0);
+      return A.va * c / (this.cb + c);
+    }
+    // one firmware frame (0.2 s): 100 passive samples, 10 accelerometer samples
+    frame(nP = PFS / FS) {
+      const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), rms = this.f.adc / 4;
+      const dq = this.sign * this.vpeak / (R_GROUND * CADENCE);
+      for (let i = 0; i < nP; i++, this.n++) {
+        const t = this.n / PFS;
+        if (this.walking && t >= this.nextHeel) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); this.nextHeel += 1 / CADENCE; }
+        if (this.ctxName === "bus" && R.u() < 0.2 / PFS) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); }
+        let add = 0; for (const s of this.inj) { add += s.per; s.left--; }
+        this.inj = this.inj.filter((s) => s.left > 0);
+        this.q = this.pinned ? 0 : this.a * this.q + add;
+        this.m1 = this.am * this.m1 + (1 - this.am) * R.n(); this.m2 = this.am * this.m2 + (1 - this.am) * this.m1;
+        this._cm = 1 + 0.03 * this.m2 * this.mnorm;                             // her arm movement changes C_B ~3 % [E]
+        if (this.app) { this.app.s++; if (this.app.leaving && this.app.s >= PFS) this.app = null; }
+        const v = this.pinned ? 0 : this.q / (this.cb * this._cm) + this._vind();
+        u[i] = this.k * v + rms * R.n();
+        hum[i] = this.indoor ? this.hum : 0;
+      }
+      const nI = IMU_FS / FS, acc = new Float64Array(nI);
+      const sw = { walking: 0.05, bus: 0.10, desk: 0.02 }[this.ctxName], ai = Math.exp(-1 / IMU_FS);
+      for (let i = 0; i < nI; i++, this.ni++) {
+        const t = this.ni / IMU_FS;
+        this.sway = ai * this.sway + Math.sqrt(1 - Math.exp(-2 / IMU_FS)) * sw * R.n();
+        let a = 1 + this.sway + (this.walking ? 0.35 * Math.sin(2 * Math.PI * CADENCE * t + this.phase) : 0);
+        if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2) });   // her own gestures [E]
+        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.3, 1.5) });   // braking jolts [E]
+        for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) a += p.g * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); }
+        this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
+        acc[i] = a;
+      }
+      return { u, hum, acc, rms, indoor: this.indoor };
+    }
   }
 
   class SensorTwin {
@@ -59,14 +168,22 @@
       this.hyd = new OU(300, 0.15, this.R);
       this.event = null;
       this.F = SG.TOUCHE;
+      this.passive = new PassiveTwin(this.R, this.ctxName, opts.v0 ?? 10, opts.front ?? "improved");
     }
     setContext(name) {
       this.ctx = CONTEXTS[name]; this.ctxName = name;
+      if (this.passive) this.passive.setContext(name);
       this.gb = new OU(1.0, this.ctx.motion, this.R);
       this.be = new OU(0.5, this.ctx.feet, this.R);
     }
-    startEvent(kind, detail) { this.event = drawEvent(kind, detail, this.R); this.event.kind = kind; this.event.detail = detail; }
-    endEvent() { this.event = null; }
+    // force: values that override the random draw (e.g. { pull: true } for a grab that pulls her arm)
+    startEvent(kind, detail, force) {
+      this.event = drawEvent(kind, detail, this.R); this.event.kind = kind; this.event.detail = detail;
+      if (force) Object.assign(this.event, force);
+      this.passive.start(this.event);
+    }
+    endEvent() { if (this.event) this.passive.end(); this.event = null; }
+    passiveFrame() { return this.passive.frame(); }
 
     // complex sense-node voltage for parameter set p and touch state st (or none)
     _sweep(p, st) {
@@ -97,6 +214,6 @@
     }
   }
 
-  const api = { SensorTwin, CONTEXTS, FS, NOISE, DESIGN };
+  const api = { SensorTwin, PassiveTwin, CONTEXTS, FS, NOISE, DESIGN, PFS, IMU_FS, FRONT };
   if (typeof module !== "undefined") module.exports = api; else root.SGSensor = api;
 })(this);
