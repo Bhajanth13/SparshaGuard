@@ -21,7 +21,8 @@ side = Side(style="thin", color="C9D3DC")
 BD = Border(left=side, right=side, top=side, bottom=side)
 USED = {"In model v0.3": "Yes (in model)", "Pending integration": "Found, not added yet",
         "Benchmark only": "Accuracy benchmark", "Context only": "Background only",
-        "Whole-body study": "Whole-body study (doc)"}
+        "Whole-body study": "Whole-body study (doc)",
+        "Fusion study": "Fusion study (doc)"}
 
 
 def ref_text(s):

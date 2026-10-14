@@ -33,6 +33,8 @@ STATUS_FILL = {
     "Pending integration": PatternFill("solid", fgColor="FFF2CC"),
     "Benchmark only": PatternFill("solid", fgColor="DDEBF7"),
     "Context only": PatternFill("solid", fgColor="F2F2F2"),
+    "Whole-body study": PatternFill("solid", fgColor="FCE4D6"),
+    "Fusion study": PatternFill("solid", fgColor="EADCF0"),
 }
 
 # --------------------------------------------------------------------------- sources
@@ -128,6 +130,45 @@ SOURCES = [
      "A Touch Sensing Technique Using the Effects of Extremely Low Frequency Fields on the Human Body",
      "Sensors 16(12):2049", 2016, "Journal article", "-",
      "https://doi.org/10.3390/s16122049", ""),
+    # ---- fusion study (14 Oct 2026): signals that widen coverage or confirm an attack
+    ("S23", "University of Agricultural Sciences, Bangalore (GKVK agro-meteorological observatory)",
+     "Monthly weather normals, GKVK, Bengaluru",
+     "uasbangalore.edu.in", None, "Station climate record", "-",
+     "https://uasbangalore.edu.in/images/Agrometerology/pdf/gkvk-monthly-weather-normals-2011-2020-converted.pdf",
+     "Relative humidity read at 08:30 and 17:30 IST"),
+    ("S24", "IPC (Electronics.org) technical resource",
+     "Electrostatic Discharge (ESD), Factory Issues, Measurement Methods",
+     "electronics.org", None, "Industry technical paper", "-",
+     "https://www.electronics.org/system/files/technical_resource/E15&S22_02.pdf",
+     "Quotes ANSI/ESD S20.20 limits for the person-footwear-floor path"),
+    ("S25", "S. Bian, P. Lukowicz et al.",
+     "Collaborative Human Activity Recognition with Passive Inter-Body Electrostatic Field",
+     "arXiv:2501.06940", 2025, "Preprint", "-", "https://arxiv.org/pdf/2501.06940", ""),
+    ("S26", "S. Bian et al.",
+     "Using Human Body Capacitance Sensing to Monitor Leg Motion Dominated Activities with a Wrist Worn Device",
+     "Springer (book chapter)", 2022, "Book chapter", "-",
+     "https://link.springer.com/chapter/10.1007/978-981-19-0361-8_5", ""),
+    ("S27", "C. E. Loeffler",
+     "Detecting Gunshots Using Wearable Accelerometers",
+     "PLOS ONE 9(9):e106664", 2014, "Journal article", "-",
+     "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0106664",
+     "Wrist accelerometer event detection; test set included confusable activities"),
+    ("S28", "P. Siirtola",
+     "Continuous stress detection using the sensors of commercial smartwatch (WESAD, Empatica E4)",
+     "UbiComp/ISWC adjunct", 2019, "Workshop paper", "-",
+     "https://arxiv.org/pdf/2203.09669", "Wrist-only stress detection on the WESAD dataset"),
+    ("S29", "P. Schmidt, A. Reiss, R. Duerichen, C. Marberger, K. Van Laerhoven",
+     "Introducing WESAD, a Multimodal Dataset for Wearable Stress and Affect Detection",
+     "ACM ICMI", 2018, "Conference paper", "-",
+     "https://www.eti.uni-siegen.de/ubicomp/home/datasets/icmi18/", ""),
+    ("S30", "(authors as listed on arXiv)",
+     "Smartphone Audio Based Distress Detection",
+     "arXiv:2608.04176", 2026, "Preprint", "-", "https://arxiv.org/pdf/2608.04176", ""),
+    ("S31", "US Patent 10,950,112",
+     "Wrist fall detector based on arm direction",
+     "USPTO", None, "Patent", "-",
+     "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/10950112",
+     "States a false-alarm budget for wrist-worn detectors"),
 ]
 
 SHORT = {"S1": "Sato et al. 2012 (Touché)", "S2": "Harrison et al. 2012 (Cap. Fingerprinting)",
@@ -137,12 +178,17 @@ SHORT = {"S1": "Sato et al. 2012 (Touché)", "S2": "Harrison et al. 2012 (Cap. F
          "S12": "Nath et al. 2021", "S13": "Agarwal & Sahu 2010", "S14": "TI SNOA926 2015",
          "S15": "Hackaday ADC test", "S16": "Espressif ADC blog 2025",
          "S17": "Desco ESD table", "S18": "Jonassen (walking)", "S19": "Bian et al. 2019",
-         "S20": "Bian, Liu, Lukowicz 2025", "S21": "Kurita 2016", "S22": "Elfekey et al. 2016"}
+         "S20": "Bian, Liu, Lukowicz 2025", "S21": "Kurita 2016", "S22": "Elfekey et al. 2016",
+         "S23": "GKVK Bengaluru weather normals", "S24": "IPC ESD resource (ANSI/ESD S20.20)",
+         "S25": "Bian et al. 2025 (collaborative)", "S26": "Bian et al. 2022 (leg motion)",
+         "S27": "Loeffler 2014", "S28": "Siirtola 2019", "S29": "Schmidt et al. 2018 (WESAD)",
+         "S30": "Audio distress detection 2026", "S31": "US Pat. 10,950,112"}
 
 # --------------------------------------------------------------------------- values
 # category, parameter, value, unit, conditions, source, location, status, used-as, notes
 IN, PEND, BENCH, CTX = "In model v0.3", "Pending integration", "Benchmark only", "Context only"
 WB = "Whole-body study"
+FU = "Fusion study"
 V = [
     # ---- S1 Touché
     ("Sweep", "Sweep range", "1 kHz – 3.5 MHz", "Hz", "Swept sine, AD5932 generator", "S1", "Hardware section", IN, "Sweep grid 1 kHz – 3.4835 MHz", ""),
@@ -273,6 +319,23 @@ V = [
     ("Passive sensing", "ProxiBand: approaching person detected (TPR)", "74.3 / 46", "%", "Indoor / outdoor", "S20", "Overview text", WB, "Supports passive channel", ""),
     ("Passive sensing", "Contact moment from electrostatic induction current", "detected", "-", "Contact electrification", "S21", "Results", WB, "Supports charge-sharing step", "Qualitative"),
     ("Passive sensing", "Touch sensing from induced 50 Hz field on body", "demonstrated", "-", "Mains ELF field", "S22", "Results", WB, "50 Hz hum cue", "Qualitative"),
+    # ---- fusion study (14 Oct 2026)
+    ("Static charge", "Peak walking voltage formula", "V_max = R · n · Δq", "-", "R to ground, n steps per second, Δq charge per step", "S18", "Text", FU, "Charge-sharing step size", ""),
+    ("Static charge", "Body resistance to ground from initial decay", "≈ 2 × 10^10", "Ω", "Walking test, decay after stopping", "S18", "Text", FU, "Decay τ = R·C ≈ 3 s with 150 pF", ""),
+    ("Static charge", "Person-footwear-floor path limit in ESD areas", "< 1.0 × 10^9", "Ω", "ANSI/ESD S20.20", "S24", "Text", CTX, "ESD shoes drain charge in < 0.2 s", "Ordinary shoes are far above this"),
+    ("Static charge", "ESD footwear resistance, low end", "≈ 5 × 10^5", "Ω", "Commercial ESD footwear", "S24", "Text", CTX, "", ""),
+    ("Bystander", "Body-to-body capacitance at 1 m (analytic)", 20, "pF", "Two 1.8 m people", "S12", "Text", FU, "Cross-check of FEM 21 pF", ""),
+    ("Passive sensing", "Hum at the controller input, touching vs not touching", "> 4 / < 0.5", "V", "Their sensing circuit, indoor mains field", "S22", "Results", FU, "Hum changes with contact: person vs earthed object cue", "Circuit-specific levels"),
+    ("Climate", "Relative humidity at 08:30, Bengaluru", "85 – 89", "%", "Monthly means, GKVK station", "S23", "Table", FU, "Humid case", ""),
+    ("Climate", "Relative humidity at 17:30, Bengaluru", "37 – 58", "%", "Monthly means (37 % Mar–Apr, 57–58 % Jul–Aug)", "S23", "Table", FU, "Dry and typical cases", ""),
+    ("Climate", "Annual mean relative humidity at 17:30, Bengaluru", 50, "%", "GKVK station", "S23", "Table", FU, "Typical case", ""),
+    ("Passive sensing", "Wrist body-capacitance vs IMU, leg-motion activities (F-score)", "0.89 vs 0.78", "-", "Wrist-worn, leg-dominated activities", "S26", "Results", BENCH, "", ""),
+    ("Passive sensing", "Gain from adding body capacitance to wrist accelerometer (collaborative activities)", "+16", "% F-score", "Collaborative activity recognition", "S25", "Results", BENCH, "", ""),
+    ("Motion", "Wrist accelerometer event detection accuracy (gunshot recoil)", 99.4, "%", "Hold-out set incl. confusable activities", "S27", "Results", BENCH, "Wrist IMU can separate sharp events", "Lab conditions"),
+    ("Physiology", "Wrist-only stress detection, balanced accuracy", 87.4, "%", "Empatica E4, WESAD, LDA", "S28", "Results", BENCH, "", ""),
+    ("Physiology", "Stress vs non-stress accuracy (best, chest device)", 93, "%", "WESAD", "S29", "Abstract", BENCH, "", "Chest, not wrist"),
+    ("Audio", "Scream stage false alarm rate, before / after context filter", "≈ 10 / ≈ 1", "%", "Smartphone, daily audio", "S30", "Results", BENCH, "", "1 % ≈ 15 min of false alarms per day"),
+    ("Motion", "Acceptable false-alarm budget for wrist detectors", "≈ 1", "per user per day", "Stated as technically reasonable; many users find it too many", "S31", "Background", BENCH, "Target for fused alerts", "Patent text"),
 ]
 
 # --------------------------------------------------------------------------- model params
