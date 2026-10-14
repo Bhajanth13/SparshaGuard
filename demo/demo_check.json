@@ -3,28 +3,28 @@
  "body_voltage_v0": 10,
  "grabs_caught": {
   "wrist": {
-   "active": 0.925,
-   "fused": 0.9416666666666667
+   "active": 0.9,
+   "fused": 0.95
   },
   "forearm": {
    "active": 0,
-   "fused": 0.6666666666666666
+   "fused": 0.7083333333333334
   },
   "upper_arm": {
    "active": 0,
-   "fused": 0.6333333333333333
+   "fused": 0.6666666666666666
   },
   "other_arm": {
    "active": 0,
-   "fused": 0.6333333333333333
+   "fused": 0.65
   },
   "shoulder": {
    "active": 0,
-   "fused": 0.65
+   "fused": 0.6833333333333333
   },
   "waist": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6833333333333333
   },
   "face_hair": {
    "active": 0,
@@ -32,8 +32,8 @@
   }
  },
  "body_average": {
-  "active": 0.13214285714285715,
-  "fused": 0.6892857142857143
+  "active": 0.1285714285714286,
+  "fused": 0.7119047619047619
  },
  "strap_removal_caught": {
   "active": 1,
@@ -42,7 +42,7 @@
  "daily_life": {
   "walking": {
    "unwanted_prompts_per_hour": {
-    "active": 1.3333333333333333,
+    "active": 0.6666666666666666,
     "fused": 0
    },
    "friend_wrist_prompts_per_hour": {
@@ -51,12 +51,12 @@
    },
    "causes_per_hour": {
     "active": {
-     "self": 1.3333333333333333
+     "self": 0.6666666666666666
     },
     "fused": {}
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 1.9585316176405936
+   "closest_to_off_wrist_pct": 1.9598117067674656
   },
   "bus": {
    "unwanted_prompts_per_hour": {
@@ -77,7 +77,7 @@
     }
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 1.9810199459420994
+   "closest_to_off_wrist_pct": 1.9838664854493249
   },
   "desk": {
    "unwanted_prompts_per_hour": {
@@ -99,11 +99,11 @@
     }
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.021657932123452
+   "closest_to_off_wrist_pct": 2.024574891763676
   }
  },
  "mean_unwanted_prompts_per_hour": {
-  "active": 2.888888888888889,
+  "active": 2.6666666666666665,
   "fused": 0.1111111111111111
  }
 }

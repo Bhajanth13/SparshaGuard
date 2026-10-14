@@ -22,8 +22,8 @@ below; nothing is scripted to succeed.
 | | Result | How we know |
 |---|---|---|
 | Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 58 published sources logged in total |
-| Wrist grabs caught | 94 % (demo, fused watch), 83–93 % (studies) | 120 random trials; hours of simulated daily life |
-| Grabs anywhere on her body | 61–69 % averaged over 7 places (first design: 13 %, wrist only) | `passive_stream.py`, demo check |
+| Wrist grabs caught | 95 % (demo, fused watch), 83–93 % (studies) | 120 random trials; hours of simulated daily life |
+| Grabs anywhere on her body | 61–71 % averaged over 7 places (first design: 13 %, wrist only) | `passive_stream.py`, demo check |
 | Watch pulled off | 100 % caught, no false alarms | demo headless check |
 | Unwanted PIN prompts | 1 in 9 simulated hours (demo); ~0.07 per hour (study). First design: ~3–4 per hour | same simulations |
 | Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `ltspice/`, `fem/` |
@@ -256,10 +256,10 @@ every sensor frame to two firmwares side by side (bodies at ~10 V; 70 % of grabs
 
 | | First design (sweep only) | Fused watch |
 |---|---|---|
-| Wrist grabs caught | 92.5 % | 94.2 % |
-| Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 63–67 % |
-| Average over 7 places | 13 % | 69 % |
-| Unwanted PIN prompts, 9 h of walking, bus and desk | 26 (a metal pole, a table, her own hand) | 1 (a stranger brushed her shoulder while she moved her arm briskly) |
+| Wrist grabs caught | 90 % | 95 % |
+| Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 64–71 % |
+| Average over 7 places | 13 % | 71 % |
+| Unwanted PIN prompts, 9 h of walking, bus and desk | 24 (a metal pole, a table, her own hand) | 1 (a stranger brushed her shoulder while she moved her arm briskly) |
 | Strap removals caught | 100 % | 100 % |
 
 No false strap alarms: normal wearing never comes closer than 2.0% to the off-wrist signature
