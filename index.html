@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>SparshaGuard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SparshaGuard: a touch-sensing safety smartwatch. Try the digital twin and the physics explorer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --paper: #eef1f4; --panel: #ffffff; --ink: #13202a; --ink2: #4a5866; --muted: #74818d; --line: #dbe1e7;
+  --touch: #c0306a; --touch-soft: rgba(192, 48, 106, 0.10); --focus: #2a78d6;
+  --f-display: "Archivo", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1419; --panel: #161f27; --ink: #e7edf2; --ink2: #b2bfca; --muted: #85929e; --line: #27333e;
+    --touch: #ef6a9c; --touch-soft: rgba(239, 106, 156, 0.12); --focus: #6da7ec; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1419; --panel: #161f27; --ink: #e7edf2; --ink2: #b2bfca; --muted: #85929e; --line: #27333e;
+  --touch: #ef6a9c; --touch-soft: rgba(239, 106, 156, 0.12); --focus: #6da7ec; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.5; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.wrap { max-width: 980px; margin: 0 auto; padding: 48px 16px 32px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+h1 { font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: clamp(40px, 8vw, 64px); line-height: 1; margin: 0 0 14px; letter-spacing: -0.01em; }
+h1 span { color: var(--touch); }
+.lede { font-size: clamp(17px, 2.4vw, 20px); color: var(--ink2); max-width: 680px; margin: 0 0 36px; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 720px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { display: flex; flex-direction: column; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; color: inherit; text-decoration: none; }
+.card:hover { border-color: var(--touch); }
+.card h2 { font-family: var(--f-display); font-stretch: 90%; font-weight: 800; font-size: 26px; margin: 0; }
+.card p { margin: 0; color: var(--ink2); }
+.card ul { margin: 0; padding-left: 18px; color: var(--ink2); font-size: 14.5px; }
+.go { margin-top: auto; padding-top: 6px; font-weight: 600; color: var(--touch); }
+.go::after { content: " →"; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 28px 0 0; }
+@media (max-width: 720px) { .facts { grid-template-columns: minmax(0, 1fr); } }
+.fact { border-top: 2px solid var(--line); padding-top: 10px; }
+.fact b { display: block; font-family: var(--f-display); font-stretch: 85%; font-weight: 800; font-size: 30px; }
+.fact span { font-size: 14px; color: var(--ink2); }
+footer { margin-top: 40px; font-size: 13.5px; color: var(--muted); }
+footer a { color: inherit; }
+</style>
+
+<div class="wrap">
+  <p class="eyebrow">Team Sparsha · RV University · simulation study</p>
+  <h1>Sparsha<span>Guard</span></h1>
+  <p class="lede">A safety smartwatch where a stranger's touch raises the alarm. Once Guard Mode is on, another person's grab starts a 15-second PIN countdown; no PIN sends her location to her contacts and calls 112.</p>
+
+  <div class="cards">
+    <a class="card" href="demo/sparshaguard_demo.html">
+      <h2>Digital twin</h2>
+      <p>The watch's own firmware running on a simulated sensor, in real time.</p>
+      <ul>
+        <li>Guided story, about 2 minutes</li>
+        <li>Try it yourself: grab her, brush past, rip the watch off</li>
+        <li>Enter the PIN on the watch (1234, duress 9999)</li>
+      </ul>
+      <span class="go">Open the demo</span>
+    </a>
+    <a class="card" href="explorer/sparshaguard_explorer.html">
+      <h2>Physics explorer</h2>
+      <p>Pick what happens to her and see whether the watch would notice, and why.</p>
+      <ul>
+        <li>The sensor's frequency sweep for each touch</li>
+        <li>The static-charge channel for touches anywhere on her body</li>
+        <li>Where on her body a grab is caught</li>
+      </ul>
+      <span class="go">Open the explorer</span>
+    </a>
+  </div>
+
+  <div class="facts">
+    <div class="fact"><b>71 %</b><span>of grabs caught over 7 body places (wrist-only sweep: 13 %)</span></div>
+    <div class="fact"><b>1</b><span>unwanted PIN prompt in 9 simulated hours (sweep only: 24)</span></div>
+    <div class="fact"><b>100 %</b><span>of strap removals caught</span></div>
+  </div>
+
+  <footer>
+    <p>Simulated, not yet measured: values come from published papers and are checked with SPICE and MIT FastCap; a battery-powered prototype (Gate 1) will calibrate them. Both pages work offline once opened.
+    Code and sources: <a href="https://github.com/Bhajanth13/SparshaGuard">github.com/Bhajanth13/SparshaGuard</a></p>
+  </footer>
+</div>
+</html>

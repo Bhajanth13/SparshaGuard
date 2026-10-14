@@ -12,6 +12,14 @@ pulls her is caught too, while her own hand, metal, a phone or a brush in a crow
 
 ## Try the demo
 
+**Online:** https://bhajanth13.github.io/SparshaGuard/ (front page), with the
+[digital twin](https://bhajanth13.github.io/SparshaGuard/demo/) and the
+[physics explorer](https://bhajanth13.github.io/SparshaGuard/explorer/).
+The site is published by GitHub Pages from the `main` branch (Settings → Pages → Deploy from a
+branch → `main`, folder `/ (root)`); `index.html` is the front page and `.nojekyll` makes GitHub
+serve the files as they are.
+
+
 Open **`demo/sparshaguard_demo.html`** in any browser (download it and double-click; it works
 offline). Press **Play all** for the guided story (about 2 minutes), or switch to **Try it yourself**
 and touch her. The watch's own decision logic runs on a simulated sensor built from the physics
