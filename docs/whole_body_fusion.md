@@ -107,18 +107,23 @@ steps; it caught 93–97 % of contacts with the improved input at 1–10 V.
 Her own hand on the watch, a metal pole, a phone and a table make no person step, so they never
 prompt; a brush on a bus makes a person step but no pulling.
 
-**Results** (improved input + ADS1115; 40 grabs per place and voltage, 6 h per place):
+**Results** (improved input + ADS1115; 40 grabs per place and voltage, 6 h per place; rerun on
+14 October 2026 with the published values listed in `docs/parameter_sources.md`: foot-lift
+capacitance, cadence, leak resistance, wrist walking motion, bus accelerations, watch and phone use):
 
 | Body voltage | Rule A (today) body coverage | Rule F body coverage | Unwanted prompts/h, A | Unwanted prompts/h, F |
 |---|---|---|---|---|
-| 1 V | 13 % | 71 % | 4.3 | 0.00 |
-| 10 V | 13 % | 67 % | 4.8 | 0.00 |
-| 100 V | 13 % | 70 % | 5.0 | 0.06 |
+| 1 V | 12 % | 62 % | 4.2 | 0.11 |
+| 10 V | 12 % | 66 % | 3.7 | 0.00 |
+| 100 V | 13 % | 63 % | 4.3 | 0.06 |
 
 Unwanted prompts exclude a friend holding her wrist (a real touch by another person: the PIN is
-the right answer there, about 0.3 per hour at a desk). Rule F catches 90–93 % of wrist grabs
-(rule A also 90–93 %) and 58–73 % at every other place. Across all voltages F averaged 0.05 unwanted
-prompts per hour, about one every 20 hours, against about 5 per hour today.
+the right answer there). Rule F catches 83–88 % of wrist grabs (rule A 85–93 %) and 55–69 % at every
+other place. Across all voltages F averaged 0.065 unwanted prompts per hour, about one every 15
+hours, against about 4 per hour today. Coverage fell by about 5 points with the published values:
+lifting a foot now changes her body capacitance by 37 % at every step (Ficker), and a grab that
+lands while her voltage is moving is harder to pick out. A slope-aware detector won back 3 points
+while walking but let false steps through, so it was not adopted.
 
 With today's input and the ESP32 ADC the fused rule needs body voltages of 10 V or more; below
 3 V it would miss even wrist grabs. **The bootstrapped input with an ADS1115 is required.** A

@@ -22,10 +22,10 @@ below; nothing is scripted to succeed.
 | | Result | How we know |
 |---|---|---|
 | Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 58 published sources logged in total |
-| Wrist grabs caught | 96 % (demo, fused watch), 90–93 % (studies) | 120 random trials; hours of simulated daily life |
-| Grabs anywhere on her body | ~70 % averaged over 7 places (first design: 13 %, wrist only) | `passive_stream.py`, demo check |
+| Wrist grabs caught | 94 % (demo, fused watch), 83–93 % (studies) | 120 random trials; hours of simulated daily life |
+| Grabs anywhere on her body | 61–69 % averaged over 7 places (first design: 13 %, wrist only) | `passive_stream.py`, demo check |
 | Watch pulled off | 100 % caught, no false alarms | demo headless check |
-| Unwanted PIN prompts | 0 in 9 simulated hours (demo); ~0.05 per hour (study). First design: 4–5 per hour | same simulations |
+| Unwanted PIN prompts | 1 in 9 simulated hours (demo); ~0.07 per hour (study). First design: ~3–4 per hour | same simulations |
 | Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `ltspice/`, `fem/` |
 
 **How the fused watch decides.** A PIN prompt needs *another body*. When another person touches
@@ -159,7 +159,7 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
    to tell hers from his. The strap pressed on a metal pole is the main object that looks like a
    hand.
 6. **Pipeline result (fig 9):** with a 0.3%-of-full-scale threshold and 2 s sustain, it caught
-   ~93% of wrist grabs and none of the forearm or shoulder grabs, with ~5.5 unwanted PIN prompts
+   ~88–93% of wrist grabs and none of the forearm or shoulder grabs, with ~4–5.5 unwanted PIN prompts
    per hour (1.5 walking, 7.5 commuting, 7.5 at a desk). The main causes are the strap pressed on
    a metal pole, her hand on the watch, the phone and the wrist on a table; 1.5 per hour at the
    desk were a friend holding her wrist, which is real contact. Adding the classifier as a gate

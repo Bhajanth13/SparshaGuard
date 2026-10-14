@@ -371,6 +371,21 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   // a step: { wait: seconds } or { until: () => bool }, then optional do() and say (caption)
   const typePin = (pin) => [...pin].map((d) => ({ wait: 0.55, do: () => press(d) }));
   const armed = () => fw.state === "armed" && !(flash && simT < flash.until);
+  // Wait for the watch's own decision. If it misses (a few % of grabs: e.g. both bodies near the
+  // same voltage, or the touch lands mid-step), say so honestly and let him grab again.
+  const promptOrRetry = (key, force) => {
+    let since = null;
+    return () => {
+      if (fw.state === "prompt" || fw.state === "alert") return true;
+      if (since === null) since = simT;
+      if (simT - since > 6 * FS) {
+        endScene(); startScene(key, Object.assign({}, force, { vA: otherVoltage() }));
+        setCaption("The watch missed that one, as it does for a few % of grabs in the simulation. He grabs again…", "");
+        since = simT;
+      }
+      return false;
+    };
+  };
   const CHAPTERS = [
     { t: "Guard Mode", steps: [
       { fresh: true, say: "Ananya is walking home alone. She turns on Guard Mode.", sub: "One tap on the watch." },
@@ -380,19 +395,19 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     { t: "A stranger grabs her wrist", steps: [
       { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
       { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %, and her body's static jumps too.", sub: "His palm closes a path through the strap electrode; touching her, his body shares its charge with hers." },
-      { until: () => fw.state === "prompt", say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
+      { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }), say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
       { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
       { until: () => fw.state === "alert", say: "Alert: her live location goes to her contacts, 112 is called, audio is recorded.", sub: "No button needed. The touch itself raised the alarm." },
       { wait: 4, do: endScene } ] },
     { t: "A friend holds her hand", steps: [
       { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, pull: false, vA: otherVoltage(), label: "A friend holds her hand" }) },
-      { until: () => fw.state === "prompt", say: "Another person's hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
+      { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, pull: false, label: "A friend holds her hand" }), say: "Another person's hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
       { wait: 1.2, say: "She types her PIN, 1234.", sub: "" }, ...typePin("1234"),
       { wait: 0.3, say: "Cancelled. The watch keeps guarding.", sub: "" },
       { wait: 2.5, do: endScene }, { wait: 1 } ] },
     { t: "Forced to cancel", steps: [
       { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger forces her to cancel" }) },
-      { until: () => fw.state === "prompt", say: "The watch asks for the PIN.", sub: "" },
+      { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger forces her to cancel" }), say: "The watch asks for the PIN.", sub: "" },
       { wait: 1.2, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
       { wait: 0.3, say: "The screen says \"Cancelled\", so he thinks it worked…", sub: "" },
       { wait: 2.2, say: "…but Amma gets a silent alert with her location, and 112 is called.", sub: "" },
@@ -404,7 +419,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     { t: "Grabbed anywhere", steps: [
       { ready: true, say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
       { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the lower chart." },
-      { until: () => fw.state === "prompt", say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
+      { until: promptOrRetry("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], label: "A stranger grabs her shoulder and pulls" }), say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
       { wait: 1.5, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
       { wait: 2, do: endScene }, { wait: 1 } ] },
     { t: "Everyday life", steps: [

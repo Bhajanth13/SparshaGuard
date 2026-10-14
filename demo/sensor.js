@@ -81,7 +81,7 @@
       this.Rg = Math.exp(R.uni(Math.log(2e10), Math.log(1e11)));
       this.cadence = R.uni(1.6, 2.3); this.posture = R.uni(0.02, 0.07); this.enmo = R.uni(0.14, 0.35);
       this.a = Math.exp(-1 / (PFS * this.Rg * this.cb));
-      this.lastHeel = -10;
+      this.lastHeel = -10; this.liftS = 0;
       this.sign = R.p(0.5) ? 1 : -1;
       this.setContext(ctxName, true);
       this.q = this.sign * this.vpeak * this.cb * R.uni(0.3, 1.0);           // charge she already carries
@@ -95,7 +95,9 @@
       this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
       if (first || this.vpeak === undefined) this.vpeak0 = this.v0 * Math.exp(0.7 * this.R.n());
       this.vpeak = name === "desk" ? 0.1 * this.vpeak0 : this.vpeak0;
-      this.nextHeel = this.n / PFS + this.R.uni(0, 1 / (this.cadence || 2));
+      // start walking from double support (both feet down), so C_B changes smoothly
+      if (this.walking && this.cadence) { this.lastHeel = this.n / PFS - 0.1 * 2 / this.cadence; this.nextHeel = this.lastHeel + 1 / this.cadence; }
+      else this.nextHeel = this.n / PFS + this.R.uni(0, 1 / (this.cadence || 2));
     }
     setV0(v0) { this.v0 = v0; this.setContext(this.ctxName, true); }
     strangerVoltage() { return this.v0 * Math.exp(0.7 * this.R.n()) * (this.R.p(0.5) ? 1 : -1); }
@@ -147,6 +149,8 @@
         let lift = 1;                                                           // landing 0-10 %, lift-off 10-20 % of the stride [S46]
         if (this.walking) { const x = (t - this.lastHeel) / stride; if (x < 0.1) lift = 1 - x / 0.1; else if (x < 0.2) lift = (x - 0.1) / 0.1; }
         else lift = 0;
+        this.liftS += (lift - this.liftS) / (0.03 * PFS);                       // feet move over tens of ms, never in one sample
+        lift = this.liftS;
         this._cm = (1 + this.posture * this.m2 * this.mnorm) * (1 - (1 - ONE_FOOT) * lift);   // [S40, S42]
         if (this.app) { this.app.s++; if (this.app.leaving && this.app.s >= PFS) this.app = null; }
         const v = this.pinned ? 0 : this.q / (this.cb * this._cm) + this._vind();
