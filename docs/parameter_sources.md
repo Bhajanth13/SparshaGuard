@@ -160,6 +160,44 @@ from the strap edge [E]; a grip closer than 1 cm counts as a wrist grab. This re
 0.5–3 pF estimate and brought the forearm-grab median from ~0.26% to ~0.12% of full scale, at
 the noise floor. See `whole_body_detection.md`.
 
+## Values found for the remaining estimates (14 October 2026)
+
+A literature search on 14 October 2026 looked for every value still marked [E] in `sg_model.py`,
+`event_stream.py`, `sg_passive.py` and the demo. Page access was limited to abstracts and search
+snippets; values seen only second-hand (press releases, review tables) are marked "secondary" in the
+workbook. All 34 new values and 27 new sources (S32–S58) are in `docs/SparshaGuard_paper_values.xlsx`.
+
+**Now in the model**
+
+| Was | Now | Source | Effect |
+|---|---|---|---|
+| Sense-node parasitics 2–7 pF [E] | buffer input 2.1–9 pF + traces 0.6–0.8 pF/cm × 1–3 cm | [S8], OPA350 datasheet [S35], trace capacitance [S36] | Wrist-grab signal 16.4 % → 16.0 % |
+| Strap coating εr 3 [D] | parylene εr 2.65–3.15 | [S37] | Negligible |
+| Walking change of body capacitance ±5 % [E] | 160 pF on both feet → 100 pF on one foot | Ficker [S40] (secondary) | Sweep: ≤ 0.002 % of full scale (settled). Static channel: her voltage rises 1.6× at every step; detector still finds no false steps |
+| Gait timing (none) | double support 0–10 % and 50–60 % of the stride | Perry & Burnfield [S46] | When her capacitance changes in each step |
+| Body leak resistance 2 × 10¹⁰ Ω | 2 × 10¹⁰ – 1 × 10¹¹ Ω (τ 3–25 s) | [S18], [S40]; 1–30 min to 100 V without ESD shoes [S32] | Slower decay of her charge |
+| Cadence 1.7 steps/s [E] | 1.6–2.3 steps/s (women, 96–138 steps/min) | Tudor-Locke [S41] | |
+| Her own movement changes C_B ~3 % [E] | 2–7 % (posture changes body capacitance by < 10 pF of ~150) | Neacsu [S42] | |
+| Wrist walking motion 0.35 g at the step rate [E] | arm swing at half the step rate, amplitude π × ENMO, ENMO 140–350 mg | Dawkins [S43], [S44] | |
+| Bus jolts 0.3–1.5 g [E] | 0.1–0.34 g (bus maxima 3.37 m/s² starting, 3.12 m/s² braking) | [S45], [S47] | Bus motion no longer looks like pulling |
+| Her hand on the watch 3–6/h, 1–5 s [E] | 3/h, log-normal, median 5 s, mean 9 s | Visuri [S38] (140 sessions/day partly secondary) | Sweep-only design: more long touches |
+| Phone 6–10/h, 30–200 s [E] | 5.3/h, log-normal, median 30 s, mean 212 s | Andrews [S39] (secondary) | |
+| Contact settling "under 1 ms" | body model 150 pF / 330 Ω, τ ≈ 50 ns | IEC 61000-4-2 [S54] | Confirms a touch is a one-sample step |
+
+**Found, used only as context or benchmark:** body voltage up to ±20 kV at 5 % RH and half the
+voltage on concrete [S32]; face touching 23 per hour [S48]; train-interior touches [S49]; Bengaluru
+metro crowd loads 4–8 per m² [S50] and commutes of ~42 min each way [S51]; wearable ground ≤ 1 pF to
+earth [S53]; indoor 50 Hz field 9.6 V/m [S55]; fall-detector false alarms 0.025–0.3 per hour
+[S33, S56]; aggressive-movement classification 99.6 % on scripted movements [S34]; sari insulation
+[S57]; harassment in Hyderabad buses [S58].
+
+**Still estimated (no published value found):** walking body voltage on Indian roads, tiles and bus
+floors; how often a grab pulls her arm (70 %) and the size of those jerks (1.5–3 g); wrist peaks
+from her own brisk gestures and their rate; how often strangers brush against her on a bus; how
+long she holds a pole or rests her wrist on a table; capacitance of his hand closer than 1 m; a
+phone's capacitance to ground; clothing layers and which body parts are bare; how quickly sweat
+changes the skin under the watch. These are what Gate 1 recordings should measure.
+
 ## What Gate 1 should measure
 
 These are the estimates that matter most for the results, in order:
@@ -219,3 +257,33 @@ These are the estimates that matter most for the results, in order:
 - **S15** Hackaday.io. *ADC performance: Arduino vs ESP32 vs ADS1115.*
   https://hackaday.io/project/205380-adc-performance-arduino-vs-esp32-vs-ads1115
   (weak source; with Espressif's ADC notes, https://developer.espressif.com/blog/2025/08/adc-performance/)
+
+Added 14 October 2026:
+
+- **S32** A. Talebzadeh, M. Moradian, Y. Han, D. E. Swenson, D. Pommerenke. *Effect of Human Activities and Environmental Conditions on Electrostatic Charging.* IEEE Trans. Electromagnetic Compatibility 58(4), 2016. https://doi.org/10.1109/TEMC.2016.2575842 (Values from the abstract)
+- **S33** M. Kangas, R. Korpelainen, I. Vikman, L. Nyberg, T. Jämsä. *Sensitivity and false alarm rate of a fall sensor in long-term fall detection in the elderly.* Gerontology 61(1):61-68, 2015. https://doi.org/10.1159/000362720 (Abstract)
+- **S34** F. Tchuente, N. Baddour, E. D. Lemaire. *Classification of Aggressive Movements Using Smartwatches.* Sensors 20(21):6377, 2020. https://doi.org/10.3390/s20216377 (Abstract; scripted movements)
+- **S35** Texas Instruments. *OPA350, OPA2350, OPA4350 high-speed single-supply rail-to-rail operational amplifiers (SBOS099D).* Datasheet, 2015. https://www.ti.com/lit/ds/symlink/opa350.pdf (Input capacitance, typical)
+- **S36** ECN / passive-components.eu (using TI figures). *A Plague of Parasites (PCB trace capacitance).* Trade article, n.d. https://passive-components.eu/ (0.8 mm trace on 0.8 mm FR-4 over a plane)
+- **S37** Specialty Coating Systems. *Parylene Dielectric Properties.* Manufacturer technical data, n.d. https://scscoatings.com/ (Parylene N and C relative permittivity)
+- **S38** A. Visuri, Z. Sarsenbayeva, N. van Berkel, J. Goncalves, R. Rawassizadeh, V. Kostakos, D. Ferreira. *Quantifying Sources and Types of Smartwatch Usage Sessions.* Proc. ACM CHI 2017, pp. 3569-3581, 2017. https://doi.org/10.1145/3025453.3025817 ('Half of sessions under 5 s' in the abstract; 140 sessions/day and ~9 s mean via University of Oulu news)
+- **S39** S. Andrews, D. A. Ellis, H. Shaw, L. Piwek. *Beyond Self-Report: Tools to Compare Estimated and Real-World Smartphone Use.* PLoS ONE 10(10):e0139004, 2015. https://doi.org/10.1371/journal.pone.0139004 (85 uses/day and ~5 h/day via Lancaster University press release)
+- **S40** T. Ficker. *Charging by walking.* J. Phys. D: Appl. Phys. 38(5):410-417, 2005. https://incompliancemag.com/charging-by-walking/ (Numbers seen in In Compliance Magazine's summary of Ficker's work (secondary); check the paper)
+- **S41** C. Tudor-Locke, H. Han, E. J. Aguiar, et al. *Using cadence to study free-living ambulatory activity.* Sports Medicine 42(5):381-398, 2012. https://strathprints.strath.ac.uk/42646/
+- **S42** D. Neacsu, A. Salceanu, E. Lunca, V. David. *Indirect Measurements on the Capacity in the Electrostatic HB Model.* IMEKO TC4 Symposium, Iasi, 2007. https://imeko.org/proceedings/indirect-measurements-on-the-capacity-in-the-electrostatic-hb-model (Abstract/snippet)
+- **S43** N. P. Dawkins, T. Yates, et al. *Normative wrist-worn accelerometer values for self-paced walking and running: a walk in the park.* J. Sports Sciences, 2022. https://doi.org/10.1080/02640414.2021.1976491 (Averaged ENMO values, not peaks)
+- **S44** (authors as listed on arXiv). *A 'one-size-fits-most' walking recognition method for smartphones, smartwatches, and wearable accelerometers.* arXiv:2207.07443, 2022. https://arxiv.org/abs/2207.07443
+- **S45** (authors not visible in the abstract). *Perturbation in public transport as a basic concept for perturbation-based balance training for fall prevention.* Z. Gerontol. Geriatr., 2020. https://link.springer.com/journal/391 (12 days of bus and tram recordings, sensor on a vertical bar)
+- **S46** J. Perry, J. M. Burnfield. *Gait Analysis: Normal and Pathological Function, 2nd ed..* SLACK Inc., 2010. https://www.healio.com/books (Standard gait-phase percentages)
+- **S47** S. Krašna, et al. *Human Response to Longitudinal Perturbations of Standing Passengers on Public Transport During Regular Operation.* Frontiers in Bioengineering and Biotechnology 9:680883, 2021. https://doi.org/10.3389/fbioe.2021.680883
+- **S48** Y. L. A. Kwok, J. Gralton, M.-L. McLaws. *Face touching: a frequent habit that has implications for hand hygiene.* American Journal of Infection Control 43(2):112-114, 2015. https://doi.org/10.1016/j.ajic.2014.10.015
+- **S49** S. Mow, S. Seriani, T. Fujiyama. *Where and how often do people touch train interiors? An investigation during the pandemic.* Proc. ICE Municipal Engineer, 2024. https://discovery.ucl.ac.uk/id/eprint/10199779/
+- **S50** Bangalore Metro Rail Corporation Ltd.. *Environmental Impact Assessment (design passenger loads).* BMRCL / JICA, n.d. https://www.jica.go.jp/
+- **S51** Institute for Social and Economic Change. *Determinants of intra-urban mobility: a study of Bengaluru (Working Paper 437).* ISEC, 2019. https://ideas.repec.org/p/sch/wpaper/437.html
+- **S52** Espressif Systems. *ESP-FAQ: ADC.* Espressif documentation, n.d. https://docs.espressif.com/projects/esp-faq/
+- **S53** (Sen group, Purdue). *Step-to-Charge (EQS body powering).* arXiv:2408.01927, 2024. https://arxiv.org/abs/2408.01927
+- **S54** IEC. *IEC 61000-4-2: Electrostatic discharge immunity test.* International standard, 2008. https://webstore.iec.ch/publication/4189 (Human-body model and current waveform)
+- **S55** (Al-Quds / An-Najah University). *Residential exposure to ELF electric and magnetic fields in the city of Ramallah-Palestine.* Journal article, n.d. https://dspace.alquds.edu/items/bc4377ca-bfb7-4375-ab1a-435c8e020c57/full
+- **S56** O. Aziz, et al. *Validation of accuracy of SVM-based fall detection system using real-world fall and non-fall datasets.* PLoS ONE 12(7):e0180318, 2017. https://doi.org/10.1371/journal.pone.0180318
+- **S57** M. Indraganti, et al. *Thermal insulation of Indian clothing ensembles (sari, salwar-kurti).* Windsor Conference, 2014. https://architexturez.net/node/175314
+- **S58** B. B. Majumdar, et al. (BITS Pilani Hyderabad). *Harassment of women in public transport, Hyderabad.* Transportation Research Record, n.d. https://journals.sagepub.com/home/trr (numbers via press coverage, secondary)
