@@ -29,19 +29,26 @@ DESIGN = "dual_shield"
 CLF = joblib.load("models/svm_dual_shield.joblib")
 HAND = ("self", "other_person")
 
-# (kind, detail, events per hour, min s, max s)
+# (kind, detail, events per hour, min s, max s); a duration given as LOGN(median, mean, cap) is log-normal
+# Her hand on the watch: ~140 smartwatch sessions a day, about two thirds glances, so ~47 touch
+# interactions a day = ~3 per hour over 16 waking hours [S38/E: waking hours]; half of sessions are
+# under 5 s, the mean is ~9 s [S38]. Phone: ~85 uses a day (~5.3 per hour), more than half under
+# 30 s, ~5 h a day in total (mean ~210 s) [S39].
+LOGN = lambda median, mean, cap: ("logn", median, mean, cap)
+SELF_D, PHONE_D = LOGN(5, 9, 60), LOGN(30, 212, 1800)
 SCENARIOS = {
-    # motion = strap-gap jitter on C_GB, feet = walking-induced C_BE change (both [E])
-    "Walking alone at night": dict(env="street_shoes", motion=0.015, feet=0.05, events=[
-        ("self", None, 3, 1, 4), ("object", "railing_hand", 4, 3, 10), ("no_contact", "bystander", 6, 2, 6),
-        ("object", "phone", 6, 30, 120), ("object", "bag", 2, 60, 300)]),
+    # motion = strap-gap jitter on C_GB [E]; feet = C_BE change while walking: 160 pF on both
+    # feet, 100 pF on one [S40] -> log-normal sigma ln(1.6)/2 = 0.235 (the sweep is insensitive to it)
+    "Walking alone at night": dict(env="street_shoes", motion=0.015, feet=0.235, events=[
+        ("self", None, 3, *SELF_D), ("object", "railing_hand", 4, 3, 10), ("no_contact", "bystander", 6, 2, 6),
+        ("object", "phone", 5.3, *PHONE_D), ("object", "bag", 2, 60, 300)]),
     "Bus / metro commute": dict(env="street_shoes", motion=0.010, feet=0.03, events=[
         ("object", "railing_wrist", 6, 20, 120), ("object", "railing_hand", 6, 30, 300),
         ("no_contact", "bystander", 30, 5, 60), ("other_person", "shoulder", 10, 1, 3),
         ("other_person", "other_arm", 6, 1, 3), ("other_person", "forearm", 4, 0.5, 2.5),
-        ("self", None, 4, 1, 4), ("object", "phone", 6, 30, 200)]),
+        ("self", None, 3, *SELF_D), ("object", "phone", 5.3, *PHONE_D)]),
     "Desk / home": dict(env="barefoot_tile", motion=0.005, feet=0.01, events=[
-        ("object", "wood_table", 10, 60, 600), ("self", None, 6, 1, 5), ("object", "phone", 10, 30, 200),
+        ("object", "wood_table", 10, 60, 600), ("self", None, 3, *SELF_D), ("object", "phone", 5.3, *PHONE_D),
         ("other_person", "wrist", 1, 2, 6)]),
 }
 EVENT_NAME = {("self", None): "her hand on watch", ("object", "railing_hand"): "hand on railing",
@@ -109,12 +116,20 @@ def run_pipeline(V, T_enter, sustain_s, use_clf=True, tau_base=60.0, max_freeze_
     return np.array(prompts, dtype=int), scores
 
 
+def duration(rng, a, b, c=None, d=None):
+    """Uniform a..b s, or log-normal ('logn', median, mean, cap) with mean/median = exp(sigma^2 / 2)."""
+    if a == "logn":
+        sigma = np.sqrt(2 * np.log(c / b))
+        return min(d, b * np.exp(sigma * rng.normal()))
+    return rng.uniform(a, b)
+
+
 def random_events(spec, T, rng):
     evs, labels = [], []
-    for kind, detail, rate, dmin, dmax in spec:
+    for kind, detail, rate, *dur in spec:
         k = rng.poisson(rate * T / FS / 3600)
         for _ in range(k):
-            d = int(rng.uniform(dmin, dmax) * FS)
+            d = int(duration(rng, *dur) * FS)
             t0 = int(rng.integers(FS * 10, T - d - 1))
             evs.append((kind, detail, t0, t0 + d))
             labels.append(EVENT_NAME[(kind, detail)])

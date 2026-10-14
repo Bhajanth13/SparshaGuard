@@ -51,7 +51,7 @@ const SG = (() => {
     if (st.bench) cge = 10e-9;
     const cbe = { street_shoes: 140, sandals: 170, barefoot_tile: 217.5, car_seat: 225 }[env];
     return {
-      Rs: 10e3, L: 10e-3, Ctank: 104.5 * pF,
+      Rs: 10e3, L: 10e-3, Ctank: 106.95 * pF,     // 100 + 5.55 (2.1-9 pF input) + 1.4 (0.7 pF/cm x 2 cm)
       elArea: 3, hyd: st.hyd, alpha: 0.9, beta: 0.55, Rbody: 350,
       C_GB: cgb, C_BE: cbe * pF, C_GE: cge, C_GE_free: cgeFree, C_AE: (140 + (env === "car_seat" ? 85 : 0)) * pF,
     };
@@ -71,7 +71,7 @@ const SG = (() => {
   function yOuterContact(w, f, design) {
     if (design === "single") return yc(w, plate(2.0, 4 * CM2, 4.5e-3));
     const area = 15;
-    return inv(add(zSC(f, area, HIS.hyd, HIS.alpha), zc(w, plate(3.0, area * CM2, 62.5e-6))));
+    return inv(add(zSC(f, area, HIS.hyd, HIS.alpha), zc(w, plate(2.9, area * CM2, 62.5e-6))));
   }
 
   function branches(f, p, st, withEvent) {
@@ -103,7 +103,7 @@ const SG = (() => {
       const o = st.object;
       if (o === "railing_hand" || o === "railing_wrist") {
         b.Y_BE = add(b.Y_BE, inv(add(zSC(f, 30, HIS.hyd, HIS.alpha), zMetal(f, 30, HIS.hyd, 0.55))));
-        if (o === "railing_wrist") b.Y_0E = add(b.Y_0E, yc(w, d === "single" ? plate(3.0, 2 * CM2, 2.25e-3) : plate(3.0, 6 * CM2, 62.5e-6)));
+        if (o === "railing_wrist") b.Y_0E = add(b.Y_0E, yc(w, d === "single" ? plate(3.0, 2 * CM2, 2.25e-3) : plate(2.9, 6 * CM2, 62.5e-6)));
       } else if (o === "phone") {
         b.Y_BE = add(b.Y_BE, inv(add(zSC(f, 30, HIS.hyd, HIS.alpha), zc(w, 8 * pF))));
       } else if (o === "wood_table") {

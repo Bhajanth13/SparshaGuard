@@ -22,7 +22,8 @@ BD = Border(left=side, right=side, top=side, bottom=side)
 USED = {"In model v0.3": "Yes (in model)", "Pending integration": "Found, not added yet",
         "Benchmark only": "Accuracy benchmark", "Context only": "Background only",
         "Whole-body study": "Whole-body study (doc)",
-        "Fusion study": "Fusion study (doc)"}
+        "Fusion study": "Fusion study (doc)",
+        "In model (Oct 2026 update)": "Yes (in model, Oct 2026)"}
 
 
 def ref_text(s):

@@ -29,27 +29,46 @@ LOC_LABEL = {"wrist": "Wrist", "forearm": "Forearm", "upper_arm": "Upper arm", "
              "shoulder": "Shoulder", "waist": "Waist", "face_hair": "Face / hair"}
 CTX = {"walking": "Walking alone at night", "bus": "Bus / metro commute", "desk": "Desk / home"}
 V0S = [0.3, 1.0, 3.0, 10.0, 30.0, 100.0]
-P_ACTIVE_WRIST = 0.925           # event_stream.py, 0.3 % and 2 s
 HOURS = 6                        # simulated hours per place and voltage
 PULL = 0.7                       # share of grabs that pull or shake her arm [E]
-# harmless events per hour [E, as event_stream.py where it has them]
+# harmless events per hour [E, as event_stream.py where it has them]; phone use 5.3 per hour,
+# log-normal duration, median 30 s, mean 212 s [S39] (PHONE_D from event_stream.py)
+PHONE_D = ("logn", 30, 212, 1800)
 BACKGROUND = {
-    "walking": [("earthed", None, 4, 3, 10), ("approach", None, 6, 2, 6), ("gesture", None, 15, 0.3, 0.3)],
+    "walking": [("earthed", None, 4, 3, 10), ("approach", None, 6, 2, 6), ("gesture", None, 15, 0.3, 0.3),
+                ("phone", None, 5.3, *PHONE_D)],
     "bus": [("earthed", None, 12, 20, 120), ("approach", None, 30, 5, 60), ("brush", "shoulder", 10, 1, 3),
             ("brush", "other_arm", 6, 1, 3), ("brush", "forearm", 4, 0.5, 2.5), ("gesture", None, 15, 0.3, 0.3),
-            ("jolt", None, 12, 0.3, 0.3)],
-    "desk": [("brush", "wrist", 1, 2, 6), ("gesture", None, 15, 0.3, 0.3), ("phone", None, 10, 30, 200)],
+            ("jolt", None, 12, 0.3, 0.3), ("phone", None, 5.3, *PHONE_D)],
+    "desk": [("brush", "wrist", 1, 2, 6), ("gesture", None, 15, 0.3, 0.3), ("phone", None, 5.3, *PHONE_D)],
 }
-# harmless causes of an active-sweep 2 s hold, per hour (event_stream.py, rule A at 0.3 %, 2 s),
-# with what the passive channel sees at that moment
-ACTIVE_CAUSES = {
-    "walking": [("her hand on watch", "none", 1.5, 1, 4)],
-    "bus": [("strap on metal pole", "earthed", 3.5, 20, 120), ("her hand on watch", "none", 0.5, 1, 4),
-            ("bystander close", "approach", 1.5, 5, 60), ("phone", "phone", 1.0, 30, 200),
-            ("hand on railing", "earthed", 1.0, 30, 300)],
-    "desk": [("her hand on watch", "none", 2.0, 1, 5), ("phone", "phone", 3.0, 30, 200),
-             ("wrist on table", "none", 1.0, 60, 600), ("friend holds her wrist", "person", 1.5, 2, 6)],
-}
+# harmless causes of an active-sweep 2 s hold, per hour, read from event_stream.py (rule A at 0.3 %,
+# 2 s, no classifier gate), with what the passive channel sees at that moment and how long it lasts
+SELF_D = ("logn", 5, 9, 60)                                    # [S38]
+CAUSE_MAP = {"her hand on watch": ("none", SELF_D), "phone": ("phone", PHONE_D),
+             "bystander close": ("approach", (5, 60)), "strap on metal pole": ("earthed", (20, 120)),
+             "hand on railing": ("earthed", (30, 300)), "wrist on table": ("none", (60, 600)),
+             "bag": ("none", (60, 300)), "friend holds her wrist": ("person", (2, 6)),
+             "stranger brushes shoulder": ("person", (1, 3)), "stranger brushes arm": ("person", (1, 3)),
+             "stranger brushes forearm": ("person", (0.5, 2.5))}
+_ES = [r for r in json.load(open("data/event_stream_results.json"))
+       if not r["classifier_gate"] and abs(r["T_enter_pct"] - 0.3) < 1e-9 and r["sustain_s"] == 2.0][0]
+P_ACTIVE_WRIST = _ES["detection_rate"]["wrist"]
+_CTX_ES = {"walking": "Walking alone at night", "bus": "Bus / metro commute", "desk": "Desk / home"}
+ACTIVE_CAUSES = {c: [(name, CAUSE_MAP[name][0], rate, *CAUSE_MAP[name][1])
+                     for name, rate in _ES["prompt_causes_per_hour"][_CTX_ES[c]].items() if name in CAUSE_MAP]
+                 for c in _CTX_ES}
+# a friend holding her wrist is a real touch: keep it at its event rate (1 per hour at a desk) times
+# the sweep's wrist detection, even when the short event_stream run happened to draw none
+if not any(n == "friend holds her wrist" for n, *_ in ACTIVE_CAUSES["desk"]):
+    ACTIVE_CAUSES["desk"].append(("friend holds her wrist", "person", 1.0 * P_ACTIVE_WRIST, 2, 6))
+
+
+def duration(rng, a, b, c=None, d=None):
+    """Uniform a..b s, or log-normal ('logn', median, mean, cap), as event_stream.duration."""
+    if a == "logn":
+        return min(d, b * np.exp(np.sqrt(2 * np.log(c / b)) * rng.normal()))
+    return rng.uniform(a, b)
 
 
 def stranger_voltage(v0, rng):
@@ -107,18 +126,18 @@ def daily_life(ctx, v0, front, hours, seed):
     causes = {"F": {}, "F+": {}}
     for _ in range(hours):
         sc = P.Scene(ctx, T, v0, front, rng)
-        for kind, detail, rate, dmin, dmax in BACKGROUND[ctx]:
+        for kind, detail, rate, *dur in BACKGROUND[ctx]:
             for _ in range(rng.poisson(rate)):
-                d = rng.uniform(dmin, dmax)
+                d = duration(rng, *dur)
                 t0 = rng.uniform(10, T - d - 5)
                 add_event(sc, kind, detail, t0, t0 + d, v0, rng)
                 if kind == "brush":
                     sc.events[-1]["label"] = "stranger brushes her " + detail
         # harmless active-sweep holds and what the passive channel sees then
         holds = []
-        for name, pas, rate, dmin, dmax in ACTIVE_CAUSES[ctx]:
+        for name, pas, rate, *dur in ACTIVE_CAUSES[ctx]:
             for _ in range(rng.poisson(rate)):
-                d = rng.uniform(dmin, dmax)
+                d = duration(rng, *dur)
                 t0 = rng.uniform(10, T - d - 5)
                 holds.append((t0, d, name))
                 if pas in ("earthed", "approach", "phone", "person"):
@@ -161,7 +180,7 @@ def main():
             row["fp_avg"] = {r: float(np.mean([row["prompts_per_hour"][c][r] for c in CTX])) for r in ("A", "F", "F+")}
             # a friend holding her wrist is a real touch by another person: the PIN is the right answer there
             fr = {r: float(np.mean([row["causes"][c].get(r, {}).get("friend holds her wrist", 0) for c in CTX])) for r in ("F", "F+")}
-            fr["A"] = 1.5 / 3                                 # desk friend rate, averaged over the 3 places
+            fr["A"] = sum(r for n, _, r, *_ in ACTIVE_CAUSES["desk"] if n == "friend holds her wrist") / 3
             row["fp_avg_strangers_excl_friend"] = {r: row["fp_avg"][r] - fr[r] for r in ("A", "F", "F+")}
             res[front][str(v0)] = row
             print(front, v0, {k: round(100 * x, 1) for k, x in row["body_avg"].items()}, {k: round(x, 2) for k, x in row["fp_avg"].items()}, {k: round(x, 2) for k, x in row["fp_avg_strangers_excl_friend"].items()}, flush=True)

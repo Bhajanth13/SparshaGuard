@@ -1,16 +1,16 @@
 {
  "single": {
   "SVM (RBF)": {
-   "accuracy_4class": 0.6717488789237668,
-   "accuracy_hand_at_watch_vs_rest": 0.885201793721973,
+   "accuracy_4class": 0.6789237668161435,
+   "accuracy_hand_at_watch_vs_rest": 0.9013452914798207,
    "prompt_rate_by_subtype": {
-    "arm_motion": 0.006329113924050633,
+    "arm_motion": 0.0,
     "bag": 0.0,
     "bystander": 0.0,
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.013333333333333334,
+    "hand_on_watch": 0.03111111111111111,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
@@ -18,32 +18,32 @@
     "shoulder": 0.0,
     "upper_arm": 0.0,
     "waist": 0.0,
-    "wood_table": 0.0,
-    "wrist": 0.015625
+    "wood_table": 0.016666666666666666,
+    "wrist": 0.03125
    },
    "hand_rate_by_subtype": {
-    "arm_motion": 0.056962025316455694,
+    "arm_motion": 0.012658227848101266,
     "bag": 0.0,
     "bystander": 0.0,
     "drift": 0.0,
-    "face_hair": 0.0,
-    "forearm": 0.0038910505836575876,
-    "hand_on_watch": 0.8488888888888889,
-    "other_arm": 0.0038910505836575876,
+    "face_hair": 0.0038910505836575876,
+    "forearm": 0.007782101167315175,
+    "hand_on_watch": 0.8577777777777778,
+    "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.6666666666666666,
-    "shoulder": 0.0038910505836575876,
+    "railing_wrist": 0.55,
+    "shoulder": 0.0,
     "upper_arm": 0.0038910505836575876,
-    "waist": 0.0,
+    "waist": 0.0038910505836575876,
     "wood_table": 0.43333333333333335,
-    "wrist": 0.703125
+    "wrist": 0.734375
    },
-   "accuracy_unseen_car_env": 0.6693548387096774
+   "accuracy_unseen_car_env": 0.6810035842293907
   },
   "Random forest": {
-   "accuracy_4class": 0.7094170403587444,
-   "accuracy_hand_at_watch_vs_rest": 0.9174887892376682,
+   "accuracy_4class": 0.7121076233183856,
+   "accuracy_hand_at_watch_vs_rest": 0.9183856502242153,
    "prompt_rate_by_subtype": {
     "arm_motion": 0.0,
     "bag": 0.0,
@@ -63,30 +63,30 @@
     "wrist": 0.0
    },
    "hand_rate_by_subtype": {
-    "arm_motion": 0.04430379746835443,
+    "arm_motion": 0.012658227848101266,
     "bag": 0.0,
     "bystander": 0.0,
     "drift": 0.0,
     "face_hair": 0.0,
-    "forearm": 0.0038910505836575876,
-    "hand_on_watch": 0.9155555555555556,
-    "other_arm": 0.0,
+    "forearm": 0.0,
+    "hand_on_watch": 0.9288888888888889,
+    "other_arm": 0.0038910505836575876,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.5333333333333333,
+    "railing_wrist": 0.5666666666666667,
     "shoulder": 0.0,
-    "upper_arm": 0.0,
-    "waist": 0.0,
-    "wood_table": 0.36666666666666664,
-    "wrist": 0.8125
+    "upper_arm": 0.0038910505836575876,
+    "waist": 0.0038910505836575876,
+    "wood_table": 0.4166666666666667,
+    "wrist": 0.78125
    },
-   "accuracy_unseen_car_env": 0.7025089605734767
+   "accuracy_unseen_car_env": 0.7078853046594982
   }
  },
  "dual": {
   "SVM (RBF)": {
-   "accuracy_4class": 0.6986547085201794,
-   "accuracy_hand_at_watch_vs_rest": 0.9506726457399103,
+   "accuracy_4class": 0.705829596412556,
+   "accuracy_hand_at_watch_vs_rest": 0.9461883408071748,
    "prompt_rate_by_subtype": {
     "arm_motion": 0.0,
     "bag": 0.0,
@@ -94,11 +94,52 @@
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.044444444444444446,
+    "hand_on_watch": 0.035555555555555556,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.16666666666666666,
+    "railing_wrist": 0.25,
+    "shoulder": 0.0,
+    "upper_arm": 0.0,
+    "waist": 0.0,
+    "wood_table": 0.0,
+    "wrist": 0.453125
+   },
+   "hand_rate_by_subtype": {
+    "arm_motion": 0.0,
+    "bag": 0.0,
+    "bystander": 0.0,
+    "drift": 0.0,
+    "face_hair": 0.0,
+    "forearm": 0.0,
+    "hand_on_watch": 0.9555555555555556,
+    "other_arm": 0.0,
+    "phone": 0.0,
+    "railing_hand": 0.0,
+    "railing_wrist": 0.4166666666666667,
+    "shoulder": 0.0,
+    "upper_arm": 0.0,
+    "waist": 0.0,
+    "wood_table": 0.0,
+    "wrist": 0.609375
+   },
+   "accuracy_unseen_car_env": 0.7051971326164874
+  },
+  "Random forest": {
+   "accuracy_4class": 0.7569506726457399,
+   "accuracy_hand_at_watch_vs_rest": 0.9641255605381166,
+   "prompt_rate_by_subtype": {
+    "arm_motion": 0.0,
+    "bag": 0.0,
+    "bystander": 0.0,
+    "drift": 0.0,
+    "face_hair": 0.0,
+    "forearm": 0.0,
+    "hand_on_watch": 0.022222222222222223,
+    "other_arm": 0.0,
+    "phone": 0.0,
+    "railing_hand": 0.0,
+    "railing_wrist": 0.11666666666666667,
     "shoulder": 0.0,
     "upper_arm": 0.0,
     "waist": 0.0,
@@ -112,65 +153,24 @@
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.9688888888888889,
+    "hand_on_watch": 0.9911111111111112,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.45,
+    "railing_wrist": 0.3,
     "shoulder": 0.0,
     "upper_arm": 0.0,
     "waist": 0.0,
     "wood_table": 0.0,
-    "wrist": 0.671875
+    "wrist": 0.6875
    },
-   "accuracy_unseen_car_env": 0.7159498207885304
-  },
-  "Random forest": {
-   "accuracy_4class": 0.747085201793722,
-   "accuracy_hand_at_watch_vs_rest": 0.9659192825112107,
-   "prompt_rate_by_subtype": {
-    "arm_motion": 0.0,
-    "bag": 0.0,
-    "bystander": 0.0,
-    "drift": 0.0,
-    "face_hair": 0.0,
-    "forearm": 0.0,
-    "hand_on_watch": 0.035555555555555556,
-    "other_arm": 0.0,
-    "phone": 0.0,
-    "railing_hand": 0.0,
-    "railing_wrist": 0.1,
-    "shoulder": 0.0,
-    "upper_arm": 0.0,
-    "waist": 0.0,
-    "wood_table": 0.0,
-    "wrist": 0.46875
-   },
-   "hand_rate_by_subtype": {
-    "arm_motion": 0.0,
-    "bag": 0.0,
-    "bystander": 0.0,
-    "drift": 0.0,
-    "face_hair": 0.0,
-    "forearm": 0.0,
-    "hand_on_watch": 0.9866666666666667,
-    "other_arm": 0.0,
-    "phone": 0.0,
-    "railing_hand": 0.0,
-    "railing_wrist": 0.35,
-    "shoulder": 0.0,
-    "upper_arm": 0.0,
-    "waist": 0.0,
-    "wood_table": 0.0,
-    "wrist": 0.78125
-   },
-   "accuracy_unseen_car_env": 0.7562724014336918
+   "accuracy_unseen_car_env": 0.7419354838709677
   }
  },
  "dual_shield": {
   "SVM (RBF)": {
-   "accuracy_4class": 0.7318385650224215,
-   "accuracy_hand_at_watch_vs_rest": 0.9497757847533632,
+   "accuracy_4class": 0.7300448430493274,
+   "accuracy_hand_at_watch_vs_rest": 0.9506726457399103,
    "prompt_rate_by_subtype": {
     "arm_motion": 0.0,
     "bag": 0.0,
@@ -178,16 +178,16 @@
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.057777777777777775,
+    "hand_on_watch": 0.05333333333333334,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.2,
+    "railing_wrist": 0.25,
     "shoulder": 0.0,
     "upper_arm": 0.0,
     "waist": 0.0,
-    "wood_table": 0.0,
-    "wrist": 0.421875
+    "wood_table": 0.06666666666666667,
+    "wrist": 0.390625
    },
    "hand_rate_by_subtype": {
     "arm_motion": 0.0,
@@ -196,18 +196,18 @@
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.9511111111111111,
+    "hand_on_watch": 0.9777777777777777,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.3333333333333333,
+    "railing_wrist": 0.38333333333333336,
     "shoulder": 0.0,
     "upper_arm": 0.0,
     "waist": 0.0,
-    "wood_table": 0.0,
-    "wrist": 0.609375
+    "wood_table": 0.06666666666666667,
+    "wrist": 0.640625
    },
-   "accuracy_unseen_car_env": 0.7419354838709677
+   "accuracy_unseen_car_env": 0.7347670250896058
   },
   "Random forest": {
    "accuracy_4class": 0.7704035874439462,
@@ -219,7 +219,7 @@
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.02666666666666667,
+    "hand_on_watch": 0.017777777777777778,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
@@ -228,7 +228,7 @@
     "upper_arm": 0.0,
     "waist": 0.0,
     "wood_table": 0.0,
-    "wrist": 0.390625
+    "wrist": 0.453125
    },
    "hand_rate_by_subtype": {
     "arm_motion": 0.0,
@@ -237,18 +237,18 @@
     "drift": 0.0,
     "face_hair": 0.0,
     "forearm": 0.0,
-    "hand_on_watch": 0.9911111111111112,
+    "hand_on_watch": 0.9955555555555555,
     "other_arm": 0.0,
     "phone": 0.0,
     "railing_hand": 0.0,
-    "railing_wrist": 0.31666666666666665,
+    "railing_wrist": 0.36666666666666664,
     "shoulder": 0.0,
     "upper_arm": 0.0,
     "waist": 0.0,
     "wood_table": 0.0,
-    "wrist": 0.734375
+    "wrist": 0.765625
    },
-   "accuracy_unseen_car_env": 0.775089605734767
+   "accuracy_unseen_car_env": 0.7706093189964157
   }
  }
 }

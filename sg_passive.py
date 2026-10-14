@@ -3,14 +3,20 @@
 Static charge on bodies, sampled at 500 Hz, plus a wrist accelerometer at 50 Hz. Tags as in sg_model.py.
 
 Her body (capacitance C_B, charge Q_B, V_B = Q_B / C_B):
-  C_B, C_A 110-250 pF                                                     [S4]
-  charge leaks to ground with tau = R C, R ~ 2e10 ohm -> ~3 s              [S18]
+  C_B, C_A 110-250 pF on both feet                                        [S4]
+  standing on one foot C_B drops to 100/160 = 0.625 of that               [S40]
+    gait timing: double support 0-10 % and 50-60 % of the stride, loading
+    response (foot landing) 0-10 %, toe-off at 60 %                       [S46]
+  charge leaks to ground with tau = R C, R 2e10 [S18] to 1e11 ohm [S40]
+    (log-uniform) -> tau 3-25 s
   walking charges her by dq per step; the peak voltage is R n dq           [S18]
     -> dq = V_peak / (R n); V_peak is set by floor, shoes and humidity:
        250 V (humid) to 12 kV (dry) on vinyl                               [S17]
        roads, tiles, bus floors: unknown -> swept by the scale v0          [E]
+    cadence n: women 96-138 steps/min -> 1.6-2.3 steps/s                  [S41]
   a step's charge separates while the foot lifts, over 20-60 ms            [E]
-  her own arm movement changes C_B by a few % (~3 %, 0.3 s)                [E]
+  her own arm movement changes C_B by 2-7 %; changing posture (sitting
+  down) changes body capacitance by under 10 pF of ~150 pF [S42]; ~0.3 s [E]
 Another person: his voltage at contact is his own walking level, v0 x lognormal, random sign [E].
 Contact (charge sharing, settles in well under 1 ms):
   bare skin:   both bodies reach (Q_A + Q_B) / (C_A + C_B)
@@ -22,10 +28,14 @@ Earthed metal (railing, pole): pulls her to 0 V and holds her there while she to
 50 Hz hum (indoors only): drops to ~5 % on earthed metal, changes 0.6-1.6x on a person [S22 / E].
 The watch sees k = C_GE / (C_GE + C_GB + C_in) of V_B (whole_body.py, fig 11), plus ADC noise:
   ADS1115 ~2 mV, ESP32 ~21.8 mV fluctuation, taken here as 4x the rms noise   [S15 / E].
-Wrist accelerometer, magnitude in g [all E, no published values found for these tasks]:
-  walking: 1 g + 0.35 g at the step rate; bus: random sway 0.1 g plus braking jolts (12/h,
-  0.3-1.5 g); desk: 0.02 g; her own brisk gestures 15/h, 1.0-2.2 g for 0.2-0.4 s;
-  a grab with pulling: 2-5 jerks of 1.5-3 g in 3 s (70 % of grabs pull; the rest just hold).
+Wrist accelerometer, magnitude in g:
+  walking: arm swing at half the step rate [S44], amplitude pi x ENMO with wrist ENMO 140 mg
+    (slow) to 350 mg (brisk walking) [S43]
+  bus: random sway 0.1 g [E] plus starting/braking jolts of 0.1-0.34 g (bus maxima 3.37 m/s^2
+    starting, 3.12 m/s^2 braking [S45]), 12 per hour [E]
+  desk: 0.02 g [E]; her own brisk gestures 15/h, 1.0-2.2 g for 0.2-0.4 s [E]
+  a grab with pulling: 2-5 jerks of 1.5-3 g in 3 s (70 % of grabs pull; the rest just hold) [E:
+    no published wrist accelerations for being grabbed were found]
 """
 from __future__ import annotations
 
@@ -35,8 +45,10 @@ from scipy.signal import lfilter
 FS = 500                    # passive channel, samples per second
 FS_IMU = 50
 pF, EPS0, CM2 = 1e-12, 8.854e-12, 1e-4
-R_GROUND = 2e10             # [S18]
-CADENCE = 1.7               # steps per second [E]
+R_GROUND = (2e10, 1e11)     # body-to-ground resistance range, log-uniform [S18, S40]
+CADENCE = (1.6, 2.3)        # steps per second, women [S41]
+ONE_FOOT = 100 / 160        # C_B on one foot / on both feet [S40]
+POSTURE = (0.02, 0.07)      # her own movement: relative change of C_B [S42 bound]
 FRONT = {"current": dict(cgb=12.4 * pF, cin=5 * pF, adc=21.8e-3, label="Current input, ESP32 ADC"),
          "improved": dict(cgb=2.0 * pF, cin=0.5 * pF, adc=2e-3, label="Bootstrapped input + ADS1115")}
 BARE_PROB = {"wrist": 0.9, "forearm": 0.6, "upper_arm": 0.3, "other_arm": 0.5,
@@ -86,6 +98,10 @@ class Scene:
         self.ctx, self.T, self.v0, self.front, self.rng = ctx, seconds, v0, front, rng
         self.n = int(seconds * FS)
         self.cb = rng.uniform(110, 250) * pF
+        self.R = np.exp(rng.uniform(np.log(R_GROUND[0]), np.log(R_GROUND[1])))
+        self.cadence = rng.uniform(*CADENCE)
+        self.posture = rng.uniform(*POSTURE)
+        self.enmo = rng.uniform(0.14, 0.35)
         self.cge = np.exp(rng.uniform(np.log(0.6), np.log(2.0))) * pF          # [S5/S11]
         self.k = watch_fraction(front, self.cge)
         self.walking = ctx == "walking"
@@ -93,7 +109,27 @@ class Scene:
         self.sign = rng.choice([-1.0, 1.0])
         self.vpeak = v0 * np.exp(rng.normal(0, 0.7)) if self.walking or ctx == "bus" else v0 * 0.1 * np.exp(rng.normal(0, 0.7))
         self.events = []
-        self.heel = np.arange(rng.uniform(0, 1 / CADENCE), seconds, 1 / CADENCE) if self.walking else np.array([])
+        self.heel = np.arange(rng.uniform(0, 1 / self.cadence), seconds, 1 / self.cadence) if self.walking else np.array([])
+
+    def foot_factor(self):
+        """C_B(t) / C_B on both feet while walking: 1 in double support, ONE_FOOT in single support.
+        Each heel strike starts the loading response (0-10 % of the stride: the landing foot comes
+        down) and the other foot lifts off over the next 10 % [S46]."""
+        f = np.ones(self.n)
+        if not self.walking:
+            return f
+        stride = 2 / self.cadence
+        t = np.arange(self.n) / FS
+        lift = np.ones(self.n)
+        for th in self.heel:
+            i0, i1, i2 = (int((th + x * stride) * FS) for x in (0.0, 0.1, 0.2))
+            i1, i2 = min(i1, self.n), min(i2, self.n)
+            if i0 >= self.n:
+                break
+            lift[i0:i1] = np.linspace(1, 0, i1 - i0) if i1 > i0 else lift[i0:i1]   # landing: C rises
+            lift[i1:i2] = np.linspace(0, 1, i2 - i1) if i2 > i1 else lift[i1:i2]   # other foot lifts
+        del t
+        return 1 - (1 - ONE_FOOT) * lift
 
     def add(self, **ev):
         self.events.append(ev)
@@ -104,15 +140,15 @@ class Scene:
         Returns t, V_B(t) and the indoor hum envelope."""
         n, rng = self.n, self.rng
         t = np.arange(n) / FS
-        a = np.exp(-1 / (FS * R_GROUND * self.cb))
+        a = np.exp(-1 / (FS * self.R * self.cb))
         inj = np.zeros(n)                                     # charge added per sample
         if self.walking:
-            dq = self.sign * self.vpeak / (R_GROUND * CADENCE)   # V_peak = R n dq  [S18]
+            dq = self.sign * self.vpeak / (self.R * self.cadence)   # V_peak = R n dq  [S18]
             for th in self.heel:
                 i0, w = int(th * FS), int(rng.uniform(0.02, 0.06) * FS)
                 inj[i0:i0 + w] += dq / w                      # separated while the foot lifts [E]
         elif self.ctx == "bus":                               # shifting her feet now and then [E]
-            dq = self.sign * self.vpeak / (R_GROUND * CADENCE)
+            dq = self.sign * self.vpeak / (self.R * self.cadence)
             for th in np.sort(rng.uniform(0, self.T, int(self.T * 0.2))):
                 i0, w = int(th * FS), int(rng.uniform(0.02, 0.06) * FS)
                 inj[i0:i0 + w] += dq / w
@@ -133,7 +169,7 @@ class Scene:
                 d[L - r:] = np.linspace(ev["dmin"], 3.0, r)
             cab = c_ab(d) - c_ab(3.0)                         # starts and ends at 0 (3 m away)
             vind[i0:i1] += ev["v_a"] * cab / (self.cb + cab)
-        cmov = 1 + 0.03 * smooth_motion(n, rng)              # her own arm movement changes C_B by ~3 % [E]
+        cmov = (1 + self.posture * smooth_motion(n, rng)) * self.foot_factor()   # her movement and her feet [S40, S42]
         pinned = np.zeros(n, bool)
         pos, pin_until = 0, -1
         for ev in cuts + [{"t0": self.T + 1, "kind": "end"}]:
@@ -175,7 +211,7 @@ class Scene:
         t = np.arange(n) / FS_IMU
         acc = np.ones(n)
         if self.walking:
-            acc += 0.35 * np.sin(2 * np.pi * CADENCE * t + rng.uniform(0, 6.3))
+            acc += np.pi * self.enmo * np.sin(np.pi * self.cadence * t + rng.uniform(0, 6.3))   # [S43, S44]
         sway = {"walking": 0.05, "bus": 0.10, "desk": 0.02}[self.ctx]
         acc += lfilter([np.sqrt(1 - np.exp(-2 / (FS_IMU * 1.0)))], [1, -np.exp(-1 / FS_IMU)], rng.normal(0, sway, n))
         for ev in self.events:
@@ -185,7 +221,7 @@ class Scene:
                 acc[i0:i0 + w] += rng.uniform(1.0, 2.2) * np.hanning(w)[: len(acc[i0:i0 + w])]
             if ev["kind"] == "jolt":
                 w = int(0.3 * FS_IMU)
-                acc[i0:i0 + w] += rng.uniform(0.3, 1.5) * np.hanning(w)[: len(acc[i0:i0 + w])]
+                acc[i0:i0 + w] += rng.uniform(0.1, 0.34) * np.hanning(w)[: len(acc[i0:i0 + w])]   # [S45]
             if ev["kind"] == "person" and ev.get("pull"):
                 for _ in range(rng.integers(2, 6)):
                     j = i0 + int(rng.uniform(0.2, 3.0) * FS_IMU)
@@ -215,34 +251,35 @@ def contact_steps(u, rms, heel=None, hum=None, indoor=False):
         if t - last < 0.25:
             continue
         j = i + 1 + int(0.03 * FS)
-        if j >= u.size:
-            continue
-        if abs(u[j] - u[i + 1]) > SETTLE * abs(d[i]) + 4 * rms:   # still moving: footstep / motion, not a contact
-            continue
-        if i < 26 or i + 27 >= d.size:
+        if j >= u.size or i < 26 or i + 27 >= d.size:
             continue
         around = np.r_[d[i - 25:i - 2], d[i + 3:i + 26]]          # +-50 ms, the step itself left out
-        rough = 1.4826 * np.median(np.abs(around - np.median(around)))
-        if abs(u[i + 2] - u[i - 1]) < LOCAL_K * rough:          # her own motion or a footstep makes the signal rough
+        md = np.median(around)
+        rough = 1.4826 * np.median(np.abs(around - md))
+        slope = 0.0      # a slope-aware test caught 3 % more grabs while walking but let false steps through
+        di = d[i] - slope                                         # the step on top of any ramp
+        if abs(u[i + 2] - u[i - 1] - 3 * slope) < LOCAL_K * rough:   # rough signal: her own movement
+            continue
+        if abs(u[j] - u[i + 1] - slope * (j - i - 1)) > SETTLE * abs(di) + 4 * rms:   # still moving: not a contact
             continue
         k0 = i - int(0.015 * FS)
-        if k0 < 0 or abs(u[i] - u[k0]) > SETTLE * abs(d[i]) + 4 * rms:   # already moving before it
+        if abs(u[i] - u[k0] - slope * (i - k0)) > SETTLE * abs(di) + 4 * rms:   # already moving before it
             continue
         if GATE and heel is not None and heel.size and np.any((t - heel >= -0.01) & (t - heel <= GATE)):
             continue
         kind = "person"
         post = u[i + 1:i + 1 + int(0.5 * FS)]
         pre = u[max(0, i - int(0.5 * FS)):i]
-        if post.size > 50 and abs(np.mean(post)) < max(4 * rms, 0.03 * abs(d[i])) and np.std(post) < 4 * rms + 0.03 * abs(d[i]):
+        if post.size > 50 and abs(np.mean(post)) < max(4 * rms, 0.03 * abs(di)) and np.std(post) < 4 * rms + 0.03 * abs(di):
             kind = "earthed"                                 # pulled to, and held at, 0 V [physics; DC-coupled input E]
         u0 = np.mean(u[max(0, i - 25):i])                      # her voltage just before (as the watch sees it)
-        if kind == "person" and abs(u0) > 10 * rms and -OBJECT_FRAC < d[i] / u0 < 0:
+        if kind == "person" and abs(u0) > 10 * rms and -OBJECT_FRAC < di / u0 < 0:
             kind = "object"                                  # small pull toward 0 V: phone, bag, keys (4-12 pF)
         if indoor and hum is not None:
             h0, h1 = np.mean(hum[max(0, i - FS // 2):i + 1]), np.mean(hum[i + 1:i + 1 + FS // 2])
             if h0 > 0 and h1 < 0.3 * h0:
                 kind = "earthed"
-        out.append((t, float(d[i]), kind))
+        out.append((t, float(di), kind))
         last = t
     return out
 

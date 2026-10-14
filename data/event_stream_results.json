@@ -4,750 +4,726 @@
   "T_enter_pct": 0.3,
   "sustain_s": 1.0,
   "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 3.5,
-   "Desk / home": 5.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 1.0,
-    "bystander close": 1.0,
-    "strap on metal pole": 0.5,
-    "phone": 0.5,
-    "hand on railing": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.7,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.3,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.5,
-   "Desk / home": 4.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5,
-    "phone": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.5,
-    "phone": 1.0,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.49166666666666664,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.3,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.0,
-   "Desk / home": 2.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 1.5,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.375,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.4,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 3.5,
-   "Desk / home": 5.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 1.0,
-    "bystander close": 1.0,
-    "strap on metal pole": 0.5,
-    "phone": 0.5,
-    "hand on railing": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.7,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.4,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.5,
-   "Desk / home": 4.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5,
-    "phone": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.5,
-    "phone": 1.0,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.49166666666666664,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.4,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.0,
-   "Desk / home": 2.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 1.5,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.375,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.6,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 3.5,
-   "Desk / home": 5.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 1.0,
-    "bystander close": 1.0,
-    "strap on metal pole": 0.5,
-    "phone": 0.5,
-    "hand on railing": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "friend holds her wrist": 1.0
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.7,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.6,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.5,
-   "Desk / home": 4.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5,
-    "phone": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.5,
-    "phone": 1.0,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.49166666666666664,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 0.6,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.0,
-   "Desk / home": 2.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 1.5,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.375,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 1.0,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 3.5,
-   "Desk / home": 5.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 1.0,
-    "bystander close": 1.0,
-    "strap on metal pole": 0.5,
-    "phone": 0.5,
-    "hand on railing": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "friend holds her wrist": 1.0
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.7,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 1.0,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.5,
-   "Desk / home": 4.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5,
-    "phone": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 2.5,
-    "phone": 1.0,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.49166666666666664,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": true,
-  "T_enter_pct": 1.0,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 1.0,
-   "Desk / home": 2.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "her hand on watch": 0.5,
-    "bystander close": 0.5
-   },
-   "Desk / home": {
-    "her hand on watch": 1.5,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.375,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.3,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 8.5,
-   "Desk / home": 7.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 1.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 3.0,
-    "wrist on table": 1.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.925,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.3,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.5,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 7.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 3.0,
-    "wrist on table": 1.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.925,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.3,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 6.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.5,
-    "wrist on table": 1.0,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.925,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.4,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 8.5,
-   "Desk / home": 7.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 1.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.5,
-    "wrist on table": 1.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8666666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.4,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.5,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 7.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.5,
-    "wrist on table": 1.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8666666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.4,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 5.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "wrist on table": 1.0,
-    "friend holds her wrist": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8666666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.6,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 8.5,
-   "Desk / home": 6.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 1.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "friend holds her wrist": 1.5,
-    "wrist on table": 1.0
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8416666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.6,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.5,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 6.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 1.5,
-    "friend holds her wrist": 1.5,
-    "wrist on table": 1.0
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8416666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 0.6,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 4.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.0
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "friend holds her wrist": 0.5,
-    "wrist on table": 1.0,
-    "phone": 0.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8416666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 1.0,
-  "sustain_s": 1.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 2.5,
-   "Bus / metro commute": 8.5,
-   "Desk / home": 5.5
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 2.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 1.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 2.0,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8416666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 1.0,
-  "sustain_s": 2.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.5,
-   "Bus / metro commute": 7.5,
-   "Desk / home": 5.0
-  },
-  "prompt_causes_per_hour": {
-   "Walking alone at night": {
-    "her hand on watch": 1.5
-   },
-   "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
-   },
-   "Desk / home": {
-    "her hand on watch": 2.0,
-    "phone": 1.5,
-    "friend holds her wrist": 1.5
-   }
-  },
-  "detection_rate": {
-   "wrist": 0.8416666666666667,
-   "forearm": 0.0,
-   "shoulder": 0.0
-  }
- },
- {
-  "classifier_gate": false,
-  "T_enter_pct": 1.0,
-  "sustain_s": 3.0,
-  "prompts_per_hour": {
-   "Walking alone at night": 1.0,
-   "Bus / metro commute": 7.5,
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 4.0,
    "Desk / home": 3.0
   },
   "prompt_causes_per_hour": {
    "Walking alone at night": {
-    "her hand on watch": 1.0
+    "her hand on watch": 2.0
    },
    "Bus / metro commute": {
-    "strap on metal pole": 3.5,
-    "her hand on watch": 0.5,
-    "bystander close": 1.5,
-    "phone": 1.0,
-    "hand on railing": 1.0
+    "phone": 2.0,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
    },
    "Desk / home": {
+    "phone": 0.5,
     "her hand on watch": 2.0,
-    "friend holds her wrist": 0.5,
-    "phone": 0.5
+    "friend holds her wrist": 0.5
    }
   },
   "detection_rate": {
-   "wrist": 0.8416666666666667,
+   "wrist": 0.6833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.3,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.5666666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.3,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.4166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.4,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 4.0,
+   "Desk / home": 3.0
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 2.0,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.6833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.4,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.5666666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.4,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.4166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.6,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 4.0,
+   "Desk / home": 3.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 2.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.6833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.6,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.5666666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 0.6,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.4166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 1.0,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 4.0,
+   "Desk / home": 3.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 2.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.6833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 1.0,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.5666666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": true,
+  "T_enter_pct": 1.0,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 3.5,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.0,
+    "strap on metal pole": 0.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.4166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.3,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 4.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.5,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 3.5,
+    "her hand on watch": 1.0
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.8833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.3,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 4.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 3.5,
+    "her hand on watch": 1.0
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.8833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.3,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 4.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 3.5,
+    "her hand on watch": 1.0
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.8833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.4,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 6.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.5,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 5.0,
+    "her hand on watch": 1.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.8166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.4,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 6.0
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 5.0,
+    "her hand on watch": 1.0
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.8166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.4,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 6.0
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 5.0,
+    "her hand on watch": 1.0
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.8166666666666667,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.6,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 5.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.5,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 2.5,
+    "phone": 0.5,
+    "her hand on watch": 2.0,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.7833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.6,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 5.0
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 2.5,
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.7833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 0.6,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 5.0
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "wrist on table": 2.5,
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.7833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 1.0,
+  "sustain_s": 1.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 3.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.5,
+    "strap on metal pole": 1.0,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 2.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.7833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 1.0,
+  "sustain_s": 2.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 2.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 2.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.7833333333333333,
+   "forearm": 0.0,
+   "shoulder": 0.0
+  }
+ },
+ {
+  "classifier_gate": false,
+  "T_enter_pct": 1.0,
+  "sustain_s": 3.0,
+  "prompts_per_hour": {
+   "Walking alone at night": 1.0,
+   "Bus / metro commute": 6.0,
+   "Desk / home": 2.5
+  },
+  "prompt_causes_per_hour": {
+   "Walking alone at night": {
+    "her hand on watch": 1.0
+   },
+   "Bus / metro commute": {
+    "phone": 2.5,
+    "bystander close": 1.0,
+    "strap on metal pole": 1.5,
+    "her hand on watch": 1.0
+   },
+   "Desk / home": {
+    "phone": 0.5,
+    "her hand on watch": 1.5,
+    "friend holds her wrist": 0.5
+   }
+  },
+  "detection_rate": {
+   "wrist": 0.7833333333333333,
    "forearm": 0.0,
    "shoulder": 0.0
   }

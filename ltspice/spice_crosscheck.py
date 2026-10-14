@@ -136,7 +136,7 @@ def build(design, env, kind, detail, bench=False):
     n.lines.append("V1 drv 0 AC 1")
     n.R("drv", "n1", 10e3, "Rs")
     n.L("n1", "S", 10e-3, "tank inductor")
-    n.C("S", "0", (100 + mid(2, 7)) * pF, "tank C + buffer/trace parasitics")
+    n.C("S", "0", (100 + mid(2.1, 9) + mid(0.6, 0.8) * mid(1, 3)) * pF, "tank C + buffer/trace parasitics")
     # inner electrode: metal contact + stratum corneum + body tissue
     a1, a2 = n.node(), n.node()
     n.metal("S", a1, 3.0)
@@ -164,7 +164,7 @@ def build(design, env, kind, detail, bench=False):
         else:
             x = n.node()
             n.sc(a, x, 15.0, note="palm skin")
-            n.C(x, b, plate(3.0, 15 * CM2, 62.5e-6), "strap coating")
+            n.C(x, b, plate(mid(2.65, 3.15), 15 * CM2, 62.5e-6), "strap coating")
 
     if kind == "no_contact" and detail == "bystander":
         n.C("B", "A", 30.5 * pF, "body-to-body, bystander")
@@ -196,7 +196,7 @@ def build(design, env, kind, detail, bench=False):
             n.sc("B", x, 30.0, note="palm on railing")
             n.metal(x, "E", 30.0)
             if detail == "railing_wrist":
-                c = plate(3.0, 2 * CM2, 2.25e-3) if design == "single" else plate(3.0, 6 * CM2, 62.5e-6)
+                c = plate(3.0, 2 * CM2, 2.25e-3) if design == "single" else plate(mid(2.65, 3.15), 6 * CM2, 62.5e-6)
                 n.C("0", "E", c, "strap on the metal pole")
         elif detail == "phone":
             x = n.node()

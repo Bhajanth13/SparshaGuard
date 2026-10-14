@@ -2,9 +2,9 @@
  "active_limit": [
   {
    "design": "Current design",
-   "shoulder_pct": 0.017717835673315706,
-   "surroundings_pct": 0.015457189986925506,
-   "bystander_pct": 0.008730107384372823
+   "shoulder_pct": 0.017140969957664422,
+   "surroundings_pct": 0.014953892950729094,
+   "bystander_pct": 0.00844579100107619
   },
   {
    "design": "Tank 10 pF\n(not 100 pF)",

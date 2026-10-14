@@ -166,7 +166,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">SparshaGuard · physics explorer · values from 15 published papers</div>
+    <div class="eyebrow">SparshaGuard · physics explorer · values from 58 published sources</div>
     <h1><span class="sp">Sparsha</span>Guard Touch Explorer</h1>
     <p class="lede">Pick what happens to her and see, in plain words, whether the watch would notice, and why.</p>
     <nav class="tabs" role="tablist" aria-label="Section">
@@ -350,7 +350,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
           <div class="adcs" id="pc-adcs"></div>
         </div>
         <div class="plot" id="pc-plot"></div>
-        <p class="note">Walking charges a person to hundreds or thousands of volts on vinyl (Desco: 250–12,000 V), so a 1 V difference is modest; Indian floors are not measured yet. Her own footsteps and arm movements make bigger changes, but they take 20–300 ms; a contact settles in under 1 ms. The firmware keeps only sharp steps that stand out from the signal around them: in simulated hours of walking, bus and desk life at 1–1,000 V it found no false steps. Two people at the same voltage still give no signal.</p>
+        <p class="note">Walking charges a person to hundreds or thousands of volts on vinyl (Desco: 250–12,000 V), so a 1 V difference is modest; Indian floors are not measured yet. Her own steps make bigger changes: lifting a foot drops body capacitance from about 160 to 100 pF (Ficker), so her voltage rises 1.6× at every step. But steps and arm movements take 50–300 ms, while charge sharing at a touch settles in well under a microsecond (body model 150 pF, 330 Ω: IEC 61000-4-2). The firmware keeps only sharp steps that stand out from the signal around them: in 4.5 simulated hours of walking, bus and desk life at 1–1,000 V, with the foot-lift swings included, it found no false steps. Two people at the same voltage still give no signal.</p>
       </section>
 
       <div style="display:grid; gap:16px; min-width:0">
@@ -454,7 +454,7 @@ const SG = (() => {
     if (st.bench) cge = 10e-9;
     const cbe = { street_shoes: 140, sandals: 170, barefoot_tile: 217.5, car_seat: 225 }[env];
     return {
-      Rs: 10e3, L: 10e-3, Ctank: 104.5 * pF,
+      Rs: 10e3, L: 10e-3, Ctank: 106.95 * pF,     // 100 + 5.55 (2.1-9 pF input) + 1.4 (0.7 pF/cm x 2 cm)
       elArea: 3, hyd: st.hyd, alpha: 0.9, beta: 0.55, Rbody: 350,
       C_GB: cgb, C_BE: cbe * pF, C_GE: cge, C_GE_free: cgeFree, C_AE: (140 + (env === "car_seat" ? 85 : 0)) * pF,
     };
@@ -474,7 +474,7 @@ const SG = (() => {
   function yOuterContact(w, f, design) {
     if (design === "single") return yc(w, plate(2.0, 4 * CM2, 4.5e-3));
     const area = 15;
-    return inv(add(zSC(f, area, HIS.hyd, HIS.alpha), zc(w, plate(3.0, area * CM2, 62.5e-6))));
+    return inv(add(zSC(f, area, HIS.hyd, HIS.alpha), zc(w, plate(2.9, area * CM2, 62.5e-6))));
   }
 
   function branches(f, p, st, withEvent) {
@@ -506,7 +506,7 @@ const SG = (() => {
       const o = st.object;
       if (o === "railing_hand" || o === "railing_wrist") {
         b.Y_BE = add(b.Y_BE, inv(add(zSC(f, 30, HIS.hyd, HIS.alpha), zMetal(f, 30, HIS.hyd, 0.55))));
-        if (o === "railing_wrist") b.Y_0E = add(b.Y_0E, yc(w, d === "single" ? plate(3.0, 2 * CM2, 2.25e-3) : plate(3.0, 6 * CM2, 62.5e-6)));
+        if (o === "railing_wrist") b.Y_0E = add(b.Y_0E, yc(w, d === "single" ? plate(3.0, 2 * CM2, 2.25e-3) : plate(2.9, 6 * CM2, 62.5e-6)));
       } else if (o === "phone") {
         b.Y_BE = add(b.Y_BE, inv(add(zSC(f, 30, HIS.hyd, HIS.alpha), zc(w, 8 * pF))));
       } else if (o === "wood_table") {

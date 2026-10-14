@@ -3,7 +3,7 @@
 V1 drv 0 AC 1
 R1 drv n1 1.000000e+04 ; Rs
 L2 n1 S 1.000000e-02 ; tank inductor
-C3 S 0 1.045000e-10 ; tank C + buffer/trace parasitics
+C3 S 0 1.069500e-10 ; tank C + buffer/trace parasitics
 * CPE Q=4.2894e-07 alpha=0.550 metal contact
 R7 S x6 3.961284e+06
 C8 x6 x4 2.737269e-07
@@ -526,6 +526,6 @@ R774 A x773 2.296176e-02
 C775 x773 x630 2.191871e-08
 R777 A x776 1.129970e-04
 C778 x776 x630 1.408488e-07
-C779 x630 0 6.374880e-10 ; strap coating
+C779 x630 0 6.162384e-10 ; strap coating
 .options rshunt=1e18
 .end

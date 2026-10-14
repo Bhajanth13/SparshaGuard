@@ -175,8 +175,9 @@ def sample_base(s: Sampler, design: str, env: str, grounded_bench: bool = False)
     # Arduino Touché tank [S3]: R 10 kOhm, L 10 mH, C 100 pF (5 % parts [D])
     p["Rs"] = np.full(n, 10e3)
     p["L"] = np.full(n, 10e-3) * (1 + 0.05 * s.norm(0.5))
-    # + sense-node parasitics: buffer input 2.1 pF [S8] to 5 pF op-amp input, + traces [E]
-    p["Ctank"] = (100 * (1 + 0.05 * s.norm(0.5)) + s.u(2, 7)) * pF
+    # + sense-node parasitics: buffer input 2.1 pF [S8] to 9 pF (OPA350 typical [S35]) plus
+    # 1-3 cm of trace [D] at 0.6-0.8 pF/cm (FR-4 over a ground plane [S36])
+    p["Ctank"] = (100 * (1 + 0.05 * s.norm(0.5)) + s.u(2.1, 9) + s.u(0.6, 0.8) * s.u(1, 3)) * pF
     # inner electrode: 2-4 cm^2 stainless steel on the case back [D]; skin per [S10]
     p["el_area"] = s.u(2, 4)
     p["hyd"] = s.u(0.0, 1.0)                        # 0 dry .. 1 hydrated [S10]
@@ -261,7 +262,7 @@ def y_outer_contact(s, design):
         return yc(plate(2.0, s.u(2, 6) * CM2, s.u(3e-3, 6e-3)))
     area = s.u(10, 20)                               # palm on strap electrode [E, settled]
     h, a = _skin(s)
-    coat = plate(3.0, area * CM2, s.u(25e-6, 100e-6))  # 25-100 um coating, er 3 [D]
+    coat = plate(s.u(2.65, 3.15), area * CM2, s.u(25e-6, 100e-6))  # 25-100 um [D] parylene, er 2.65-3.15 [S37]
     return 1.0 / (z_sc(area, h, a) + 1.0 / yc(coat))
 
 
@@ -339,7 +340,7 @@ def event_branches(p_now: dict, s: Sampler, design: str, kind: str, detail: str 
                 if design == "single":
                     c = plate(3.0, s.u(1, 3) * CM2, s.u(1.5e-3, 3e-3))      # case side [G]
                 else:
-                    c = plate(3.0, s.u(2, 10) * CM2, s.u(25e-6, 100e-6))    # coated strap [G]
+                    c = plate(s.u(2.65, 3.15), s.u(2, 10) * CM2, s.u(25e-6, 100e-6))    # coated strap [G, S37]
                 br["Y_0E"] = br["Y_0E"] + yc(c)
         elif detail == "phone":
             # phone self-capacitance 8*eps0*r, r_eq 6-10 cm -> 4-7 pF, up to 12 pF [G/E]

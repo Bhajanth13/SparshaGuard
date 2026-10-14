@@ -22,7 +22,7 @@
 V1    drv 0 AC 1
 Rs    drv n1 10k
 L1    n1  S  10m
-Ctank S   0  104.5p        ; 100 pF tank + ~4.5 pF buffer/trace parasitics
+Ctank S   0  106.95p       ; 100 pF tank + 5.55 pF buffer input + 1.4 pF traces
 
 * ---- inner electrode: 3 cm^2 dry stainless steel, mid hydration (Goyal 2022), at 100 kHz
 Res   S   es1 983
@@ -40,11 +40,11 @@ C_AE  A E 140p             ; his body to surroundings, street shoes
 Rsw_ba B   ba1 {if(TOUCH>0.5, 1m, 1e15)}
 Rba    ba1 ba2 0.36
 Cba    ba2 A   705n
-* his palm (15 cm^2 of skin) on the outer electrode through a 62.5 um coating (637 pF)
+* his palm (15 cm^2 of skin) on the outer electrode through a 62.5 um coating, er 2.9 (616 pF)
 Rsw_a0 A   a01 {if(TOUCH>0.5, 1m, 1e15)}
 Ra0    a01 a02 0.71
 Ca0    a02 a03 353n
-Ccoat  a03 0   637p
+Ccoat  a03 0   616p
 
 * ---- DC paths so the simulator can find an operating point (no effect at these frequencies)
 Rdc_E   E   0 1e12

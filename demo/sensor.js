@@ -11,13 +11,16 @@
 //
 // PassiveTwin adds the second, passive channel on the same electrode (port of sg_passive.py):
 // her body voltage from static charge, sampled at 500 Hz, and a wrist accelerometer at 50 Hz.
-//   body capacitance 110-250 pF [S4]; charge leaks with tau = R C_B, R ~ 2e10 ohm, and walking
-//   charges her with V_peak = R n dq [S18]; contact shares charge between the two bodies (fabric as
+//   body capacitance 110-250 pF [S4], 0.625x on one foot while walking [S40] (gait timing [S46]);
+//   charge leaks with tau = R C_B, R 2e10-1e11 ohm [S18, S40]; walking (1.6-2.3 steps/s [S41])
+//   charges her with V_peak = R n dq [S18]; her own movement changes C_B by 2-7 % [S42]; contact shares charge between the two bodies (fabric as
 //   a series capacitor [S7, S13]); a charged person nearby induces V_A C_AB/(C_B + C_AB), with
 //   C_AB = 21 pF at 1 m [S12]; earthed metal holds her at 0 V and removes the 50 Hz hum indoors
 //   [S22]; a phone or bag (4-12 pF) takes a few % of her voltage; the watch sees k = C_GE /
 //   (C_GE + C_GB + C_in) of it (bootstrapped input, C_GB 2 pF, C_in 0.5 pF) plus ADS1115 noise
 //   (2 mV, rms 0.5 mV) [S15]. The typical body voltage v0 is not yet measured on Indian floors [E].
+//   Accelerometer: arm swing at half the step rate [S44], wrist ENMO 140-350 mg [S43]; bus
+//   starting/braking 0.1-0.34 g [S45]; gestures and grab jerks are estimates [E].
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -64,7 +67,7 @@
 
 
   // ------------------------------------------------------------------ passive channel
-  const PFS = 500, IMU_FS = 50, R_GROUND = 2e10, CADENCE = 1.7;
+  const PFS = 500, IMU_FS = 50, ONE_FOOT = 100 / 160;
   const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
   const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
@@ -75,7 +78,10 @@
       this.cb = R.uni(110, 250) * pF;
       this.cge = Math.exp(R.uni(Math.log(0.6), Math.log(2.0))) * pF;            // [S5/S11]
       this.k = this.cge / (this.cge + this.f.cgb + this.f.cin);
-      this.a = Math.exp(-1 / (PFS * R_GROUND * this.cb));
+      this.Rg = Math.exp(R.uni(Math.log(2e10), Math.log(1e11)));
+      this.cadence = R.uni(1.6, 2.3); this.posture = R.uni(0.02, 0.07); this.enmo = R.uni(0.14, 0.35);
+      this.a = Math.exp(-1 / (PFS * this.Rg * this.cb));
+      this.lastHeel = -10;
       this.sign = R.p(0.5) ? 1 : -1;
       this.setContext(ctxName, true);
       this.q = this.sign * this.vpeak * this.cb * R.uni(0.3, 1.0);           // charge she already carries
@@ -89,7 +95,7 @@
       this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
       if (first || this.vpeak === undefined) this.vpeak0 = this.v0 * Math.exp(0.7 * this.R.n());
       this.vpeak = name === "desk" ? 0.1 * this.vpeak0 : this.vpeak0;
-      this.nextHeel = this.R.uni(0, 1 / CADENCE);
+      this.nextHeel = this.n / PFS + this.R.uni(0, 1 / (this.cadence || 2));
     }
     setV0(v0) { this.v0 = v0; this.setContext(this.ctxName, true); }
     strangerVoltage() { return this.v0 * Math.exp(0.7 * this.R.n()) * (this.R.p(0.5) ? 1 : -1); }
@@ -129,16 +135,19 @@
     // one firmware frame (0.2 s): 100 passive samples, 10 accelerometer samples
     frame(nP = PFS / FS) {
       const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), rms = this.f.adc / 4;
-      const dq = this.sign * this.vpeak / (R_GROUND * CADENCE);
+      const dq = this.sign * this.vpeak / (this.Rg * this.cadence), stride = 2 / this.cadence;
       for (let i = 0; i < nP; i++, this.n++) {
         const t = this.n / PFS;
-        if (this.walking && t >= this.nextHeel) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); this.nextHeel += 1 / CADENCE; }
+        if (this.walking && t >= this.nextHeel) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); this.lastHeel = this.nextHeel; this.nextHeel += 1 / this.cadence; }
         if (this.ctxName === "bus" && R.u() < 0.2 / PFS) { const w = Math.round(R.uni(0.02, 0.06) * PFS); this.inj.push({ left: w, per: dq / w }); }
         let add = 0; for (const s of this.inj) { add += s.per; s.left--; }
         this.inj = this.inj.filter((s) => s.left > 0);
         this.q = this.pinned ? 0 : this.a * this.q + add;
         this.m1 = this.am * this.m1 + (1 - this.am) * R.n(); this.m2 = this.am * this.m2 + (1 - this.am) * this.m1;
-        this._cm = 1 + 0.03 * this.m2 * this.mnorm;                             // her arm movement changes C_B ~3 % [E]
+        let lift = 1;                                                           // landing 0-10 %, lift-off 10-20 % of the stride [S46]
+        if (this.walking) { const x = (t - this.lastHeel) / stride; if (x < 0.1) lift = 1 - x / 0.1; else if (x < 0.2) lift = (x - 0.1) / 0.1; }
+        else lift = 0;
+        this._cm = (1 + this.posture * this.m2 * this.mnorm) * (1 - (1 - ONE_FOOT) * lift);   // [S40, S42]
         if (this.app) { this.app.s++; if (this.app.leaving && this.app.s >= PFS) this.app = null; }
         const v = this.pinned ? 0 : this.q / (this.cb * this._cm) + this._vind();
         u[i] = this.k * v + rms * R.n();
@@ -149,9 +158,9 @@
       for (let i = 0; i < nI; i++, this.ni++) {
         const t = this.ni / IMU_FS;
         this.sway = ai * this.sway + Math.sqrt(1 - Math.exp(-2 / IMU_FS)) * sw * R.n();
-        let a = 1 + this.sway + (this.walking ? 0.35 * Math.sin(2 * Math.PI * CADENCE * t + this.phase) : 0);
+        let a = 1 + this.sway + (this.walking ? Math.PI * this.enmo * Math.sin(Math.PI * this.cadence * t + this.phase) : 0);
         if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2) });   // her own gestures [E]
-        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.3, 1.5) });   // braking jolts [E]
+        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34) });   // starting/braking [S45], 12/h [E]
         for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) a += p.g * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); }
         this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
         acc[i] = a;

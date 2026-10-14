@@ -35,16 +35,19 @@ function grabTrials(detail, n) {
   return { active: caught.active / n, fused: caught.fused / n };
 }
 
-// event mix per context, from event_stream.py: [kind, detail, per hour, min s, max s]
+// event mix per context, from event_stream.py: [kind, detail, per hour, min s, max s], or a
+// log-normal duration ["logn", median s, mean s, cap s]: her hand on the watch [S38], phone use [S39]
+const SELF_D = ["logn", 5, 9, 60], PHONE_D = ["logn", 30, 212, 1800];
 const MIX = {
-  walking: [["self", null, 3, 1, 4], ["object", "railing_hand", 4, 3, 10], ["bystander", null, 6, 2, 6],
-            ["object", "phone", 6, 30, 120], ["object", "bag", 2, 60, 300]],
+  walking: [["self", null, 3, ...SELF_D], ["object", "railing_hand", 4, 3, 10], ["bystander", null, 6, 2, 6],
+            ["object", "phone", 5.3, ...PHONE_D], ["object", "bag", 2, 60, 300]],
   bus: [["object", "railing_wrist", 6, 20, 120], ["object", "railing_hand", 6, 30, 300], ["bystander", null, 30, 5, 60],
         ["person", "shoulder", 10, 1, 3], ["person", "other_arm", 6, 1, 3], ["person", "forearm", 4, 0.5, 2.5],
-        ["self", null, 4, 1, 4], ["object", "phone", 6, 30, 200]],
-  desk: [["object", "wood_table", 10, 60, 600], ["self", null, 6, 1, 5], ["object", "phone", 10, 30, 200],
+        ["self", null, 3, ...SELF_D], ["object", "phone", 5.3, ...PHONE_D]],
+  desk: [["object", "wood_table", 10, 60, 600], ["self", null, 3, ...SELF_D], ["object", "phone", 5.3, ...PHONE_D],
          ["person", "wrist", 1, 2, 6]],
 };
+function duration(R, a, b, c, d) { return a === "logn" ? Math.min(d, b * Math.exp(Math.sqrt(2 * Math.log(c / b)) * R.n())) : R.uni(a, b); }
 
 function poisson(lam, u) { let k = 0, p = Math.exp(-lam), s = p; const x = u(); while (x > s) { k++; p *= lam / k; s += p; } return k; }
 
@@ -56,9 +59,9 @@ function dailyLife(ctx, hours, seed) {
   const causes = { active: {}, fused: {} };
   for (let h = 0; h < hours; h++) {
     const evs = [];
-    for (const [kind, detail, rate, dmin, dmax] of MIX[ctx]) {
+    for (const [kind, detail, rate, ...dur] of MIX[ctx]) {
       const k = poisson(rate, R.u);
-      for (let j = 0; j < k; j++) { const d = Math.round(R.uni(dmin, dmax) * FS); const t0 = Math.round(R.uni(10 * FS, T - d - 1)); evs.push({ kind, detail, t0, t1: t0 + d }); }
+      for (let j = 0; j < k; j++) { const d = Math.max(1, Math.round(duration(R, ...dur) * FS)); const t0 = Math.round(R.uni(10 * FS, T - d - 1)); evs.push({ kind, detail, t0, t1: t0 + d }); }
     }
     evs.sort((a, b) => a.t0 - b.t0);
     const fws = pair(s);
