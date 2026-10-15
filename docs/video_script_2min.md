@@ -1,6 +1,6 @@
 # SparshaGuard: 2-minute video script
 
-> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:59, captions, NCRB cards). Its
+> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:57, the twin operated with a cursor in Chrome, captions, NCRB card). Its
 > timed narration is in `video/demo_2min/README.md`; the plan below is the earlier manual-recording guide.
 
 Built around the demo's **Play all** run (about 115 s, timings measured in the browser), with a
@@ -19,10 +19,10 @@ on-screen captions already say the key facts, so the voice can be calm and brief
 |---|---|---|
 | 0:00–0:07 | Title slide | "Most safety apps need her to find her phone and press SOS. In an attack, there's no time." |
 | 0:07–0:10 | Demo page, idle (science panel open). Click **Play all** at 0:10 | "SparshaGuard flips the default: someone else's touch raises the alarm." |
-| 0:10–0:18 | Ch 1: Guard Mode, watch learns, then "Guarding" | "Ananya turns on Guard Mode. The watch learns her own body for five seconds." |
-| 0:18–0:40 | Ch 2: stranger grabs her wrist; both charts jump; PIN countdown; alert; Amma's phone | "A stranger grabs her wrist. The sensor signal jumps, and so does her body's static: another body touched her. She can't answer the PIN, so her location goes out, 112 is called, audio is recorded." |
+| 0:10–0:18 | Ch 1: Guard Mode, watch learns, then "Guarding" | "She turns on Guard Mode. The watch learns her own body for five seconds." |
+| 0:18–0:40 | Ch 2: stranger grabs her wrist; both charts jump; PIN countdown; alert; emergency contact's phone | "A stranger grabs her wrist. The sensor signal jumps, and so does her body's static: another body touched her. She can't answer the PIN, so her location goes out, 112 is called, audio is recorded." |
 | 0:40–0:53 | Re-arm, then Ch 3: friend holds her hand, PIN 1234, Cancelled | "A friend's hand is another body too, so the PIN decides. Cancelled." |
-| 0:53–1:04 | Ch 4: forced to cancel, PIN 9999, silent alert on the phone | "Forced to cancel? Her duress PIN shows 'Cancelled', but her mother still gets a silent alert." |
+| 0:53–1:04 | Ch 4: forced to cancel, PIN 9999, silent alert on the phone | "Forced to cancel? Her duress PIN shows 'Cancelled', but her emergency contact still gets a silent alert." |
 | 1:04–1:13 | Ch 5: the watch is ripped off, alert in under a second | "Rip the watch off, and it alerts at once." |
 | 1:13–1:22 | Ch 6: shoulder grab; static jump, arm jerks, PIN prompt | "A grab on her shoulder: the wrist sensor can't feel it, but her body's charge jumps the instant he touches her, and the watch feels her arm being pulled." |
 | 1:22–1:30 | Ch 7: she struggles to get free; PIN prompt, mic on | "If she fights back, the accelerometer and gyroscope feel the struggle, and the microphone turns on." |

@@ -113,7 +113,7 @@ canvas { width: 100%; display: block; }
 .phone { width: 280px; background: var(--case); border-radius: 30px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); align-self: start; }
 .pscreen { background: var(--panel); border-radius: 22px; min-height: 380px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .phead { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
-.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--touch-soft); color: var(--touch); display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--touch-soft); color: var(--touch); display: grid; place-items: center; font-weight: 700; font-size: 10px; letter-spacing: .02em; }
 .pname { font-weight: 600; font-size: 13.5px; } .psub { font-size: 11.5px; color: var(--muted); }
 .msgs { display: flex; flex-direction: column; gap: 8px; }
 .msg { border-radius: 12px 12px 12px 4px; padding: 8px 10px; font-size: 12.5px; background: var(--crit-soft); border: 1px solid var(--crit); }
@@ -185,7 +185,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   <!-- ================= stage ================= -->
   <div class="stage">
     <div class="card bodycard">
-      <p class="label">Ananya</p>
+      <p class="label">The wearer</p>
       <svg class="figure" viewBox="0 0 200 300" role="img" aria-label="Body outline showing where she is touched">
         <g id="m-bystander" class="m"><circle class="ghost" cx="186" cy="48" r="18"/><rect class="ghost" x="166" y="70" width="40" height="110" rx="18"/></g>
         <circle class="b" cx="100" cy="42" r="22"/>
@@ -231,7 +231,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     <div class="phonecol">
       <div class="phone">
         <div class="pscreen">
-          <div class="phead"><div class="avatar">A</div><div><div class="pname">Amma's phone</div><div class="psub">Trusted contact</div></div></div>
+          <div class="phead"><div class="avatar">SOS</div><div><div class="pname">Emergency contact's phone</div><div class="psub">Trusted contact</div></div></div>
           <div class="msgs" id="msgs"><div class="empty">No alerts</div></div>
           <div class="sim">Simulated. Nothing is actually sent or called.</div>
         </div>
@@ -1127,7 +1127,7 @@ const SG = (() => {
   };
   const CHAPTERS = [
     { t: "Guard Mode", steps: [
-      { fresh: true, say: "Ananya is walking home alone. She turns on Guard Mode.", sub: "One tap on the watch." },
+      { fresh: true, say: "A woman is walking home alone. She turns on Guard Mode.", sub: "One tap on the watch." },
       { wait: 1.2, do: () => fw.setGuard(true), say: "First, the watch learns her: 5 seconds of her own body on the sensor.", sub: "Each reading sweeps 200 frequencies, 5 times a second." },
       { until: () => fw.state === "armed", say: "Now it is guarding. The signal stays flat while nobody touches her.", sub: "That flat line is her own body, with sweat and movement, inside the noise." },
       { wait: 3.5 } ] },
@@ -1149,7 +1149,7 @@ const SG = (() => {
       { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger forces her to cancel" }), say: "The watch asks for the PIN.", sub: "" },
       { wait: 1.2, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
       { wait: 0.3, say: "The screen says \"Cancelled\", so he thinks it worked…", sub: "" },
-      { wait: 2.2, say: "…but Amma gets a silent alert with her location, and 112 is called.", sub: "" },
+      { wait: 2.2, say: "…but her emergency contact gets a silent alert with her location, and 112 is called.", sub: "" },
       { wait: 3.5, do: endScene } ] },
     { t: "The watch is ripped off", steps: [
       { ready: true, say: "He rips the watch off her wrist.", sub: "", do: () => startScene("strap_off:null") },
@@ -1311,8 +1311,8 @@ const SG = (() => {
     const hr = fw.hr && fw.hrRest ? ` Heart rate ${fw.hr.toFixed(0)} bpm (her usual about ${fw.hrRest.toFixed(0)}).` : "";
     const voice = `<div class="voice">🎙 Voice recording from the PIN prompt · ${Math.max(1, Math.round(simT / FS - (fw.mic ? fw.mic.start : simT / FS)))} s so far, still recording</div>`;
     const txt = kind === "silent"
-      ? `<b>SparshaGuard SILENT ALERT</b><br>Ananya used her duress PIN: she may be forced to cancel. Don't call her phone. Location ${loc}. 112 has been called.${hr}${voice}`
-      : `<b>SparshaGuard ALERT</b><br>Ananya may be in danger. Location ${loc}. 112 has been called.${hr}${voice}`;
+      ? `<b>SparshaGuard SILENT ALERT</b><br>The wearer used her duress PIN: she may be forced to cancel. Don't call her phone. Location ${loc}. 112 has been called.${hr}${voice}`
+      : `<b>SparshaGuard ALERT</b><br>The wearer may be in danger. Location ${loc}. 112 has been called.${hr}${voice}`;
     msgs.unshift(`<div class="msg">${txt}${mapCard()}<div class="mt">${clock()} · sent automatically</div></div>`);
     $("msgs").innerHTML = msgs.slice(0, 2).join("");
   }
