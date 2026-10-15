@@ -132,21 +132,15 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 .tblwrap { overflow-x: auto; }
 .note { font-size: 13px; color: var(--ink2); margin: 10px 0 0; }
 .tag.ok { color: var(--calm); border-color: var(--calm); }
-.refbar { display: grid; gap: 10px; margin: 4px 0 12px; }
-.refbar input { font: inherit; font-size: 15px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); max-width: 520px; }
-.reftopics { display: flex; flex-wrap: wrap; gap: 6px; }
-.reftopics button { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--panel); color: var(--ink2); padding: 4px 10px; border-radius: 999px; cursor: pointer; }
-.reftopics button[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
-.refcount { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; }
-.reflist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.reflist li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 10px; }
-.reflist .rid { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); padding-top: 2px; }
-.reflist .rt { font-weight: 600; overflow-wrap: anywhere; }
-.reflist .ra { font-size: 13.5px; color: var(--ink2); overflow-wrap: anywhere; }
-.reflist .rm { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; }
-.reflist .rm a { color: var(--touch); overflow-wrap: anywhere; }
-.reflist .chipt { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--ink2); }
-.reflist .chipt.used { border-color: var(--calm); color: var(--calm); }
+.refsec { margin-top: 36px; padding-top: 20px; border-top: 1px solid var(--line); }
+.refintro { font-size: 13px; color: var(--ink2); max-width: 820px; margin: 4px 0 14px; }
+.ieee { margin: 0; padding: 0; list-style: none; counter-reset: ref; display: grid; gap: 7px; font-size: 13.5px; line-height: 1.45; }
+.ieee li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+.ieee li:target { background: var(--touch-soft); border-radius: 6px; }
+.ieee .n { font-family: var(--f-mono); color: var(--muted); text-align: right; }
+.ieee a { color: var(--touch); }
+a.cite { color: var(--touch); text-decoration: none; font-variant-numeric: tabular-nums; white-space: nowrap; }
+a.cite:hover { text-decoration: underline; }
 .tbl.sig td small { color: var(--muted); }
 .tbl.sig td, .tbl.sig th { vertical-align: top; text-align: left; }
 .fusedopts { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--ink2); margin: 2px 0 10px; }
@@ -189,7 +183,6 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
     <nav class="tabs" role="tablist" aria-label="Section">
       <button type="button" role="tab" id="tab-touch" aria-selected="true" aria-controls="panel-touch">Touch explorer</button>
       <button type="button" role="tab" id="tab-body" aria-selected="false" aria-controls="panel-body">Whole-body study</button>
-      <button type="button" role="tab" id="tab-refs" aria-selected="false" aria-controls="panel-refs">References</button>
     </nav>
   </header>
 
@@ -305,7 +298,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 
       <section class="card" id="fused-card" aria-live="polite">
         <div class="chead"><h2>The fused watch: sweep + static + motion <span class="tag ok">simulated · fig 17–18</span></h2></div>
-        <p class="sub">The same electrode also reads her body's static voltage. Another person touching her anywhere shares charge and makes her voltage jump in under a millisecond; metal, a phone or her own hand do not look like that. A PIN prompt needs another body.</p>
+        <p class="sub">The same electrode also reads her body's static voltage. Another person touching her anywhere shares charge {S21} and makes her voltage jump in under a millisecond {S54}; metal, a phone or her own hand do not look like that. A PIN prompt needs another body.</p>
         <div class="fusedopts">
           <label>Static difference between the two bodies <select id="f-dv"><option value="1">~1 V (humid, conductive floor)</option><option value="10" selected>~10 V</option><option value="100">~100 V (dry day)</option></select></label>
           <label class="check" style="margin:0"><input type="checkbox" id="f-pull" checked> he pulls or shakes her arm</label>
@@ -344,13 +337,13 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
     <header>
       <div class="eyebrow">Whole-body study · 11 October 2026 · fig 10–12</div>
       <h2 class="sec" id="beyond-h">Touches anywhere on her body</h2>
-      <p class="lede">The sweep sees a hand at the wrist. A touch on her shoulder or back reaches the watch through the same weak link as walking past a wall, so the sweep can't tell them apart. A passive static channel on the same electrode sees the moment another body touches her, anywhere; the wrist accelerometer tells a grab that pulls her from a brush.</p>
+      <p class="lede">The sweep sees a hand at the wrist. A touch on her shoulder or back reaches the watch through the same weak link as walking past a wall, so the sweep can't tell them apart. A passive static channel on the same electrode {S18, S21, S22} sees the moment another body touches her, anywhere; the wrist accelerometer tells a grab that pulls her from a brush.</p>
     </header>
 
     <div class="bgrid">
       <section class="card" id="pc-card">
         <div class="chead"><h2>Passive body-potential channel <span class="tag ok">simulated in time · fig 17–18</span></h2></div>
-        <p class="sub">When two people at different voltages touch, they share charge and her whole body's voltage jumps. The floating watch sees a fixed fraction of that jump at its electrode.</p>
+        <p class="sub">When two people at different voltages touch, they share charge {S21} and her whole body's voltage jumps. The floating watch sees a fixed fraction of that jump at its electrode.</p>
         <div class="group">
           <div class="label" id="lbl-dv">Voltage difference between the two bodies</div>
           <input type="range" id="dv" min="-2" max="3" step="0.01" value="0" aria-labelledby="lbl-dv">
@@ -368,7 +361,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
           <div class="adcs" id="pc-adcs"></div>
         </div>
         <div class="plot" id="pc-plot"></div>
-        <p class="note">Walking charges a person to hundreds or thousands of volts on vinyl (Desco: 250–12,000 V), so a 1 V difference is modest; Indian floors are not measured yet. Her own steps make bigger changes: lifting a foot drops body capacitance from about 160 to 100 pF (Ficker), so her voltage rises 1.6× at every step. But steps and arm movements take 50–300 ms, while charge sharing at a touch settles in well under a microsecond (body model 150 pF, 330 Ω: IEC 61000-4-2). The firmware keeps only sharp steps that stand out from the signal around them: in 4.5 simulated hours of walking, bus and desk life at 1–1,000 V, with the foot-lift swings included, it found no false steps. Two people at the same voltage still give no signal.</p>
+        <p class="note">Walking charges a person to hundreds or thousands of volts on vinyl (250–12,000 V {S17}; up to ±20 kV in dry air {S32}), so a 1 V difference is modest; Indian floors are not measured yet. Her own steps make bigger changes: lifting a foot drops body capacitance from about 160 to 100 pF {S40}, so her voltage rises 1.6× at every step. But steps and arm movements take 50–300 ms, while charge sharing at a touch settles in well under a microsecond (body model 150 pF, 330 Ω {S54}). The firmware keeps only sharp steps that stand out from the signal around them: in 4.5 simulated hours of walking, bus and desk life at 1–1,000 V, with the foot-lift swings included, it found no false steps. Two people at the same voltage still give no signal.</p>
       </section>
 
       <div style="display:grid; gap:16px; min-width:0">
@@ -387,13 +380,13 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
             <thead><tr><th>Signal</th><th>What the watch does</th><th>Simulated result</th></tr></thead>
             <tbody>
               <tr><td>Struggling to get free<br><small>accelerometer + gyroscope</small></td><td>5 or more jerks over 2 g in 4 s, at irregular intervals, with the wrist turning faster than 400°/s: asks for the PIN even if no touch was felt</td><td id="sig-struggle"></td></tr>
-              <tr><td>Running<br><small>accelerometer</small></td><td>Fast, regular arm swing (above ~0.5 g): not an alarm by itself, but while she runs any touch asks for the PIN at once</td><td id="sig-run"></td></tr>
+              <tr><td>Running<br><small>accelerometer</small></td><td>Fast, regular arm swing (above ~0.5 g; running is above 0.6 g at the wrist {S43}): not an alarm by itself, but while she runs any touch asks for the PIN at once</td><td id="sig-run"></td></tr>
               <tr><td>Microphone</td><td>Turns on when the PIN prompt starts. The correct PIN deletes the recording; no PIN, a wrong PIN or the duress PIN sends it with the alert</td><td>Shown in the twin</td></tr>
               <tr><td>GPS</td><td>Live location goes with every alert, also the silent duress alert</td><td>Shown in the twin</td></tr>
               <tr><td>Heart rate</td><td>Confirmation only: rises too slowly to start an alarm, so the alert reports it against her usual rate</td><td>Shown in the twin</td></tr>
             </tbody>
           </table></div>
-          <p class="note">Running and her own quick gestures are what make motion-only alarms fail, so the watch looks for irregular, repeated, fast movement. A published smartwatch study classified scripted punches and shoves with 99.6 % accuracy (Tchuente 2020); real assaults are messier, and Gate 1 must record them safely (staged).</p>
+          <p class="note">Running and her own quick gestures are what make motion-only alarms fail, so the watch looks for irregular, repeated, fast movement. A published smartwatch study classified scripted punches and shoves with 99.6 % accuracy {S34}; fall detectors in daily use reach 0.025–0.3 false alarms per hour {S33, S56}; real assaults are messier, and Gate 1 must record them safely (staged).</p>
         </section>
         <section class="card">
           <div class="chead"><h2>His hand near the strap <span class="tag ok">in the model · FastCap-checked</span></h2></div>
@@ -427,26 +420,14 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   </section>
 
   </div>
-  <div id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" hidden>
-  <section class="beyond" aria-labelledby="refs-h">
-    <header>
-      <div class="eyebrow">Sources · every value in the model traces back to one of these</div>
-      <h2 class="sec" id="refs-h">References</h2>
-      <p class="lede" id="refs-lede"></p>
-    </header>
-    <div class="refbar">
-      <input type="search" id="ref-q" placeholder="Search authors, titles, topics…" aria-label="Search references">
-      <div class="reftopics" id="ref-topics" role="group" aria-label="Filter by topic"></div>
-    </div>
-    <p class="refcount" id="ref-count" aria-live="polite"></p>
-    <ol class="reflist" id="ref-list"></ol>
-    <p class="note">Values seen only in abstracts, search snippets or press coverage are marked "secondary" in the workbook (docs/SparshaGuard_paper_values.xlsx), which lists each value with the page or table it came from.</p>
+  <section class="refsec" id="references" aria-labelledby="refs-h">
+    <h2 class="sec" id="refs-h">References</h2>
+    <p class="refintro">Numbers in square brackets in the text refer to this list. [n] is source S<i>n</i> in docs/parameter_sources.md and in the paper-values workbook, which give the value taken from each source and where in it the value appears. Values seen only in an abstract or in press coverage are marked "secondary" there.</p>
+    <ol class="ieee">/*REFLIST*/</ol>
   </section>
-  </div>
   <footer>
-    <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché, amplitude only. Body capacitance from Jonassen's footwear measurements, skin under a dry steel electrode from Goyal et al., fabric from Ng &amp; Reaz, the watch's return path from Datta et al. and Maity et al., body-to-body coupling from Nath et al., shield performance from TI, ADC noise from an ESP32 measurement. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/parameter_sources.md.</p>
-    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (Whole-body study tab), checked with FastCap; the forearm case uses it with his hand 3 cm from the strap. The passive static channel and the fused logic are simulated in time (sg_passive.py, passive_stream.py), not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
-    <p><a href="#references" id="foot-refs">See all 58 sources in the References tab</a>.</p>
+    <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché {S1, S3}, amplitude only. Body capacitance from Jonassen's footwear measurements {S4}, skin under a dry steel electrode from Goyal et al. {S10}, fabric from Ng &amp; Reaz {S7} with the hand area of Agarwal &amp; Sahu {S13}, the watch's return path from Datta et al. {S11} and Maity et al. {S5}, body-to-body coupling from Nath et al. {S12}, shield performance from TI {S14}, ADC noise from an ESP32 measurement {S15, S16}, sense-node parasitics from {S8, S35, S36}. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/parameter_sources.md.</p>
+    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (Whole-body study tab), checked with FastCap {S59}; the forearm case uses it with his hand 3 cm from the strap. The circuit solver is checked against ngspice {S60}. The passive static channel and the fused logic are simulated in time (sg_passive.py, passive_stream.py) with values from {S17, S18, S22, S32, S40–S46, S54}, not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
   </footer>
 </div>
 
@@ -797,7 +778,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   let rt = null;
   new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(() => { if (last) { drawSweep(last.sw); drawGauge(last.st, last.sc); } }, 60); }).observe($("plot1"));
   const showTab = (which) => {
-    for (const [t, pnl] of [["tab-touch", "panel-touch"], ["tab-body", "panel-body"], ["tab-refs", "panel-refs"]]) {
+    for (const [t, pnl] of [["tab-touch", "panel-touch"], ["tab-body", "panel-body"]]) {
       const on = t === which; $(t).setAttribute("aria-selected", String(on)); $(pnl).hidden = !on;
     }
     if (which === "tab-touch" && last) { drawSweep(last.sw); drawGauge(last.st, last.sc); }
@@ -805,35 +786,6 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   };
   $("tab-touch").addEventListener("click", () => showTab("tab-touch"));
   $("tab-body").addEventListener("click", () => showTab("tab-body"));
-  $("tab-refs").addEventListener("click", () => showTab("tab-refs"));
-  if (location.hash === "#references") showTab("tab-refs");
-  $("foot-refs").addEventListener("click", (e) => { e.preventDefault(); showTab("tab-refs"); $("refs-h").scrollIntoView(); });
-
-  // ------------------------------------------------------------- references (from tools/build_sources_xlsx.py)
-  const REFS = /*REFS*/;
-  const topics = [...new Set(REFS.flatMap((r) => r.topics))].sort();
-  let topic = null;
-  $("refs-lede").textContent = `${REFS.length} sources: the papers, standards and datasheets we went through. ${REFS.filter((r) => r.used).length} of them give values used in the model; the rest are benchmarks and background.`;
-  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  $("ref-topics").innerHTML = ["All", ...topics].map((t) => `<button type="button" data-t="${esc(t)}" aria-pressed="${t === "All"}">${esc(t)}</button>`).join("");
-  function renderRefs() {
-    const q = $("ref-q").value.trim().toLowerCase();
-    const shown = REFS.filter((r) => (!topic || r.topics.includes(topic)) &&
-      (!q || [r.id, r.authors, r.title, r.venue, r.year, ...r.topics].join(" ").toLowerCase().includes(q)));
-    $("ref-count").textContent = `Showing ${shown.length} of ${REFS.length}`;
-    $("ref-list").innerHTML = shown.map((r) => `<li><span class="rid">${esc(r.id)}</span><div><div class="rt">${esc(r.title)}</div>` +
-      `<div class="ra">${esc(r.authors)} (${esc(r.year || "n.d.")}). ${esc(r.venue)}.${r.note ? " " + esc(r.note) + "." : ""}</div></div>` +
-      `<div class="rm">${r.used ? '<span class="chipt used">used in the model</span>' : ""}${r.topics.map((t) => `<span class="chipt">${esc(t)}</span>`).join("")}` +
-      `${r.n ? `<span class="chipt">${r.n} value${r.n > 1 ? "s" : ""}</span>` : ""}<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url.replace(/^https?:\/\//, ""))}</a></div></li>`).join("");
-  }
-  $("ref-q").addEventListener("input", renderRefs);
-  $("ref-topics").addEventListener("click", (e) => {
-    const b = e.target.closest("button"); if (!b) return;
-    topic = b.dataset.t === "All" ? null : b.dataset.t;
-    $("ref-topics").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-    renderRefs();
-  });
-  renderRefs();
   markPreset("wrist");
   render();
 })();

@@ -4,7 +4,7 @@ explorer/page_src.html  (layout, styles, UI script, with a /*MODEL*/ placeholder
 explorer/model.js       (JavaScript port of sg_model.py)
 data/passive_stream_results.json  (fused-watch results shown in the Whole-body tab)
 demo/demo_check.json              (signs-of-assault results from the digital twin's headless check)
-tools/build_sources_xlsx.py       (the source list shown in the References tab)
+tools/build_sources_xlsx.py       (the numbered References list; cite a source in page_src.html as {S4})
   -> explorer/sparshaguard_explorer.html  (one self-contained page; open it in a browser)
 
 Run:  python build_explorer.py
@@ -31,18 +31,56 @@ chk = json.loads((here.parent / "demo/demo_check.json").read_text())
 sig = {"struggle": chk["struggle_without_touch_caught"]["fused"], "runAlone": chk["running_alone_prompted"]["fused"],
        "touchRun": chk["touch_while_running_caught"]["fused"]}
 src = src.replace("/*SIGNS*/", json.dumps(sig))
-# references: every source in the paper-values workbook (tools/build_sources_xlsx.py)
+# references, IEEE style: [n] is source Sn in tools/build_sources_xlsx.py (and in the workbook)
+import html
 import importlib.util
+import re
 spec = importlib.util.spec_from_file_location("srcs", here.parent / "tools/build_sources_xlsx.py")
 srcs = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(srcs)
-used = {"In model v0.3", "In model (Oct 2026 update)"}
-refs = []
-for sid, auth, title, venue, year, typ, pref, url, note in srcs.SOURCES:
-    vals = [v for v in srcs.V if v[5] == sid]
-    tags = sorted({v[0] for v in vals}) or [typ]
-    refs.append({"id": sid, "authors": auth, "title": title, "venue": venue, "year": year, "url": url, "note": note,
-                 "topics": tags, "n": len(vals), "used": any(v[7] in used for v in vals)})
-src = src.replace("/*REFS*/", json.dumps(refs, ensure_ascii=False).replace("</", "<\\/"))
+
+
+def ieee_authors(a):
+    a = a.strip()
+    if a.startswith("(") and a.endswith(")"):
+        inner = a[1:-1]
+        # an unknown author is left out, as IEEE style does; an institution is kept
+        return "" if any(w in inner for w in ("authors", "survey")) else inner
+    if any(ch.isdigit() for ch in a):                # e.g. a patent number, not a list of names
+        return a
+    parts = [x.strip() for x in a.split(",") if x.strip()]
+    if len(parts) <= 1 or any("et al" in x for x in parts):
+        return ", ".join(parts)
+    return ", ".join(parts[:-1]) + (", and " if len(parts) > 2 else " and ") + parts[-1]
+
+
+def ieee(sid, auth, title, venue, year, url):
+    e = html.escape
+    link = (f'doi: <a href="{e(url)}" target="_blank" rel="noopener">{e(url.split("doi.org/")[1])}</a>' if "doi.org/" in url
+            else f'[Online]. Available: <a href="{e(url)}" target="_blank" rel="noopener">{e(url)}</a>')
+    who = ieee_authors(auth)
+    return (f'<li id="ref-{sid}"><span class="n">[{sid[1:]}]</span><span>{e(who) + ", " if who else ""}'
+            f'&ldquo;{e(title)},&rdquo; <i>{e(venue)}</i>, {year or "n.d"}. {link}</span></li>')
+
+
+reflist = "\n      ".join(ieee(s[0], s[1], s[2], s[3], s[4], s[7]) for s in srcs.SOURCES)
+src = src.replace("/*REFLIST*/", "\n      " + reflist + "\n    ")
+
+
+def cite(m):
+    out = []
+    for part in m.group(1).split(","):
+        nums = [int(x) for x in re.findall(r"S(\d+)", part)]
+        if len(nums) == 2:                       # a range: S40–S46
+            out.append(f'<a class="cite" href="#ref-S{nums[0]}">{nums[0]}</a>–<a class="cite" href="#ref-S{nums[1]}">{nums[1]}</a>')
+        else:
+            out.append(f'<a class="cite" href="#ref-S{nums[0]}">{nums[0]}</a>')
+    return "[" + ", ".join(out) + "]"
+
+
+src = re.sub(r"\{(S\d+(?:\s*[,–]\s*S\d+)*)\}", cite, src)
+ids = {s[0] for s in srcs.SOURCES}
+missing = sorted(set(re.findall(r'href="#ref-(S\d+)"', src)) - ids)
+assert not missing, f"cited but not in the source list: {missing}"
 (here / "sparshaguard_explorer.html").write_text(src.replace("/*MODEL*/", model), encoding="utf-8")
 print("wrote explorer/sparshaguard_explorer.html")

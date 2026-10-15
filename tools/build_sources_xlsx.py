@@ -244,6 +244,12 @@ SOURCES = [
     ("S58", "B. B. Majumdar, et al. (BITS Pilani Hyderabad)", "Harassment of women in public transport, Hyderabad",
      "Transportation Research Record", None, "Journal article", "-", "https://journals.sagepub.com/home/trr",
      "Numbers via press coverage (secondary)"),
+    ("S59", "K. Nabors, J. White",
+     "FastCap: A Multipole Accelerated 3-D Capacitance Extraction Program",
+     "IEEE Trans. Computer-Aided Design 10(11):1447-1459", 1991, "Journal article", "-",
+     "https://doi.org/10.1109/43.97624", "Reference solver used to check the 3D field calculation"),
+    ("S60", "H. Vogt, G. Atkinson, P. Nenzi", "Ngspice User's Manual", "ngspice project", None, "Manual", "-",
+     "https://ngspice.sourceforge.io/docs.html", "Circuit simulator used to check the Python solver"),
 ]
 
 SHORT = {"S1": "Sato et al. 2012 (Touché)", "S2": "Harrison et al. 2012 (Cap. Fingerprinting)",
@@ -266,7 +272,8 @@ SHORT = {"S1": "Sato et al. 2012 (Touché)", "S2": "Harrison et al. 2012 (Cap. F
          "S46": "Perry & Burnfield 2010", "S47": "Krašna et al. 2021", "S48": "Kwok et al. 2015",
          "S49": "Mow et al. 2024", "S50": "BMRCL EIA", "S51": "ISEC WP 437 (2019)", "S52": "Espressif ESP-FAQ",
          "S53": "Step-to-Charge 2024", "S54": "IEC 61000-4-2", "S55": "Ramallah ELF survey",
-         "S56": "Aziz et al. 2017", "S57": "Indraganti et al. 2014", "S58": "Majumdar et al. (Hyderabad)"}
+         "S56": "Aziz et al. 2017", "S57": "Indraganti et al. 2014", "S58": "Majumdar et al. (Hyderabad)",
+         "S59": "Nabors & White 1991 (FastCap)", "S60": "ngspice manual"}
 
 # --------------------------------------------------------------------------- values
 # category, parameter, value, unit, conditions, source, location, status, used-as, notes
