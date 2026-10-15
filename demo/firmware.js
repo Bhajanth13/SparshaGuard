@@ -205,6 +205,8 @@
     }
     get pinSecondsLeft() { return this.state === "prompt" ? Math.ceil(this.pinLeft / FS) : 0; }
     get holdSeconds() { return this.active ? this.count / FS : 0; }
+    // has another body touched her since (4 s before) this hold began? (rule F's wrist path)
+    get holdHasPerson() { return this.active && this.personSteps.some((t) => t >= this.holdStart - this.cfg.PERSON_BEFORE_S); }
 
     pressKey(k) {
       if (this.state !== "prompt") return;

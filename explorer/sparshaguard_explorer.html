@@ -729,11 +729,28 @@ const SG = (() => {
     return LOC_TEXT[st.loc][0].toUpperCase() + LOC_TEXT[st.loc].slice(1) + (st.bare ? ", bare skin" : `, through ${st.clothMm.toFixed(2)} mm of fabric`);
   }
 
-  function verdict(st, sc) {
+  // The answer at the top is the fused watch's decision (fz, from fused()); the sweep reading
+  // alone is explained in the text, because on its own it cannot tell her hand from his.
+  function verdict(st, sc, fz) {
     const d90 = SG.DRIFT[st.design][1];
     const pill = $("pill"), desc = $("vdesc");
     let cls, label, text;
-    if (st.touch === "none") {
+    const why = { self: "her own hand is the same body, so no charge is shared and there is no static step",
+      earthed: "the static channel saw her body pulled to 0 V: metal, not a person",
+      object: "the static channel saw only a small object", none: "the static channel felt no other body",
+      small: "the two bodies are at nearly the same voltage, so the static step is too small to confirm another body (Gate 1 must measure how often this happens)" };
+    if (st.touch !== "none" && fz && fz.fire) {
+      cls = "trig"; label = "Would start the PIN prompt";
+      text = fz.wristPath
+        ? `${eventName(st)}: the sweep changes by ${fmtPct(sc)} % (above ${SG.TRIGGER} %) and the static channel felt another body. Held for 2 seconds, this starts the 15-second PIN countdown.`
+        : `${eventName(st)}: the sweep can't feel this place, but the static channel felt another body and her arm is being pulled. The watch asks for her PIN.`;
+    } else if (st.touch !== "none" && sc >= SG.TRIGGER) {
+      cls = fz && fz.kind === "small" ? "marg" : "hid";
+      label = fz && fz.kind === "small" ? "Missed: static step too small" : "No alarm: no other body touched her";
+      text = `${eventName(st)} changes the sweep by ${fmtPct(sc)} %, above the ${SG.TRIGGER} % level, so a watch with the sweep alone would ask for her PIN. ` +
+        `But ${st.touch === "self" ? why.self : why[fz ? fz.kind : "none"] || why.none}, so the fused watch ignores it.` +
+        (st.bench ? " (On a bench the earthed watch ground also exaggerates the sweep.)" : "");
+    } else if (st.touch === "none") {
       cls = "hid"; label = "Nothing to detect";
       text = "This is the baseline. Pick an event to compare.";
     } else if (sc >= SG.TRIGGER) {
@@ -747,9 +764,11 @@ const SG = (() => {
       cls = "marg"; label = "Visible, below the trigger";
       text = `${eventName(st)} rises above normal drift for this design but stays under ${SG.TRIGGER}%. Lowering the threshold to catch it would also catch everyday drift.`;
     } else {
-      cls = "hid"; label = sc < SG.NOISE ? "Below the noise floor" : "Hidden in normal drift";
+      cls = "hid"; label = sc < SG.NOISE ? "No alarm: below the noise floor" : "No alarm: hidden in normal drift";
       text = sc < SG.NOISE
-        ? `${eventName(st)} changes the sweep by less than the measurement noise (${SG.NOISE}% of full scale). The capacitive sensor alone cannot see it; motion or sound has to catch this case.`
+        ? `${eventName(st)} changes the sweep by less than the measurement noise (${SG.NOISE}% of full scale). ` +
+          (st.touch === "bystander" ? "His body nearby shifts her static voltage only slowly, over about a second as he walks up, never in one sharp step, so there is no contact and no alarm."
+           : st.touch === "person" ? "The sweep cannot see it; the static channel decides." : "There is no sharp static step either, so no alarm.")
         : `${eventName(st)} changes the sweep less than ordinary sweat and strap movement do (up to ${d90}% for the ${DESIGN_TEXT[st.design]}). The capacitive sensor alone cannot see it.`;
     }
     pill.className = "pill " + cls;
@@ -821,6 +840,7 @@ const SG = (() => {
     const wristPath = sweep && person, anyPath = person && pull, fire = wristPath || anyPath;
     const pill = $("f-pill");
     const cls = fire ? "trig" : "hid";
+    const decision = { fire, wristPath, kind };
     pill.className = "pill " + cls; pill.innerHTML = ICON[cls] + "<span></span>";
     pill.lastChild.textContent = st.touch === "none" ? "Nothing to detect" : fire ? "PIN prompt" : "Ignored: no prompt";
     const li = (ok, t) => `<li><span class="ic ${ok ? "y" : "n"}">${ok ? "✓" : "–"}</span><span>${t}</span></li>`;
@@ -831,9 +851,11 @@ const SG = (() => {
       fire ? (wristPath ? "Wrist path: a held touch at the watch AND another body. " : "Anywhere path: another body AND pulling, wherever he touched her. ") + "She has 15 s to enter her PIN; a friend's touch is cancelled the same way." :
       st.touch === "person" ? (person ? "Another body touched her, but without a held touch at the watch or pulling this is treated as a brush. In the simulation a brush prompted only when it happened to coincide with her own brisk arm movement: about once in 9 hours." : "Both bodies at nearly the same voltage give no step. Then only the sweep can catch a wrist grab; this is the main thing Gate 1 must measure.")
       : sweep ? "The first design would have asked for the PIN here; the fused watch ignores it because no other body touched her." : "";
+    return decision;
   }
-  $("f-dv").addEventListener("change", () => last && fused(last.st, last.sc));
-  $("f-pull").addEventListener("change", () => last && fused(last.st, last.sc));
+  const refuse = () => last && verdict(last.st, last.sc, fused(last.st, last.sc));
+  $("f-dv").addEventListener("change", refuse);
+  $("f-pull").addEventListener("change", refuse);
 
   // ------------------------------------------------------------- wiring
   function render() {
@@ -859,8 +881,7 @@ const SG = (() => {
     $("design-hint").textContent = { single: "Basic: one skin electrode on the case back.",
       dual: "Adds an outer electrode on the case and strap, so a hand at the wrist closes a loop.",
       dual_shield: "Adds a driven shield as well. Recommended design." }[st.design];
-    verdict(st, sc);
-    fused(st, sc);
+    verdict(st, sc, fused(st, sc));
     drawSweep(sw);
     drawGauge(st, sc);
     changes(st);
