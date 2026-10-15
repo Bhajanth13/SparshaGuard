@@ -132,6 +132,21 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 .tblwrap { overflow-x: auto; }
 .note { font-size: 13px; color: var(--ink2); margin: 10px 0 0; }
 .tag.ok { color: var(--calm); border-color: var(--calm); }
+.refbar { display: grid; gap: 10px; margin: 4px 0 12px; }
+.refbar input { font: inherit; font-size: 15px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--ink); max-width: 520px; }
+.reftopics { display: flex; flex-wrap: wrap; gap: 6px; }
+.reftopics button { font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: var(--panel); color: var(--ink2); padding: 4px 10px; border-radius: 999px; cursor: pointer; }
+.reftopics button[aria-pressed="true"] { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+.refcount { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; }
+.reflist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.reflist li { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 4px 10px; }
+.reflist .rid { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); padding-top: 2px; }
+.reflist .rt { font-weight: 600; overflow-wrap: anywhere; }
+.reflist .ra { font-size: 13.5px; color: var(--ink2); overflow-wrap: anywhere; }
+.reflist .rm { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12px; }
+.reflist .rm a { color: var(--touch); overflow-wrap: anywhere; }
+.reflist .chipt { border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; color: var(--ink2); }
+.reflist .chipt.used { border-color: var(--calm); color: var(--calm); }
 .tbl.sig td small { color: var(--muted); }
 .tbl.sig td, .tbl.sig th { vertical-align: top; text-align: left; }
 .fusedopts { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--ink2); margin: 2px 0 10px; }
@@ -174,6 +189,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
     <nav class="tabs" role="tablist" aria-label="Section">
       <button type="button" role="tab" id="tab-touch" aria-selected="true" aria-controls="panel-touch">Touch explorer</button>
       <button type="button" role="tab" id="tab-body" aria-selected="false" aria-controls="panel-body">Whole-body study</button>
+      <button type="button" role="tab" id="tab-refs" aria-selected="false" aria-controls="panel-refs">References</button>
     </nav>
   </header>
 
@@ -411,9 +427,26 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   </section>
 
   </div>
+  <div id="panel-refs" role="tabpanel" aria-labelledby="tab-refs" hidden>
+  <section class="beyond" aria-labelledby="refs-h">
+    <header>
+      <div class="eyebrow">Sources · every value in the model traces back to one of these</div>
+      <h2 class="sec" id="refs-h">References</h2>
+      <p class="lede" id="refs-lede"></p>
+    </header>
+    <div class="refbar">
+      <input type="search" id="ref-q" placeholder="Search authors, titles, topics…" aria-label="Search references">
+      <div class="reftopics" id="ref-topics" role="group" aria-label="Filter by topic"></div>
+    </div>
+    <p class="refcount" id="ref-count" aria-live="polite"></p>
+    <ol class="reflist" id="ref-list"></ol>
+    <p class="note">Values seen only in abstracts, search snippets or press coverage are marked "secondary" in the workbook (docs/SparshaGuard_paper_values.xlsx), which lists each value with the page or table it came from.</p>
+  </section>
+  </div>
   <footer>
     <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché, amplitude only. Body capacitance from Jonassen's footwear measurements, skin under a dry steel electrode from Goyal et al., fabric from Ng &amp; Reaz, the watch's return path from Datta et al. and Maity et al., body-to-body coupling from Nath et al., shield performance from TI, ADC noise from an ESP32 measurement. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/parameter_sources.md.</p>
     <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (Whole-body study tab), checked with FastCap; the forearm case uses it with his hand 3 cm from the strap. The passive static channel and the fused logic are simulated in time (sg_passive.py, passive_stream.py), not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
+    <p><a href="#references" id="foot-refs">See all 58 sources in the References tab</a>.</p>
   </footer>
 </div>
 
@@ -764,7 +797,7 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   let rt = null;
   new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(() => { if (last) { drawSweep(last.sw); drawGauge(last.st, last.sc); } }, 60); }).observe($("plot1"));
   const showTab = (which) => {
-    for (const [t, pnl] of [["tab-touch", "panel-touch"], ["tab-body", "panel-body"]]) {
+    for (const [t, pnl] of [["tab-touch", "panel-touch"], ["tab-body", "panel-body"], ["tab-refs", "panel-refs"]]) {
       const on = t === which; $(t).setAttribute("aria-selected", String(on)); $(pnl).hidden = !on;
     }
     if (which === "tab-touch" && last) { drawSweep(last.sw); drawGauge(last.st, last.sc); }
@@ -772,6 +805,35 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   };
   $("tab-touch").addEventListener("click", () => showTab("tab-touch"));
   $("tab-body").addEventListener("click", () => showTab("tab-body"));
+  $("tab-refs").addEventListener("click", () => showTab("tab-refs"));
+  if (location.hash === "#references") showTab("tab-refs");
+  $("foot-refs").addEventListener("click", (e) => { e.preventDefault(); showTab("tab-refs"); $("refs-h").scrollIntoView(); });
+
+  // ------------------------------------------------------------- references (from tools/build_sources_xlsx.py)
+  const REFS = /*REFS*/;
+  const topics = [...new Set(REFS.flatMap((r) => r.topics))].sort();
+  let topic = null;
+  $("refs-lede").textContent = `${REFS.length} sources: the papers, standards and datasheets we went through. ${REFS.filter((r) => r.used).length} of them give values used in the model; the rest are benchmarks and background.`;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  $("ref-topics").innerHTML = ["All", ...topics].map((t) => `<button type="button" data-t="${esc(t)}" aria-pressed="${t === "All"}">${esc(t)}</button>`).join("");
+  function renderRefs() {
+    const q = $("ref-q").value.trim().toLowerCase();
+    const shown = REFS.filter((r) => (!topic || r.topics.includes(topic)) &&
+      (!q || [r.id, r.authors, r.title, r.venue, r.year, ...r.topics].join(" ").toLowerCase().includes(q)));
+    $("ref-count").textContent = `Showing ${shown.length} of ${REFS.length}`;
+    $("ref-list").innerHTML = shown.map((r) => `<li><span class="rid">${esc(r.id)}</span><div><div class="rt">${esc(r.title)}</div>` +
+      `<div class="ra">${esc(r.authors)} (${esc(r.year || "n.d.")}). ${esc(r.venue)}.${r.note ? " " + esc(r.note) + "." : ""}</div></div>` +
+      `<div class="rm">${r.used ? '<span class="chipt used">used in the model</span>' : ""}${r.topics.map((t) => `<span class="chipt">${esc(t)}</span>`).join("")}` +
+      `${r.n ? `<span class="chipt">${r.n} value${r.n > 1 ? "s" : ""}</span>` : ""}<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.url.replace(/^https?:\/\//, ""))}</a></div></li>`).join("");
+  }
+  $("ref-q").addEventListener("input", renderRefs);
+  $("ref-topics").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    topic = b.dataset.t === "All" ? null : b.dataset.t;
+    $("ref-topics").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    renderRefs();
+  });
+  renderRefs();
   markPreset("wrist");
   render();
 })();
