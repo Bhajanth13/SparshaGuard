@@ -449,7 +449,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { wait: 4, do: endScene },
       { wait: 1, do: () => { sensor.setContext("walking"); startScene("run:null"); }, say: "She runs to catch a bus.", sub: "Running alone is not an alarm; while she runs, any touch asks for the PIN at once." },
       { wait: 5, do: endScene },
-      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 1 unwanted prompt, against 24 for a sweep-only watch.", sub: "" }, { wait: 3 } ] },
+      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 0–1 unwanted prompts across runs, against 24–28 for a sweep-only watch.", sub: "" }, { wait: 3 } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {

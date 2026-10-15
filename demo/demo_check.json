@@ -45,7 +45,7 @@
  },
  "running_alone_prompted": {
   "active": 0,
-  "fused": 0.025
+  "fused": 0.016666666666666666
  },
  "touch_while_running_caught": {
   "active": 0,
@@ -55,7 +55,7 @@
   "walking": {
    "unwanted_prompts_per_hour": {
     "active": 0.6666666666666666,
-    "fused": 0.3333333333333333
+    "fused": 0
    },
    "friend_wrist_prompts_per_hour": {
     "active": 0,
@@ -65,9 +65,7 @@
     "active": {
      "self": 0.6666666666666666
     },
-    "fused": {
-     "no event (static / motion)": 0.3333333333333333
-    }
+    "fused": {}
    },
    "false_strap_alerts": 0,
    "closest_to_off_wrist_pct": 1.9646652140191634
@@ -113,6 +111,6 @@
  },
  "mean_unwanted_prompts_per_hour": {
   "active": 3.111111111111111,
-  "fused": 0.1111111111111111
+  "fused": 0
  }
 }

@@ -27,7 +27,8 @@
 //   struggling     5 or more jerks over 2 g in 4 s, not periodic, at irregular intervals
 //                  (CV > 0.35), with the wrist turning faster than 400 deg/s: a PIN prompt even if
 //                  no touch was felt (running is periodic and her own gestures are single); paused
-//                  while she runs and 10 s after, when any touch already prompts
+//                  until the 4 s window no longer contains running (a window half running, half
+//                  not, looks irregular)
 //   heart rate     confirmation only: the alert reports it against her usual rate over the last 2 min
 //   microphone     turns on at the PIN prompt; deleted on the correct PIN, sent with the alert
 //                  (and kept secretly after a duress PIN)
@@ -178,9 +179,9 @@
       const periodic = rmax > c.PERIODIC;
       if (enmo > c.RUN_ENMO && periodic) {
         if (now >= this.runningUntil && guarding) this._emit("info", `Running (wrist motion ${(1000 * enmo).toFixed(0)} mg, regular arm swing): a touch now prompts at once`);
-        this.runningUntil = now + c.RUN_HOLD_S;
+        this.runningUntil = now + c.RUN_HOLD_S; this.lastRunSeen = now;
       }
-      if (guarding && now > this.motionQuiet && now >= this.runningUntil && !periodic && edges.length >= c.STRUGGLE_N && cv > c.STRUGGLE_CV && gmax > c.STRUGGLE_GYRO) {
+      if (guarding && now > this.motionQuiet && now > (this.lastRunSeen ?? -99) + c.MOTION_S && !periodic && edges.length >= c.STRUGGLE_N && cv > c.STRUGGLE_CV && gmax > c.STRUGGLE_GYRO) {
         this.motionQuiet = now + 10; this.prompted = true;
         this._startPrompt(`Signs of a struggle: ${edges.length} irregular jerks over 2 g in ${c.MOTION_S} s, wrist turning ${gmax.toFixed(0)} deg/s: ask for PIN (15 s)`);
       }

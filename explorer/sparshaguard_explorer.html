@@ -1013,7 +1013,7 @@ const SG = (() => {
   }
 
   const FZ = {"1.0": {"loc": {"wrist": {"A": 0.858, "F": 0.875}, "forearm": {"A": 0.0, "F": 0.575}, "upper_arm": {"A": 0.0, "F": 0.6}, "other_arm": {"A": 0.0, "F": 0.558}, "shoulder": {"A": 0.0, "F": 0.592}, "waist": {"A": 0.0, "F": 0.567}, "face_hair": {"A": 0.0, "F": 0.592}}, "body": {"A": 0.123, "F": 0.623}, "fp": {"A": 4.206, "F": 0.111}}, "10.0": {"loc": {"wrist": {"A": 0.85, "F": 0.833}, "forearm": {"A": 0.0, "F": 0.592}, "upper_arm": {"A": 0.0, "F": 0.642}, "other_arm": {"A": 0.0, "F": 0.617}, "shoulder": {"A": 0.0, "F": 0.692}, "waist": {"A": 0.0, "F": 0.592}, "face_hair": {"A": 0.0, "F": 0.642}}, "body": {"A": 0.121, "F": 0.658}, "fp": {"A": 3.65, "F": 0.0}}, "100.0": {"loc": {"wrist": {"A": 0.933, "F": 0.867}, "forearm": {"A": 0.0, "F": 0.617}, "upper_arm": {"A": 0.0, "F": 0.625}, "other_arm": {"A": 0.0, "F": 0.575}, "shoulder": {"A": 0.0, "F": 0.567}, "waist": {"A": 0.0, "F": 0.6}, "face_hair": {"A": 0.0, "F": 0.55}}, "body": {"A": 0.133, "F": 0.629}, "fp": {"A": 4.261, "F": 0.056}}};
-  const SIG = {"struggle": 0.9916666666666667, "runAlone": 0.025, "touchRun": 0.9916666666666667};
+  const SIG = {"struggle": 0.9916666666666667, "runAlone": 0.016666666666666666, "touchRun": 0.9916666666666667};
   const pc = (x) => `${Math.round(100 * x)} %`;
   $("sig-struggle").textContent = `${pc(SIG.struggle)} of struggles caught without any touch`;
   $("sig-run").textContent = `${pc(SIG.touchRun)} of touches while running caught; ${pc(SIG.runAlone)} of runs alone prompted`;
