@@ -282,6 +282,7 @@
         this._emit("silent", `Duress PIN: SMS + GPS + voice recording sent and 112 called silently${this._hrText()}`);
       } else this._alert("Wrong PIN");
       this.entry = "";
+      if (this.state === "armed") this.motionQuiet = this.t / FS + 10;   // the same struggle must not re-prompt right after a cancel
     }
     _alert(why) {
       if (this.state === "alert") return;

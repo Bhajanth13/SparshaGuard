@@ -1,7 +1,7 @@
 # SparshaGuard: 2-minute video script
 
-> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:57, the twin operated with a cursor in Chrome, captions, NCRB card). Its
-> timed narration is in `video/demo_2min/README.md`; the plan below is the earlier manual-recording guide.
+> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:57, captions only: our intro, the website, the twin operated with a cursor in Chrome, the capacitance and static-electricity physics, the explorer and its references). Its
+> timed captions are in `video/demo_2min/README.md`; the plan below is the earlier manual-recording guide.
 
 Built around the demo's **Play all** run (about 115 s, timings measured in the browser), with a
 short intro before it and one closing line after it. Narration is about 150 words a minute; the

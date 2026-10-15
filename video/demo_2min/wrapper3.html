@@ -3,6 +3,7 @@
 *{box-sizing:border-box}html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#1d2329;font-family:"Segoe UI",system-ui,-apple-system,"Liberation Sans",Arial,sans-serif}
 .win{position:absolute;left:0;top:0;width:1920px;height:960px;background:#fff;overflow:hidden}
 .tabs{height:40px;background:#dee1e6;display:flex;align-items:flex-end;padding-left:8px;position:relative}
+.tab.bg{background:transparent;color:#3c4043}
 .tab{height:34px;width:260px;background:#fff;border-radius:9px 9px 0 0;display:flex;align-items:center;gap:8px;padding:0 12px;font-size:13px;color:#202124}
 .tab .fav{width:16px;height:16px;border-radius:4px;background:#c0306a;color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center}
 .tab .x{margin-left:auto;color:#5f6368;font-size:14px}
@@ -15,7 +16,7 @@
 .omni{flex:1;height:34px;border-radius:17px;background:#f1f3f4;display:flex;align-items:center;gap:10px;padding:0 14px;font-size:14.5px;color:#202124}
 .omni .host{color:#202124}.omni .path{color:#5f6368}
 .prof{width:28px;height:28px;border-radius:50%;background:#2f6f4f;color:#fff;font-size:13px;font-weight:600;display:grid;place-items:center;margin:0 4px}
-iframe{position:absolute;left:0;top:86px;width:1920px;height:874px;border:0}
+iframe{position:absolute;background:#fff;left:0;top:86px;width:1920px;height:874px;border:0}
 .cap{position:absolute;left:0;top:960px;width:1920px;height:120px;display:flex;align-items:center;justify-content:center;padding:0 120px;color:#fff;font-size:34px;line-height:1.3;font-weight:600;text-align:center;transition:opacity .35s}
 .cap.off{opacity:0}
 #cursor{position:absolute;left:0;top:0;width:26px;height:38px;pointer-events:none;z-index:10;transform:translate(960px,500px);filter:drop-shadow(1px 2px 2px rgba(0,0,0,.35))}
@@ -25,7 +26,7 @@ iframe{position:absolute;left:0;top:86px;width:1920px;height:874px;border:0}
 </style>
 <div class="win">
   <div class="tabs">
-    <div class="tab"><span class="fav">S</span>SparshaGuard Digital Twin<span class="x">✕</span></div>
+    <div id="tablist" style="display:flex;gap:2px;align-items:flex-end"></div>
     <div class="newtab">+</div>
     <div class="wctl"><span>—</span><span>☐</span><span>✕</span></div>
   </div>
@@ -33,11 +34,11 @@ iframe{position:absolute;left:0;top:86px;width:1920px;height:874px;border:0}
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z" fill="currentColor"/></svg></span>
     <span class="ic" style="opacity:.4"><svg viewBox="0 0 24 24"><path d="M4 11h12.2l-5.6-5.6L12 4l8 8-8 8-1.4-1.4 5.6-5.6H4z" fill="currentColor"/></svg></span>
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M17.6 6.4A8 8 0 1 0 19.7 14h-2.1a6 6 0 1 1-1.4-6.2L13 11h7V4z" fill="currentColor"/></svg></span>
-    <div class="omni"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9z" fill="#5f6368"/></svg><span><span class="host">bhajanth13.github.io</span><span class="path">/SparshaGuard/demo/sparshaguard_demo.html</span></span><span style="margin-left:auto;color:#5f6368">☆</span></div>
+    <div class="omni"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M18 8h-1V6A5 5 0 0 0 7 6v2H6a2 2 0 0 0-2 2v10c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zM9 6a3 3 0 0 1 6 0v2H9z" fill="#5f6368"/></svg><span><span class="host">bhajanth13.github.io</span><span class="path" id="urlpath">/SparshaGuard/</span></span><span style="margin-left:auto;color:#5f6368">☆</span></div>
     <span class="prof">B</span>
     <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></span>
   </div>
-  <iframe id="app" src="/demo/sparshaguard_demo.html"></iframe>
+  <iframe class="tabframe" data-i="0" src="/index.html"></iframe>
 </div>
 <div class="cap off" id="cap"></div>
 <div id="ripple"></div>
@@ -52,6 +53,18 @@ window.moveCursor = (x, y, ms) => new Promise((res) => {
     k < 1 ? requestAnimationFrame(f) : res(); };
   requestAnimationFrame(f);
 });
+window.setTabs = (titles, active) => {
+  document.getElementById("tablist").innerHTML = titles.map((t, i) => `<div class="tab ${i === active ? "" : "bg"}"><span class="fav">S</span>${t}<span class="x">✕</span></div>`).join("");
+};
+// one iframe per tab, kept loaded like real browser tabs; showTab switches instantly
+window.showTab = (i, path) => { document.querySelectorAll("iframe.tabframe").forEach((f, k) => (f.style.visibility = k === i ? "visible" : "hidden")); document.getElementById("urlpath").textContent = path; };
+window.openPage = (src, path, i) => new Promise((res) => {
+  let f = document.querySelector(`iframe.tabframe[data-i="${i}"]`);
+  if (!f) { f = document.createElement("iframe"); f.className = "tabframe"; f.dataset.i = i; document.querySelector(".win").appendChild(f); }
+  f.onload = () => res(); f.src = src; showTab(i, path);
+});
+window.tabCenter = (i) => { const t = document.querySelectorAll("#tablist .tab")[i].getBoundingClientRect(); return [t.left + t.width / 2, t.top + t.height / 2]; };
+setTabs(["SparshaGuard"], 0);
 window.ripple = () => { const r = document.getElementById("ripple"); r.style.left = cx - 17 + "px"; r.style.top = cy - 17 + "px"; r.classList.remove("go"); void r.offsetWidth; r.classList.add("go"); };
 window.caption = (t) => { const c = document.getElementById("cap"); c.classList.add("off"); setTimeout(() => { c.textContent = t; if (t) c.classList.remove("off"); }, 350); };
 </script>
