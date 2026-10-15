@@ -137,8 +137,8 @@ canvas { width: 100%; display: block; }
 .btn.primary { background: var(--touch); border-color: var(--touch); color: #fff; }
 .btn:disabled { opacity: .45; cursor: default; }
 .hint { font-size: 12.5px; color: var(--muted); margin-left: auto; }
-.tiles { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+.tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .tile { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 10px 8px; cursor: pointer; display: grid; justify-items: center; gap: 4px; text-align: center; font-size: 13px; font-weight: 500; }
 .tile svg { width: 34px; height: 34px; }
@@ -164,6 +164,7 @@ canvas { width: 100%; display: block; }
 .log li { display: grid; grid-template-columns: 92px 1fr; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--grid); }
 .log .lt { font-family: var(--f-mono); color: var(--muted); }
 .log .prompt { color: var(--warn); font-weight: 600; } .log .alert, .log .silent { color: var(--crit); font-weight: 600; } .log .cancel { color: var(--calm); font-weight: 600; }
+.voice { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: var(--crit-soft); font-size: 12px; }
 .notes { font-size: 12.5px; color: var(--ink2); margin: 10px 0 0; }
 footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; }
 </style>
@@ -201,6 +202,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <g id="m-self" class="m"><path d="M52 190 Q100 214 150 184" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="5 5"/><circle class="dot" cx="152" cy="181" r="5"/></g>
         <g id="m-otherarm" class="m"><circle class="ring" cx="56" cy="112" r="14"/><circle class="dot" cx="56" cy="112" r="5"/></g>
         <g id="m-phone" class="m"><rect class="obj" x="140" y="186" width="12" height="20" rx="3"/></g>
+        <g id="m-run" class="m"><path d="M18 150 h26 M10 170 h30 M18 190 h22 M22 230 h40 M14 250 h46" stroke="var(--touch)" stroke-width="3" stroke-linecap="round" fill="none"/></g>
+        <g id="m-struggle" class="m"><path d="M168 150 l14 -10 M172 168 l18 0 M168 186 l14 10 M32 150 l-14 -10 M28 168 l-18 0 M32 186 l-14 10" stroke="var(--touch)" stroke-width="3" stroke-linecap="round" fill="none"/></g>
         <g id="m-strap" class="m"><path d="M160 178 Q186 160 188 130" fill="none" stroke="var(--crit)" stroke-width="2.5" stroke-dasharray="5 5"/><rect x="180" y="118" width="16" height="13" rx="4" fill="var(--crit)"/></g>
       </svg>
       <div class="touchnow" id="touchnow"></div>
@@ -244,7 +247,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       <button class="btn primary" id="playall">Play all</button>
       <button class="btn" id="playone">Play this chapter</button>
       <button class="btn" id="next">Next chapter</button>
-      <span class="hint">About 2 minutes for all seven chapters</span>
+      <span class="hint">About 2 minutes for all eight chapters</span>
     </div>
   </div>
   <div class="card bar" id="bar-try" hidden>
@@ -267,9 +270,9 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <label>Static on bodies <select id="v0"><option value="1">Low (~1 V)</option><option value="10" selected>Medium (~10 V)</option><option value="100">High (~100 V)</option></select></label>
       </div>
       <div class="facts">
-        <div class="fact"><div class="v" id="f-body">71 %</div><div class="k">of grabs caught over 7 body places (sweep only: 13 %)</div></div>
-        <div class="fact"><div class="v" id="f-fp">1</div><div class="k">unwanted PIN prompts in 9 h of simulated daily life (sweep only: 24)</div></div>
-        <div class="fact"><div class="v">95 %</div><div class="k">of wrist grabs caught (signal ~16 %, noise ~0.1 %)</div></div>
+        <div class="fact"><div class="v" id="f-body">70 %</div><div class="k">of grabs caught over 7 body places (sweep only: 13 %)</div></div>
+        <div class="fact"><div class="v" id="f-fp">1</div><div class="k">unwanted PIN prompts in 9 h of simulated daily life (sweep only: 28)</div></div>
+        <div class="fact"><div class="v">99 %</div><div class="k">of wrist grabs caught (signal ~16 %, noise ~0.1 %)</div></div>
         <div class="fact"><div class="v">100 %</div><div class="k">of strap removals caught, no false alarms</div></div>
       </div>
       <div class="legend"><span style="--c: var(--base)">her baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
@@ -481,6 +484,12 @@ const SG = (() => {
 //   (2 mV, rms 0.5 mV) [S15]. The typical body voltage v0 is not yet measured on Indian floors [E].
 //   Accelerometer: arm swing at half the step rate [S44], wrist ENMO 140-350 mg [S43]; bus
 //   starting/braking 0.1-0.34 g [S45]; gestures and grab jerks are estimates [E].
+//   Her own activities (all [E] unless tagged): running, 2.5-3.0 steps/s with wrist ENMO above
+//   600 mg [S43]; struggling to get free, irregular jerks of 2-4 g (~2.5 per second) with fast
+//   wrist rotation. Gyroscope |omega| in deg/s [E]: arm swing 100-200 walking, 300-600 running,
+//   gestures 150-350, pulls 200-500, struggling 400-900. Heart rate [E]: resting 65-85 bpm,
+//   +15 walking, +55 running, +30 under stress (a pull or a struggle), rising with a ~20 s and
+//   falling with a ~60 s time constant.
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -528,6 +537,7 @@ const SG = (() => {
 
   // ------------------------------------------------------------------ passive channel
   const PFS = 500, IMU_FS = 50, ONE_FOOT = 100 / 160;
+  const ACTIVITY = new Set(["run", "struggle"]);       // her own movements, not touches
   const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
   const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
@@ -550,6 +560,9 @@ const SG = (() => {
       this.inj = [];                                                            // charge being separated [{left, per}]
       this.app = null; this.pinned = false; this.small = null; this.hum = 1;
       this.sway = 0; this.phase = R.uni(0, 6.3); this.pulses = []; this.n = 0; this.ni = 0;
+      this.running = false; this.struggling = false; this.stress = 0;
+      this.runCad = R.uni(2.5, 3.0); this.runEnmo = R.uni(0.6, 1.0);
+      this.swing = R.uni(100, 200); this.hrRest = R.uni(65, 85); this.hr = this.hrRest + 10;
     }
     setContext(name, first) {
       this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
@@ -572,8 +585,13 @@ const SG = (() => {
         this.hum = R.uni(0.6, 1.6);
         if (ev.pull) {                                                          // 2-5 jerks of 1.5-3 g in 3 s [E]
           const times = ev.pullTimes || Array.from({ length: 2 + Math.floor(R.u() * 4) }, () => R.uni(0.2, 3.0));
-          for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0) });
+          for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0), gy: R.uni(200, 500) });
+          this.stress = 30;
         }
+      } else if (ev.kind === "run") {
+        this.running = true;
+      } else if (ev.kind === "struggle") {
+        this.struggling = true; this.stress = 30;
       } else if (ev.kind === "bystander") {
         this.app = { va: this.strangerVoltage(), dmin: R.uni(0.2, 0.6), s: 0, leaving: false };
       } else if (ev.kind === "object" && /railing|pole|metal/.test(ev.detail || "")) {
@@ -585,7 +603,7 @@ const SG = (() => {
     end() {
       if (this.pinned) { this.pinned = false; this.q = -this._vind() * this.cb * this._cm; }   // keeps the charge that cancelled vind
       if (this.app) { this.app.leaving = true; this.app.s = 0; }
-      this.hum = 1; this.contact = null;
+      this.hum = 1; this.contact = null; this.running = false; this.struggling = false;
     }
     _vind() {
       const A = this.app; if (!A) return 0;
@@ -617,19 +635,28 @@ const SG = (() => {
         u[i] = this.k * v + rms * R.n();
         hum[i] = this.indoor ? this.hum : 0;
       }
-      const nI = IMU_FS / FS, acc = new Float64Array(nI);
+      const nI = IMU_FS / FS, acc = new Float64Array(nI), gyro = new Float64Array(nI);
       const sw = { walking: 0.05, bus: 0.10, desk: 0.02 }[this.ctxName], ai = Math.exp(-1 / IMU_FS);
       for (let i = 0; i < nI; i++, this.ni++) {
         const t = this.ni / IMU_FS;
         this.sway = ai * this.sway + Math.sqrt(1 - Math.exp(-2 / IMU_FS)) * sw * R.n();
-        let a = 1 + this.sway + (this.walking ? Math.PI * this.enmo * Math.sin(Math.PI * this.cadence * t + this.phase) : 0);
-        if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2) });   // her own gestures [E]
-        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34) });   // starting/braking [S45], 12/h [E]
-        for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) a += p.g * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); }
+        const ph = Math.sin((this.running ? this.runCad : this.cadence) * Math.PI * t + this.phase);
+        let a = 1 + this.sway, w = Math.abs(this.sway) * 100 + 5 * Math.abs(R.n());
+        if (this.running) { a += Math.PI * this.runEnmo * ph; w += 450 * Math.abs(ph); }         // [S43 / E]
+        else if (this.walking) { a += Math.PI * this.enmo * ph; w += this.swing * Math.abs(ph); }  // [S43, S44 / E]
+        if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2), gy: R.uni(150, 350) });   // her own gestures [E]
+        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34), gy: 20 });   // starting/braking [S45], 12/h [E]
+        if (this.struggling && R.u() < 2.5 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.08, 0.2) * IMU_FS), g: R.uni(2, 4), gy: R.uni(400, 900) });   // [E]
+        for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) { const k = 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); a += p.g * k; w = Math.max(w, (p.gy || 0) * k); } }
         this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
-        acc[i] = a;
+        acc[i] = a; gyro[i] = w;
       }
-      return { u, hum, acc, rms, indoor: this.indoor };
+      // heart rate, once per frame [E]
+      const target = this.hrRest + (this.running ? 55 : this.walking ? 15 : 0) + this.stress;
+      this.hr += (target - this.hr) * (1 / FS) / (target > this.hr ? 20 : 60);
+      this.stress *= Math.exp(-1 / (FS * 120));
+      if (this.struggling) this.stress = 30;
+      return { u, hum, acc, gyro, hr: this.hr, rms, indoor: this.indoor };
     }
   }
 
@@ -672,7 +699,8 @@ const SG = (() => {
       p.hyd = Math.min(1, Math.max(0, 0.5 + this.hyd.step()));
       p.C_GB *= 1 + this.gb.step();
       p.C_BE *= Math.exp(this.be.step());
-      const v = this._sweep(p, this.event);
+      const touch = this.event && !ACTIVITY.has(this.event.kind) ? this.event : null;   // running or struggling is not a touch
+      const v = this._sweep(p, touch);
       const out = new Float64Array(v.length);
       for (let i = 0; i < v.length; i++)
         out[i] = Math.hypot(v[i].re + NOISE * this.R.n(), v[i].im + NOISE * this.R.n());
@@ -713,6 +741,17 @@ const SG = (() => {
 //   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
 //                 within 3 s): a grab that pulls or shakes her, anywhere on her body
 // Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
+// Signs of assault from her own movement (accelerometer + gyroscope; thresholds are estimates [E]):
+//   running        wrist ENMO above 0.45 g for 4 s and periodic (autocorrelation above 0.5 at the
+//                  arm-swing period; running is above 600 mg [S43]); while she runs, and 10 s
+//                  after, any person step prompts at once
+//   struggling     5 or more jerks over 2 g in 4 s, not periodic, at irregular intervals
+//                  (CV > 0.35), with the wrist turning faster than 400 deg/s: a PIN prompt even if
+//                  no touch was felt (running is periodic and her own gestures are single); paused
+//                  while she runs and 10 s after, when any touch already prompts
+//   heart rate     confirmation only: the alert reports it against her usual rate over the last 2 min
+//   microphone     turns on at the PIN prompt; deleted on the correct PIN, sent with the alert
+//                  (and kept secretly after a duress PIN)
 // Then the product's state machine: 15 s PIN window; correct PIN cancels, wrong PIN or no PIN
 // alerts, the duress PIN shows "Cancelled" but alerts silently.
 (function (root) {
@@ -723,6 +762,7 @@ const SG = (() => {
     RULE: "fused",            // "fused" (rule F) or "active" (today's rule A: active sweep alone)
     PFS: 500, IMU_FS: 50, STEP_K: 6, SETTLE: 0.3, LOCAL_K: 8, OBJECT_FRAC: 0.12,
     PERSON_BEFORE_S: 4, AGIT_G: 1.25, AGIT_N: 2, AGIT_S: 3,
+    RUN_ENMO: 0.45, RUN_HOLD_S: 10, STRUGGLE_G: 2.0, STRUGGLE_N: 5, STRUGGLE_CV: 0.35, STRUGGLE_GYRO: 400, MOTION_S: 4, PERIODIC: 0.5,
   };
   const median = (a) => { const b = Float64Array.from(a).sort(), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
   const mean = (a, i0, i1) => { let s = 0; for (let i = i0; i < i1; i++) s += a[i]; return s / (i1 - i0); };
@@ -776,7 +816,8 @@ const SG = (() => {
       this.log = [];
       this.silentAlert = false;
       this.steps = new StepDetector(this.cfg);
-      this.imu = [];                  // [t, |a| in g] over the last 5 s
+      this.imu = [];                  // [t, |a| in g, |omega| in deg/s] over the last 5 s
+      this.hrHist = []; this.hr = null; this.runningUntil = -1; this.motionQuiet = -1; this.mic = null;
       this.passiveSeen = false;
       this._reset();
     }
@@ -800,7 +841,8 @@ const SG = (() => {
       const c = this.cfg, now = this.t / FS;
       this.passiveSeen = true;
       const n = p.acc.length;
-      for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i]]);
+      for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i], p.gyro ? p.gyro[i] : 0]);
+      if (p.hr) { this.hr = p.hr; this.hrHist.push(p.hr); if (this.hrHist.length > 120 * FS) this.hrHist.shift(); }
       while (this.imu.length && this.imu[0][0] < now - 5) this.imu.shift();
       const guarding = this.state === "armed";
       for (const s of this.steps.push(p)) {
@@ -812,10 +854,14 @@ const SG = (() => {
         else {
           this.personSteps.push(s.t);
           this._emit("touch", `Static: charge-sharing step ${v} in under 2 ms: another body touched her`);
+          if (this.fused && now < this.runningUntil) {
+            this.prompted = true; this._startPrompt("Another body touched her while she was running: ask for PIN (15 s)"); continue;
+          }
           if (this.fused && !this.watching) { this.watching = s.t; this._emit("info", "Watching her arm for 3 s: is she being pulled?"); }
         }
       }
       this.personSteps = this.personSteps.filter((t) => t > now - 10);
+      if (this.fused) this._motion(now, guarding);
       if (this.watching !== null) {
         const jerks = this.jerksSince(this.watching);
         if (guarding && this.fused && jerks >= c.AGIT_N) {
@@ -826,6 +872,44 @@ const SG = (() => {
         }
       }
     }
+    // running and struggling, from the last MOTION_S seconds of accelerometer + gyroscope
+    _motion(now, guarding) {
+      const c = this.cfg, win = this.imu.filter(([t]) => t > now - c.MOTION_S);
+      if (win.length < c.MOTION_S * c.IMU_FS * 0.9) return;
+      let enmo = 0, gmax = 0; const edges = []; let prev = null;
+      for (const [t, a, g] of win) {
+        enmo += Math.max(0, Math.abs(a) - 1); gmax = Math.max(gmax, g);
+        const x = Math.abs(a - 1) > c.STRUGGLE_G; if (prev === false && x) edges.push(t); prev = x;
+      }
+      enmo /= win.length;
+      let cv = 0;
+      if (edges.length > 2) {
+        const d = edges.slice(1).map((t, i) => t - edges[i]), m = d.reduce((s, x) => s + x, 0) / d.length;
+        cv = Math.sqrt(d.reduce((s, x) => s + (x - m) ** 2, 0) / d.length) / m;
+      }
+      // periodicity: the highest autocorrelation of |a| - 1 g at lags of 0.2-0.8 s (arm swing)
+      const x = win.map(([, a]) => Math.abs(a) - 1), m = x.reduce((s, v) => s + v, 0) / x.length;
+      let r0 = 0; for (const v of x) r0 += (v - m) ** 2;
+      let rmax = 0;
+      for (let L = Math.round(0.2 * c.IMU_FS); L <= Math.round(0.8 * c.IMU_FS); L++) {
+        let r = 0; for (let i = L; i < x.length; i++) r += (x[i] - m) * (x[i - L] - m);
+        rmax = Math.max(rmax, r0 > 0 ? r / r0 : 0);
+      }
+      this.periodicity = rmax;
+      const periodic = rmax > c.PERIODIC;
+      if (enmo > c.RUN_ENMO && periodic) {
+        if (now >= this.runningUntil && guarding) this._emit("info", `Running (wrist motion ${(1000 * enmo).toFixed(0)} mg, regular arm swing): a touch now prompts at once`);
+        this.runningUntil = now + c.RUN_HOLD_S;
+      }
+      if (guarding && now > this.motionQuiet && now >= this.runningUntil && !periodic && edges.length >= c.STRUGGLE_N && cv > c.STRUGGLE_CV && gmax > c.STRUGGLE_GYRO) {
+        this.motionQuiet = now + 10; this.prompted = true;
+        this._startPrompt(`Signs of a struggle: ${edges.length} irregular jerks over 2 g in ${c.MOTION_S} s, wrist turning ${gmax.toFixed(0)} deg/s: ask for PIN (15 s)`);
+      }
+    }
+    get running() { return this.t / FS < this.runningUntil; }
+    get hrRest() { if (this.hrHist.length < 10) return null; const s = [...this.hrHist].sort((a, b) => a - b); return s[Math.floor(s.length * 0.2)]; }
+    get micOn() { return !!this.mic; }
+
     jerksSince(t0) {                  // rising edges of |a - 1 g| > 1.25 g in [t0, t0 + 3 s]
       let n = 0, prev = null;
       for (const [t, a] of this.imu) {
@@ -890,6 +974,8 @@ const SG = (() => {
       if (this.state !== "armed") return;
       this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = ""; this.watching = null;
       this._emit("prompt", why || "Touch held 2 s: vibrate, ask for PIN (15 s)");
+      this.mic = { start: this.t / FS }; this.motionQuiet = this.t / FS + 10;
+      this._emit("info", "Microphone on: recording from the PIN prompt");
     }
     _tickPrompt() {
       if (this.state !== "prompt") return;
@@ -909,18 +995,22 @@ const SG = (() => {
     }
     submitPin(pin) {
       if (this.state !== "prompt") return;
-      if (pin === this.cfg.PIN) { this.state = "armed"; this._emit("cancel", "Correct PIN: cancelled, still guarding"); }
+      if (pin === this.cfg.PIN) { this.state = "armed"; this.mic = null; this._emit("cancel", "Correct PIN: cancelled, still guarding; recording deleted"); }
       else if (pin === this.cfg.DURESS_PIN) {
         this.state = "armed"; this.silentAlert = true;
         this._emit("cancel", "Screen shows \"Cancelled\"");
-        this._emit("silent", "Duress PIN: SMS + GPS sent and 112 called silently");
+        this._emit("silent", `Duress PIN: SMS + GPS + voice recording sent and 112 called silently${this._hrText()}`);
       } else this._alert("Wrong PIN");
       this.entry = "";
     }
     _alert(why) {
       if (this.state === "alert") return;
       this.state = "alert";
-      this._emit("alert", `${why}: SMS + GPS to contacts, calling 112, recording audio`);
+      this._emit("alert", `${why}: SMS + GPS + voice recording (from the PIN prompt) to contacts, calling 112${this._hrText()}`);
+    }
+    _hrText() {
+      const r = this.hrRest;
+      return this.hr && r ? `; heart rate ${this.hr.toFixed(0)} bpm (her usual ~${r.toFixed(0)} before this)` : "";
     }
   }
 
@@ -963,6 +1053,8 @@ const SG = (() => {
     { k: "self:null", name: "Her own hand", sub: "holds the watch", icon: "self" },
     { k: "object:railing_wrist", name: "Strap on a metal pole", sub: "on the bus", icon: "pole" },
     { k: "object:phone", name: "Hold her phone", sub: "wrist on it", icon: "phone" },
+    { k: "run:null", name: "She runs", sub: "running away", icon: "run" },
+    { k: "struggle:null", name: "She fights back", sub: "resisting", icon: "fight" },
     { k: "strap_off:null", name: "Rip the watch off", sub: "strap removed", icon: "off" },
   ];
   const ICONS = {
@@ -974,9 +1066,11 @@ const SG = (() => {
     pole: '<rect x="21" y="2" width="5" height="30" rx="2" fill="currentColor" opacity=".6"/><rect x="8" y="12" width="12" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
     brush: '<circle cx="9" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 30 Q3 16 9 16 Q15 16 15 30" fill="none" stroke="currentColor" stroke-width="2"/><path d="M18 12 Q26 16 30 24" fill="none" stroke="var(--touch)" stroke-width="2.5" stroke-dasharray="3 3"/>',
     phone: '<rect x="11" y="4" width="13" height="26" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="25" r="1.6" fill="currentColor"/>',
+    run: '<circle cx="21" cy="6" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19 11 L14 20 L20 23 L17 31 M14 20 L8 18 M18 13 L25 17 M3 12 h6 M2 17 h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    fight: '<circle cx="17" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M17 11 V22 M17 14 L8 9 M17 14 L26 9 M17 22 L12 31 M17 22 L22 31" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 4 l3 3 M30 4 l-3 3 M3 13 h3 M31 13 h-3" stroke="var(--touch)" stroke-width="2" stroke-linecap="round"/>',
     off: '<rect x="14" y="5" width="12" height="10" rx="3" fill="none" stroke="var(--crit)" stroke-width="2"/><path d="M4 28 Q10 22 16 22 M10 18 L6 14" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 18 L18 26" stroke="var(--crit)" stroke-width="2" stroke-dasharray="3 3"/>',
   };
-  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander", "brush:other_arm": "m-otherarm", "object:phone": "m-phone",
+  const MARK = { "person:wrist": "m-wrist", "person:forearm": "m-forearm", "person:shoulder": "m-shoulder", "bystander:null": "m-bystander", "brush:other_arm": "m-otherarm", "object:phone": "m-phone", "run:null": "m-run", "struggle:null": "m-struggle",
     "self:null": "m-self", "object:railing_wrist": "m-pole", "strap_off:null": "m-strap", "object:wood_table": "m-table" };
   const NAME = Object.fromEntries(TILES.map((t) => [t.k, t.name]));
 
@@ -1000,6 +1094,8 @@ const SG = (() => {
     const e = sensor.event;
     if (!e) return `<span style="color:var(--muted)">Nobody is touching her.</span>`;
     let s = `<b>${e.label || NAME[scn] || "Touch"}</b>`;
+    if (e.kind === "run") s += " · her own movement, not a touch";
+    if (e.kind === "struggle") s += " · irregular jerks, wrist turning fast";
     if (e.kind === "person") {
       s += e.bare ? " · bare skin" : " · through clothing";
       if (e.pull) s += " · pulls her arm";
@@ -1037,9 +1133,9 @@ const SG = (() => {
     { t: "A stranger grabs her wrist", steps: [
       { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
       { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %, and her body's static jumps too.", sub: "His palm closes a path through the strap electrode; touching her, his body shares its charge with hers." },
-      { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }), say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds." },
+      { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }), say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds. The microphone turns on." },
       { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
-      { until: () => fw.state === "alert", say: "Alert: her live location goes to her contacts, 112 is called, audio is recorded.", sub: "No button needed. The touch itself raised the alarm." },
+      { until: () => fw.state === "alert", say: "Alert: her live location and the voice recording go to her contacts, and 112 is called.", sub: "With her heart rate. No button needed: the touch itself raised the alarm." },
       { wait: 4, do: endScene } ] },
     { t: "A friend holds her hand", steps: [
       { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, pull: false, vA: otherVoltage(), label: "A friend holds her hand" }) },
@@ -1064,6 +1160,12 @@ const SG = (() => {
       { until: promptOrRetry("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], label: "A stranger grabs her shoulder and pulls" }), say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
       { wait: 1.5, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
       { wait: 2, do: endScene }, { wait: 1 } ] },
+    { t: "She fights back", steps: [
+      { ready: true, say: "Someone corners her and she struggles to get free.", sub: "", do: () => startScene("struggle:null", { label: "She struggles to get free" }) },
+      { wait: 0.8, say: "No touch was felt yet, but her wrist jerks irregularly and turns fast.", sub: "Accelerometer and gyroscope: a struggle looks nothing like walking, running or a wave." },
+      { until: promptOrRetry("struggle:null", { label: "She struggles to get free" }), say: "Signs of a struggle: the watch asks for her PIN, and the microphone turns on.", sub: "" },
+      { wait: 1.2, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 1.5, do: endScene }, { wait: 1 } ] },
     { t: "Everyday life", steps: [
       { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
       { wait: 1, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
@@ -1074,7 +1176,9 @@ const SG = (() => {
       { wait: 2, do: endScene },
       { wait: 3, do: () => startScene("bystander:null"), say: "Someone stands very close.", sub: "No touch: no sharp step, nothing on the sweep." },
       { wait: 4, do: endScene },
-      { wait: 1.5, do: () => sensor.setContext("walking"), say: "No PIN prompts. In 9 simulated hours of daily life: 1 unwanted prompt, against 24 for a sweep-only watch.", sub: "" }, { wait: 3 } ] },
+      { wait: 1, do: () => { sensor.setContext("walking"); startScene("run:null"); }, say: "She runs to catch a bus.", sub: "Running alone is not an alarm; while she runs, any touch asks for the PIN at once." },
+      { wait: 5, do: endScene },
+      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 1 unwanted prompt, against 24 for a sweep-only watch.", sub: "" }, { wait: 3 } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
@@ -1148,8 +1252,8 @@ const SG = (() => {
     cancel: () => `<div class="sclock" data-v="time"></div><div class="sbig">Cancelled</div><div class="ssmall">Still guarding</div>`,
     off: () => `<div class="sclock" data-v="face"></div>${shield("#5d6b78")}<div class="sbig">Guard Mode off</div><button class="sbtn" data-act="on">Turn on</button>`,
     learning: () => `<div class="sclock" data-v="time"></div>${shield("#fab219")}<div class="sbig">Learning…</div><div class="ssmall">keep still</div>`,
-    armed: () => `<div class="sclock" data-v="face"></div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span>touch sensor on</div><button class="sbtn off" data-act="off">Turn off</button>`,
-    prompt: () => `<div class="ssmall" style="margin:0">Enter PIN</div><div class="count" data-v="count"></div><div class="dots" data-v="dots"><i></i><i></i><i></i><i></i></div><div class="pad">${KEYS}</div>`,
+    armed: () => `<div class="sclock" data-v="face"></div>${shield("#5cc98a")}<div class="sbig">Guarding</div><div class="ssmall"><span class="pulse"></span><span data-v="hr">touch sensor on</span></div><button class="sbtn off" data-act="off">Turn off</button>`,
+    prompt: () => `<div class="ssmall" style="margin:0">Enter PIN · <span style="color:#ff8a8a">● mic on</span></div><div class="count" data-v="count"></div><div class="dots" data-v="dots"><i></i><i></i><i></i><i></i></div><div class="pad">${KEYS}</div>`,
     alert: () => `<div class="sclock" style="color:#ffb3b3" data-v="time"></div><div class="sbig" style="color:#fff">Alert sent</div><div class="ssmall" style="color:#ffd0d0">location to 2 contacts</div><div class="ssmall" style="color:#fff;font-size:13.5px">Calling 112 · <span data-v="call"></span></div><div class="rec">recording</div>`,
   };
   const setText = (sel, txt) => { const el = $("screen").querySelector(`[data-v="${sel}"]`); if (el && el.textContent !== txt) el.textContent = txt; };
@@ -1160,6 +1264,7 @@ const SG = (() => {
     const key = flash && simT < flash.until ? "cancel" : fw.state;
     if (key !== lastScreen) { const scr = $("screen"); scr.className = key === "alert" ? "screen alert" : "screen"; scr.innerHTML = LAYOUT[key](); lastScreen = key; }
     setText("time", clock()); setText("face", `${rtcDate()} · ${rtcTime(false)}`);
+    if (fw.hr) setText("hr", `♥ ${fw.hr.toFixed(0)} bpm${fw.running ? " · running" : ""}`);
     const now = simT / FS;
     if (key === "cancel") { status = "Cancelled"; ringCol = "var(--calm)"; frac = 1; }
     else if (key === "off") status = "Guard Mode off";
@@ -1169,6 +1274,7 @@ const SG = (() => {
       else if (fw.active && fw.vetoed) { status = "Touch on the watch, but no other body: ignored"; ringCol = "var(--calm)"; frac = 1; }
       else if (fw.active && !fw.prompted && fw.fused && !fw.holdHasPerson) { status = "Touch on the watch: checking for another body…"; ringCol = "var(--base)"; frac = Math.min(1, fw.holdSeconds / 2); }
       else if (fw.active && !fw.prompted) { status = `${fw.fused ? "Another body's touch held" : "Touch held"} ${fw.holdSeconds.toFixed(1)} of 2 s`; ringCol = "var(--touch)"; frac = fw.holdSeconds / 2; }
+      else if (fw.running) { status = "Guarding · she is running: any touch now asks for the PIN"; ringCol = "var(--warn)"; frac = 1; }
       else { status = "Guarding"; ringCol = "var(--calm)"; frac = 1; }
     } else if (key === "prompt") {
       setText("count", String(fw.pinSecondsLeft));
@@ -1201,9 +1307,11 @@ const SG = (() => {
   const mapCard = () => `<div class="map"><svg viewBox="0 0 240 80" width="100%" height="80" aria-label="Map pin at the shared location"><rect width="240" height="80" fill="var(--paper)"/><path d="M0 56 L240 36 M56 0 L84 80 M160 0 L140 80 M0 18 L240 26" stroke="var(--line)" stroke-width="6" fill="none"/><circle cx="118" cy="42" r="15" fill="var(--crit-soft)"/><circle cx="118" cy="42" r="6" fill="var(--crit)"/></svg></div>`;
   function addMsg(kind) {
     const loc = `${LAT.toFixed(4)}° N, ${LON.toFixed(4)}° E`;
+    const hr = fw.hr && fw.hrRest ? ` Heart rate ${fw.hr.toFixed(0)} bpm (her usual about ${fw.hrRest.toFixed(0)}).` : "";
+    const voice = `<div class="voice">🎙 Voice recording from the PIN prompt · ${Math.max(1, Math.round(simT / FS - (fw.mic ? fw.mic.start : simT / FS)))} s so far, still recording</div>`;
     const txt = kind === "silent"
-      ? `<b>SparshaGuard SILENT ALERT</b><br>Ananya used her duress PIN: she may be forced to cancel. Don't call her phone. Location ${loc}. 112 has been called.`
-      : `<b>SparshaGuard ALERT</b><br>Ananya may be in danger. Location ${loc}. 112 has been called and audio is being recorded.`;
+      ? `<b>SparshaGuard SILENT ALERT</b><br>Ananya used her duress PIN: she may be forced to cancel. Don't call her phone. Location ${loc}. 112 has been called.${hr}${voice}`
+      : `<b>SparshaGuard ALERT</b><br>Ananya may be in danger. Location ${loc}. 112 has been called.${hr}${voice}`;
     msgs.unshift(`<div class="msg">${txt}${mapCard()}<div class="mt">${clock()} · sent automatically</div></div>`);
     $("msgs").innerHTML = msgs.slice(0, 2).join("");
   }

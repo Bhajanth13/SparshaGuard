@@ -21,6 +21,12 @@
 //   (2 mV, rms 0.5 mV) [S15]. The typical body voltage v0 is not yet measured on Indian floors [E].
 //   Accelerometer: arm swing at half the step rate [S44], wrist ENMO 140-350 mg [S43]; bus
 //   starting/braking 0.1-0.34 g [S45]; gestures and grab jerks are estimates [E].
+//   Her own activities (all [E] unless tagged): running, 2.5-3.0 steps/s with wrist ENMO above
+//   600 mg [S43]; struggling to get free, irregular jerks of 2-4 g (~2.5 per second) with fast
+//   wrist rotation. Gyroscope |omega| in deg/s [E]: arm swing 100-200 walking, 300-600 running,
+//   gestures 150-350, pulls 200-500, struggling 400-900. Heart rate [E]: resting 65-85 bpm,
+//   +15 walking, +55 running, +30 under stress (a pull or a struggle), rising with a ~20 s and
+//   falling with a ~60 s time constant.
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -68,6 +74,7 @@
 
   // ------------------------------------------------------------------ passive channel
   const PFS = 500, IMU_FS = 50, ONE_FOOT = 100 / 160;
+  const ACTIVITY = new Set(["run", "struggle"]);       // her own movements, not touches
   const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
   const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
@@ -90,6 +97,9 @@
       this.inj = [];                                                            // charge being separated [{left, per}]
       this.app = null; this.pinned = false; this.small = null; this.hum = 1;
       this.sway = 0; this.phase = R.uni(0, 6.3); this.pulses = []; this.n = 0; this.ni = 0;
+      this.running = false; this.struggling = false; this.stress = 0;
+      this.runCad = R.uni(2.5, 3.0); this.runEnmo = R.uni(0.6, 1.0);
+      this.swing = R.uni(100, 200); this.hrRest = R.uni(65, 85); this.hr = this.hrRest + 10;
     }
     setContext(name, first) {
       this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
@@ -112,8 +122,13 @@
         this.hum = R.uni(0.6, 1.6);
         if (ev.pull) {                                                          // 2-5 jerks of 1.5-3 g in 3 s [E]
           const times = ev.pullTimes || Array.from({ length: 2 + Math.floor(R.u() * 4) }, () => R.uni(0.2, 3.0));
-          for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0) });
+          for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0), gy: R.uni(200, 500) });
+          this.stress = 30;
         }
+      } else if (ev.kind === "run") {
+        this.running = true;
+      } else if (ev.kind === "struggle") {
+        this.struggling = true; this.stress = 30;
       } else if (ev.kind === "bystander") {
         this.app = { va: this.strangerVoltage(), dmin: R.uni(0.2, 0.6), s: 0, leaving: false };
       } else if (ev.kind === "object" && /railing|pole|metal/.test(ev.detail || "")) {
@@ -125,7 +140,7 @@
     end() {
       if (this.pinned) { this.pinned = false; this.q = -this._vind() * this.cb * this._cm; }   // keeps the charge that cancelled vind
       if (this.app) { this.app.leaving = true; this.app.s = 0; }
-      this.hum = 1; this.contact = null;
+      this.hum = 1; this.contact = null; this.running = false; this.struggling = false;
     }
     _vind() {
       const A = this.app; if (!A) return 0;
@@ -157,19 +172,28 @@
         u[i] = this.k * v + rms * R.n();
         hum[i] = this.indoor ? this.hum : 0;
       }
-      const nI = IMU_FS / FS, acc = new Float64Array(nI);
+      const nI = IMU_FS / FS, acc = new Float64Array(nI), gyro = new Float64Array(nI);
       const sw = { walking: 0.05, bus: 0.10, desk: 0.02 }[this.ctxName], ai = Math.exp(-1 / IMU_FS);
       for (let i = 0; i < nI; i++, this.ni++) {
         const t = this.ni / IMU_FS;
         this.sway = ai * this.sway + Math.sqrt(1 - Math.exp(-2 / IMU_FS)) * sw * R.n();
-        let a = 1 + this.sway + (this.walking ? Math.PI * this.enmo * Math.sin(Math.PI * this.cadence * t + this.phase) : 0);
-        if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2) });   // her own gestures [E]
-        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34) });   // starting/braking [S45], 12/h [E]
-        for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) a += p.g * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); }
+        const ph = Math.sin((this.running ? this.runCad : this.cadence) * Math.PI * t + this.phase);
+        let a = 1 + this.sway, w = Math.abs(this.sway) * 100 + 5 * Math.abs(R.n());
+        if (this.running) { a += Math.PI * this.runEnmo * ph; w += 450 * Math.abs(ph); }         // [S43 / E]
+        else if (this.walking) { a += Math.PI * this.enmo * ph; w += this.swing * Math.abs(ph); }  // [S43, S44 / E]
+        if (R.u() < 15 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.2, 0.4) * IMU_FS), g: R.uni(1.0, 2.2), gy: R.uni(150, 350) });   // her own gestures [E]
+        if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34), gy: 20 });   // starting/braking [S45], 12/h [E]
+        if (this.struggling && R.u() < 2.5 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.08, 0.2) * IMU_FS), g: R.uni(2, 4), gy: R.uni(400, 900) });   // [E]
+        for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) { const k = 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); a += p.g * k; w = Math.max(w, (p.gy || 0) * k); } }
         this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
-        acc[i] = a;
+        acc[i] = a; gyro[i] = w;
       }
-      return { u, hum, acc, rms, indoor: this.indoor };
+      // heart rate, once per frame [E]
+      const target = this.hrRest + (this.running ? 55 : this.walking ? 15 : 0) + this.stress;
+      this.hr += (target - this.hr) * (1 / FS) / (target > this.hr ? 20 : 60);
+      this.stress *= Math.exp(-1 / (FS * 120));
+      if (this.struggling) this.stress = 30;
+      return { u, hum, acc, gyro, hr: this.hr, rms, indoor: this.indoor };
     }
   }
 
@@ -212,7 +236,8 @@
       p.hyd = Math.min(1, Math.max(0, 0.5 + this.hyd.step()));
       p.C_GB *= 1 + this.gb.step();
       p.C_BE *= Math.exp(this.be.step());
-      const v = this._sweep(p, this.event);
+      const touch = this.event && !ACTIVITY.has(this.event.kind) ? this.event : null;   // running or struggling is not a touch
+      const v = this._sweep(p, touch);
       const out = new Float64Array(v.length);
       for (let i = 0; i < v.length; i++)
         out[i] = Math.hypot(v[i].re + NOISE * this.R.n(), v[i].im + NOISE * this.R.n());

@@ -20,6 +20,17 @@
 //   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
 //                 within 3 s): a grab that pulls or shakes her, anywhere on her body
 // Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
+// Signs of assault from her own movement (accelerometer + gyroscope; thresholds are estimates [E]):
+//   running        wrist ENMO above 0.45 g for 4 s and periodic (autocorrelation above 0.5 at the
+//                  arm-swing period; running is above 600 mg [S43]); while she runs, and 10 s
+//                  after, any person step prompts at once
+//   struggling     5 or more jerks over 2 g in 4 s, not periodic, at irregular intervals
+//                  (CV > 0.35), with the wrist turning faster than 400 deg/s: a PIN prompt even if
+//                  no touch was felt (running is periodic and her own gestures are single); paused
+//                  while she runs and 10 s after, when any touch already prompts
+//   heart rate     confirmation only: the alert reports it against her usual rate over the last 2 min
+//   microphone     turns on at the PIN prompt; deleted on the correct PIN, sent with the alert
+//                  (and kept secretly after a duress PIN)
 // Then the product's state machine: 15 s PIN window; correct PIN cancels, wrong PIN or no PIN
 // alerts, the duress PIN shows "Cancelled" but alerts silently.
 (function (root) {
@@ -30,6 +41,7 @@
     RULE: "fused",            // "fused" (rule F) or "active" (today's rule A: active sweep alone)
     PFS: 500, IMU_FS: 50, STEP_K: 6, SETTLE: 0.3, LOCAL_K: 8, OBJECT_FRAC: 0.12,
     PERSON_BEFORE_S: 4, AGIT_G: 1.25, AGIT_N: 2, AGIT_S: 3,
+    RUN_ENMO: 0.45, RUN_HOLD_S: 10, STRUGGLE_G: 2.0, STRUGGLE_N: 5, STRUGGLE_CV: 0.35, STRUGGLE_GYRO: 400, MOTION_S: 4, PERIODIC: 0.5,
   };
   const median = (a) => { const b = Float64Array.from(a).sort(), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
   const mean = (a, i0, i1) => { let s = 0; for (let i = i0; i < i1; i++) s += a[i]; return s / (i1 - i0); };
@@ -83,7 +95,8 @@
       this.log = [];
       this.silentAlert = false;
       this.steps = new StepDetector(this.cfg);
-      this.imu = [];                  // [t, |a| in g] over the last 5 s
+      this.imu = [];                  // [t, |a| in g, |omega| in deg/s] over the last 5 s
+      this.hrHist = []; this.hr = null; this.runningUntil = -1; this.motionQuiet = -1; this.mic = null;
       this.passiveSeen = false;
       this._reset();
     }
@@ -107,7 +120,8 @@
       const c = this.cfg, now = this.t / FS;
       this.passiveSeen = true;
       const n = p.acc.length;
-      for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i]]);
+      for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i], p.gyro ? p.gyro[i] : 0]);
+      if (p.hr) { this.hr = p.hr; this.hrHist.push(p.hr); if (this.hrHist.length > 120 * FS) this.hrHist.shift(); }
       while (this.imu.length && this.imu[0][0] < now - 5) this.imu.shift();
       const guarding = this.state === "armed";
       for (const s of this.steps.push(p)) {
@@ -119,10 +133,14 @@
         else {
           this.personSteps.push(s.t);
           this._emit("touch", `Static: charge-sharing step ${v} in under 2 ms: another body touched her`);
+          if (this.fused && now < this.runningUntil) {
+            this.prompted = true; this._startPrompt("Another body touched her while she was running: ask for PIN (15 s)"); continue;
+          }
           if (this.fused && !this.watching) { this.watching = s.t; this._emit("info", "Watching her arm for 3 s: is she being pulled?"); }
         }
       }
       this.personSteps = this.personSteps.filter((t) => t > now - 10);
+      if (this.fused) this._motion(now, guarding);
       if (this.watching !== null) {
         const jerks = this.jerksSince(this.watching);
         if (guarding && this.fused && jerks >= c.AGIT_N) {
@@ -133,6 +151,44 @@
         }
       }
     }
+    // running and struggling, from the last MOTION_S seconds of accelerometer + gyroscope
+    _motion(now, guarding) {
+      const c = this.cfg, win = this.imu.filter(([t]) => t > now - c.MOTION_S);
+      if (win.length < c.MOTION_S * c.IMU_FS * 0.9) return;
+      let enmo = 0, gmax = 0; const edges = []; let prev = null;
+      for (const [t, a, g] of win) {
+        enmo += Math.max(0, Math.abs(a) - 1); gmax = Math.max(gmax, g);
+        const x = Math.abs(a - 1) > c.STRUGGLE_G; if (prev === false && x) edges.push(t); prev = x;
+      }
+      enmo /= win.length;
+      let cv = 0;
+      if (edges.length > 2) {
+        const d = edges.slice(1).map((t, i) => t - edges[i]), m = d.reduce((s, x) => s + x, 0) / d.length;
+        cv = Math.sqrt(d.reduce((s, x) => s + (x - m) ** 2, 0) / d.length) / m;
+      }
+      // periodicity: the highest autocorrelation of |a| - 1 g at lags of 0.2-0.8 s (arm swing)
+      const x = win.map(([, a]) => Math.abs(a) - 1), m = x.reduce((s, v) => s + v, 0) / x.length;
+      let r0 = 0; for (const v of x) r0 += (v - m) ** 2;
+      let rmax = 0;
+      for (let L = Math.round(0.2 * c.IMU_FS); L <= Math.round(0.8 * c.IMU_FS); L++) {
+        let r = 0; for (let i = L; i < x.length; i++) r += (x[i] - m) * (x[i - L] - m);
+        rmax = Math.max(rmax, r0 > 0 ? r / r0 : 0);
+      }
+      this.periodicity = rmax;
+      const periodic = rmax > c.PERIODIC;
+      if (enmo > c.RUN_ENMO && periodic) {
+        if (now >= this.runningUntil && guarding) this._emit("info", `Running (wrist motion ${(1000 * enmo).toFixed(0)} mg, regular arm swing): a touch now prompts at once`);
+        this.runningUntil = now + c.RUN_HOLD_S;
+      }
+      if (guarding && now > this.motionQuiet && now >= this.runningUntil && !periodic && edges.length >= c.STRUGGLE_N && cv > c.STRUGGLE_CV && gmax > c.STRUGGLE_GYRO) {
+        this.motionQuiet = now + 10; this.prompted = true;
+        this._startPrompt(`Signs of a struggle: ${edges.length} irregular jerks over 2 g in ${c.MOTION_S} s, wrist turning ${gmax.toFixed(0)} deg/s: ask for PIN (15 s)`);
+      }
+    }
+    get running() { return this.t / FS < this.runningUntil; }
+    get hrRest() { if (this.hrHist.length < 10) return null; const s = [...this.hrHist].sort((a, b) => a - b); return s[Math.floor(s.length * 0.2)]; }
+    get micOn() { return !!this.mic; }
+
     jerksSince(t0) {                  // rising edges of |a - 1 g| > 1.25 g in [t0, t0 + 3 s]
       let n = 0, prev = null;
       for (const [t, a] of this.imu) {
@@ -197,6 +253,8 @@
       if (this.state !== "armed") return;
       this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = ""; this.watching = null;
       this._emit("prompt", why || "Touch held 2 s: vibrate, ask for PIN (15 s)");
+      this.mic = { start: this.t / FS }; this.motionQuiet = this.t / FS + 10;
+      this._emit("info", "Microphone on: recording from the PIN prompt");
     }
     _tickPrompt() {
       if (this.state !== "prompt") return;
@@ -216,18 +274,22 @@
     }
     submitPin(pin) {
       if (this.state !== "prompt") return;
-      if (pin === this.cfg.PIN) { this.state = "armed"; this._emit("cancel", "Correct PIN: cancelled, still guarding"); }
+      if (pin === this.cfg.PIN) { this.state = "armed"; this.mic = null; this._emit("cancel", "Correct PIN: cancelled, still guarding; recording deleted"); }
       else if (pin === this.cfg.DURESS_PIN) {
         this.state = "armed"; this.silentAlert = true;
         this._emit("cancel", "Screen shows \"Cancelled\"");
-        this._emit("silent", "Duress PIN: SMS + GPS sent and 112 called silently");
+        this._emit("silent", `Duress PIN: SMS + GPS + voice recording sent and 112 called silently${this._hrText()}`);
       } else this._alert("Wrong PIN");
       this.entry = "";
     }
     _alert(why) {
       if (this.state === "alert") return;
       this.state = "alert";
-      this._emit("alert", `${why}: SMS + GPS to contacts, calling 112, recording audio`);
+      this._emit("alert", `${why}: SMS + GPS + voice recording (from the PIN prompt) to contacts, calling 112${this._hrText()}`);
+    }
+    _hrText() {
+      const r = this.hrRest;
+      return this.hr && r ? `; heart rate ${this.hr.toFixed(0)} bpm (her usual ~${r.toFixed(0)} before this)` : "";
     }
   }
 

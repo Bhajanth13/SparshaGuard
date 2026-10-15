@@ -1,6 +1,6 @@
 # SparshaGuard: 2-minute video script
 
-Built around the demo's **Play all** run (about 98 s, timings measured in the browser), with a
+Built around the demo's **Play all** run (about 115 s, timings measured in the browser), with a
 short intro before it and one closing line after it. Narration is about 150 words a minute; the
 on-screen captions already say the key facts, so the voice can be calm and brief.
 
@@ -22,10 +22,14 @@ on-screen captions already say the key facts, so the voice can be calm and brief
 | 0:53–1:04 | Ch 4: forced to cancel, PIN 9999, silent alert on the phone | "Forced to cancel? Her duress PIN shows 'Cancelled', but her mother still gets a silent alert." |
 | 1:04–1:13 | Ch 5: the watch is ripped off, alert in under a second | "Rip the watch off, and it alerts at once." |
 | 1:13–1:22 | Ch 6: shoulder grab; static jump, arm jerks, PIN prompt | "A grab on her shoulder: the wrist sensor can't feel it, but her body's charge jumps the instant he touches her, and the watch feels her arm being pulled." |
-| 1:22–1:48 | Ch 7: her own hand, metal pole, a brush, someone close: all ignored | "Her own hand, a metal pole, a brush in a crowd: none of them is another body pulling her, so nothing happens. In nine simulated hours: one unwanted prompt, against twenty-four for a sweep-only watch." |
-| 1:48–2:00 | Title slide again | "Physics from published papers, checked with SPICE and FastCap. Next, a prototype to measure it. SparshaGuard: the touch itself is the alarm." |
+| 1:22–1:30 | Ch 7: she struggles to get free; PIN prompt, mic on | "If she fights back, the accelerometer and gyroscope feel the struggle, and the microphone turns on." |
+| 1:30–1:52 | Ch 8: her own hand, metal pole, a brush, someone close, she runs: all ignored | "Her own hand, a metal pole, a brush in a crowd, running for a bus: none of them sets it off. In nine simulated hours: one unwanted prompt, against twenty-four for a sweep-only watch." |
+| 1:52–2:00 | Title slide again | "Physics from published papers, checked with SPICE and FastCap. Next, a prototype to measure it. SparshaGuard: the touch itself is the alarm." |
 
 ## Tips
+
+- Play all now runs about 115 s (eight chapters). To fit 2:00, shorten the title slide to 4 s, start
+  Play all at 0:05, and in editing trim the 15 s PIN countdown in chapter 2 and the re-learning pauses.
 
 - If a chapter runs a little long, trim the pause after the alert in editing rather than rushing
   the voice.

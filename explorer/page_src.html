@@ -132,6 +132,8 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
 .tblwrap { overflow-x: auto; }
 .note { font-size: 13px; color: var(--ink2); margin: 10px 0 0; }
 .tag.ok { color: var(--calm); border-color: var(--calm); }
+.tbl.sig td small { color: var(--muted); }
+.tbl.sig td, .tbl.sig th { vertical-align: top; text-align: left; }
 .fusedopts { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 13px; color: var(--ink2); margin: 2px 0 10px; }
 .fusedopts select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); color: var(--ink); }
 .fpath { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
@@ -361,6 +363,21 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
           <div class="locbars" id="fz-bars"></div>
           <div class="kv" id="fz-kv"></div>
           <p class="note">Grabs that only hold (about 30 %, an estimate) give no pulling and are missed away from the wrist. A friend holding her wrist still prompts; her PIN cancels it. Motion rates and street body voltages are estimates until Gate 1.</p>
+        </section>
+        <section class="card" id="sig-card">
+          <div class="chead"><h2>Signs of assault in Guard Mode <span class="tag">twin · estimated</span></h2></div>
+          <p class="sub">Besides touch, the watch reads its accelerometer, gyroscope, heart-rate sensor and microphone. These run in the digital twin; their thresholds are estimates, because no published wrist data for assaults was found.</p>
+          <div class="tblwrap"><table class="tbl sig">
+            <thead><tr><th>Signal</th><th>What the watch does</th><th>Simulated result</th></tr></thead>
+            <tbody>
+              <tr><td>Struggling to get free<br><small>accelerometer + gyroscope</small></td><td>5 or more jerks over 2 g in 4 s, at irregular intervals, with the wrist turning faster than 400°/s: asks for the PIN even if no touch was felt</td><td id="sig-struggle"></td></tr>
+              <tr><td>Running<br><small>accelerometer</small></td><td>Fast, regular arm swing (above ~0.5 g): not an alarm by itself, but while she runs any touch asks for the PIN at once</td><td id="sig-run"></td></tr>
+              <tr><td>Microphone</td><td>Turns on when the PIN prompt starts. The correct PIN deletes the recording; no PIN, a wrong PIN or the duress PIN sends it with the alert</td><td>Shown in the twin</td></tr>
+              <tr><td>GPS</td><td>Live location goes with every alert, also the silent duress alert</td><td>Shown in the twin</td></tr>
+              <tr><td>Heart rate</td><td>Confirmation only: rises too slowly to start an alarm, so the alert reports it against her usual rate</td><td>Shown in the twin</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">Running and her own quick gestures are what make motion-only alarms fail, so the watch looks for irregular, repeated, fast movement. A published smartwatch study classified scripted punches and shoves with 99.6 % accuracy (Tchuente 2020); real assaults are messier, and Gate 1 must record them safely (staged).</p>
         </section>
         <section class="card">
           <div class="chead"><h2>His hand near the strap <span class="tag ok">in the model · FastCap-checked</span></h2></div>
@@ -825,6 +842,10 @@ footer { margin-top: 22px; font-size: 12.5px; color: var(--muted); max-width: 80
   }
 
   const FZ = /*FUSED*/;
+  const SIG = /*SIGNS*/;
+  const pc = (x) => `${Math.round(100 * x)} %`;
+  $("sig-struggle").textContent = `${pc(SIG.struggle)} of struggles caught without any touch`;
+  $("sig-run").textContent = `${pc(SIG.touchRun)} of touches while running caught; ${pc(SIG.runAlone)} of runs alone prompted`;
   const LOCN = { wrist: "Wrist", forearm: "Forearm", upper_arm: "Upper arm", other_arm: "Other arm", shoulder: "Shoulder", waist: "Waist", face_hair: "Face / hair" };
   function renderFZ() {
     const r = FZ[$("fz-v0").value];

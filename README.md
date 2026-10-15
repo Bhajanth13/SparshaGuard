@@ -46,6 +46,16 @@ from about 1 V to 100 V with the bootstrapped input and an ADS1115) and how ofte
 arm (70 % assumed; a grab that only holds is missed away from the wrist). See
 `docs/whole_body_fusion.md`.
 
+**Signs of assault from her own movement** (digital twin; thresholds are estimates, because no
+published wrist data for assaults was found):
+- *Struggling to get free* (accelerometer + gyroscope): 5 or more irregular jerks over 2 g in 4 s
+  with the wrist turning faster than 400°/s asks for the PIN even when no touch was felt.
+- *Running*: not an alarm by itself (people run for buses), but while she runs any touch asks for
+  the PIN at once.
+- *Microphone*: turns on when the PIN prompt starts; the correct PIN deletes the recording, and no
+  PIN, a wrong PIN or the duress PIN sends it with SMS + GPS.
+- *Heart rate*: confirmation only (it rises too slowly to start an alarm); the alert reports it.
+
 **Honest status:** this is a simulation study. Every value comes from a published paper or from
 geometry, and the remaining estimates are marked. The next stage, **Gate 1**, is a
 battery-powered prototype whose measurements replace those estimates before any number is

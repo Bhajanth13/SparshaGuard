@@ -40,7 +40,8 @@ function grabTrials(detail, n) {
 const SELF_D = ["logn", 5, 9, 60], PHONE_D = ["logn", 30, 212, 1800];
 const MIX = {
   walking: [["self", null, 3, ...SELF_D], ["object", "railing_hand", 4, 3, 10], ["bystander", null, 6, 2, 6],
-            ["object", "phone", 5.3, ...PHONE_D], ["object", "bag", 2, 60, 300]],
+            ["object", "phone", 5.3, ...PHONE_D], ["object", "bag", 2, 60, 300],
+            ["run", null, 2, 10, 60]],                 // she runs (for a bus, across a road): 2 per hour [E]
   bus: [["object", "railing_wrist", 6, 20, 120], ["object", "railing_hand", 6, 30, 300], ["bystander", null, 30, 5, 60],
         ["person", "shoulder", 10, 1, 3], ["person", "other_arm", 6, 1, 3], ["person", "forearm", 4, 0.5, 2.5],
         ["self", null, 3, ...SELF_D], ["object", "phone", 5.3, ...PHONE_D]],
@@ -99,6 +100,25 @@ for (const loc of ["wrist", "forearm", "upper_arm", "other_arm", "shoulder", "wa
 const locs = Object.values(out.grabs_caught);
 out.body_average = { active: locs.reduce((a, r) => a + r.active, 0) / locs.length, fused: locs.reduce((a, r) => a + r.fused, 0) / locs.length };
 out.strap_removal_caught = grabTrials("strap_off", 120);
+// signs of assault from her own movement (digital twin only; thresholds and motions are estimates)
+function motionTrials(plan, n) {
+  const hit = { active: 0, fused: 0 };
+  for (let i = 0; i < n; i++) {
+    const s = new SensorTwin(SG, { seed: 3000 + i, context: ["walking", "bus", "desk"][i % 3], v0: V0 });
+    const fws = pair(s), got = [false, false];
+    for (let t = 0; t < 40 * FS; t++) {
+      for (const [at, fn] of plan) if (t === at * FS) fn(s);
+      feed(s, fws);
+      fws.forEach((f, j) => { if (t >= 20 * FS && (f.state === "prompt" || f.state === "alert")) got[j] = true; });
+    }
+    RULES.forEach((r, j) => (hit[r] += got[j]));
+  }
+  return { active: hit.active / n, fused: hit.fused / n };
+}
+out.struggle_without_touch_caught = motionTrials([[20, (s) => s.startEvent("struggle")], [26, (s) => s.endEvent()]], 120);
+out.running_alone_prompted = motionTrials([[15, (s) => s.startEvent("run")], [35, (s) => s.endEvent()]], 120);
+out.touch_while_running_caught = motionTrials([[15, (s) => s.startEvent("run")], [25, (s) => s.startEvent("person", "shoulder", { pull: false })], [27, (s) => s.endEvent()]], 120);
+console.log("struggle", out.struggle_without_touch_caught, "run alone", out.running_alone_prompted, "touch while running", out.touch_while_running_caught);
 console.log("body average", out.body_average, "strap", out.strap_removal_caught, `${((Date.now() - t0) / 1000).toFixed(0)} s`);
 out.daily_life = {};
 for (const [i, ctx] of ["walking", "bus", "desk"].entries()) { out.daily_life[ctx] = dailyLife(ctx, 3, 77 + i); console.log(ctx, JSON.stringify(out.daily_life[ctx])); }
