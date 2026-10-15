@@ -1,0 +1,61 @@
+<!doctype html><html><meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--ink:#13202a;--ink2:#4a5866;--muted:#74818d;--touch:#c0306a;--paper:#eef1f4;--line:#dbe1e7;--crit:#d03b3b}
+*{box-sizing:border-box}html,body{margin:0}
+.card{width:1920px;height:1080px;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;padding:120px 160px;display:none;flex-direction:column;justify-content:center}
+.card.dark{background:#13202a;color:#e7edf2}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:26px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:26px}
+.dark .eyebrow{color:#85929e}
+h1{font-family:Archivo,sans-serif;font-stretch:85%;font-weight:800;font-size:150px;line-height:1;margin:0 0 30px}
+h1 span{color:var(--touch)} .dark h1 span{color:#ef6a9c}
+.lede{font-size:46px;line-height:1.3;color:var(--ink2);max-width:1400px;margin:0}
+.dark .lede{color:#b2bfca}
+.big{font-family:Archivo,sans-serif;font-stretch:85%;font-weight:800;font-size:230px;line-height:.95;color:var(--touch)}
+.dark .big{color:#ef6a9c}
+.what{font-size:54px;line-height:1.25;margin:18px 0 34px;max-width:1500px;font-weight:600}
+.row{display:flex;gap:70px;margin-top:20px}
+.stat b{display:block;font-family:Archivo,sans-serif;font-stretch:85%;font-weight:800;font-size:96px;line-height:1}
+.stat span{font-size:30px;color:var(--ink2)} .dark .stat span{color:#b2bfca}
+.src{position:absolute;bottom:70px;left:160px;font-family:"IBM Plex Mono",monospace;font-size:24px;color:var(--muted)}
+.card{position:relative}
+.punch{font-size:52px;font-weight:600;margin-top:46px}
+.punch em{font-style:normal;color:var(--touch)} .dark .punch em{color:#ef6a9c}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:40px;margin:40px 0 50px}
+.link{font-family:"IBM Plex Mono",monospace;font-size:38px;color:var(--touch)}
+.small{font-size:30px;color:var(--ink2);max-width:1500px;line-height:1.4}
+</style>
+<div class="card" id="title">
+  <div class="eyebrow">Team Sparsha · RV University, Mysuru · Bharath Innovate Hackathon 2026</div>
+  <h1>Sparsha<span>Guard</span></h1>
+  <p class="lede">A safety smartwatch where a stranger's touch raises the alarm. A demonstration on its digital twin.</p>
+</div>
+<div class="card dark" id="ncrb1">
+  <div class="eyebrow">The problem · India, 2022</div>
+  <div class="big">4,45,256</div>
+  <div class="what">crimes against women were registered in one year: about 51 every hour.</div>
+  <div class="row">
+    <div class="stat"><b>+4 %</b><span>on 2021 (4,28,278 cases)</span></div>
+    <div class="stat"><b>66.4</b><span>crimes per lakh women</span></div>
+  </div>
+  <div class="src">Source: NCRB, Crime in India 2022</div>
+</div>
+<div class="card dark" id="ncrb2">
+  <div class="eyebrow">The problem · what these crimes are</div>
+  <div class="big">18.7 %</div>
+  <div class="what">were assaults on women with intent to outrage their modesty: a grab, an unwanted touch.<br>Another 19.2 % were kidnapping and abduction.</div>
+  <div class="punch">In that moment there is no time to unlock a phone and press SOS.<br><em>SparshaGuard flips it: the touch itself raises the alarm.</em></div>
+  <div class="src">Source: NCRB, Crime in India 2022</div>
+</div>
+<div class="card" id="end">
+  <div class="eyebrow">What the digital twin shows</div>
+  <div class="grid">
+    <div class="stat"><b>70 %</b><span>of grabs caught over 7 body places (a touch sensor alone: 13 %)</span></div>
+    <div class="stat"><b>99 %</b><span>of struggles caught, even with no touch felt</span></div>
+    <div class="stat"><b>0–1</b><span>unwanted PIN prompts in 9 simulated hours (touch sensor alone: 24–28)</span></div>
+    <div class="stat"><b>100 %</b><span>of strap removals caught</span></div>
+  </div>
+  <p class="small">Simulated, not yet measured: physics from 60 published sources, checked with SPICE and MIT FastCap. Next: a battery-powered prototype (Gate 1) to measure it.</p>
+  <p class="link">bhajanth13.github.io/SparshaGuard</p>
+</div>
+</html>

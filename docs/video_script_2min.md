@@ -1,5 +1,8 @@
 # SparshaGuard: 2-minute video script
 
+> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:59, captions, NCRB cards). Its
+> timed narration is in `video/demo_2min/README.md`; the plan below is the earlier manual-recording guide.
+
 Built around the demo's **Play all** run (about 115 s, timings measured in the browser), with a
 short intro before it and one closing line after it. Narration is about 150 words a minute; the
 on-screen captions already say the key facts, so the voice can be calm and brief.

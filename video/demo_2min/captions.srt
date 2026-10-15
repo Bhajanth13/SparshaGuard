@@ -1,0 +1,83 @@
+1
+00:00:21,000 --> 00:00:24,600
+Ananya walks home alone. She turns on Guard Mode.
+
+2
+00:00:24,600 --> 00:00:28,530
+The watch learns her body for 5 seconds (sped up).
+
+3
+00:00:28,530 --> 00:00:31,800
+Guarding: it senses touch 5 times a second.
+
+4
+00:00:31,800 --> 00:00:38,400
+A stranger grabs her wrist: the touch signal jumps to 16 %, and her body's static jumps too.
+
+5
+00:00:38,400 --> 00:00:45,000
+Held 2 s: the watch vibrates, asks for her PIN and turns the mic on. She can't answer.
+
+6
+00:00:45,000 --> 00:00:50,600
+No PIN: her GPS location and voice recording go to her contacts. 112 is called.
+
+7
+00:00:50,600 --> 00:00:52,530
+Guard Mode back on.
+
+8
+00:00:52,530 --> 00:00:56,800
+A friend holds her hand: the PIN decides. She types 1234.
+
+9
+00:00:56,800 --> 00:00:59,070
+Cancelled. The recording is deleted.
+
+10
+00:00:59,070 --> 00:01:02,670
+Forced to cancel, she types her duress PIN: 9999.
+
+11
+00:01:02,670 --> 00:01:06,270
+It shows "Cancelled", but Amma gets a silent alert.
+
+12
+00:01:06,270 --> 00:01:10,200
+He rips the watch off: alert at once, no PIN.
+
+13
+00:01:10,200 --> 00:01:12,130
+Guard Mode back on.
+
+14
+00:01:12,130 --> 00:01:18,730
+A shoulder grab: the wrist sensor can't feel it, but the static jump and her pulled arm can.
+
+15
+00:01:18,730 --> 00:01:21,330
+PIN prompt. (She cancels to continue.)
+
+16
+00:01:21,330 --> 00:01:27,600
+She struggles to get free: motion sensors detect it even with no touch. PIN prompt, mic on.
+
+17
+00:01:27,600 --> 00:01:31,530
+Her own hand on the watch: no other body, ignored.
+
+18
+00:01:31,530 --> 00:01:35,130
+Strap on a metal pole: not a person, ignored.
+
+19
+00:01:35,130 --> 00:01:39,980
+A brush in a crowd, someone close: no pulling, no touch. Ignored.
+
+20
+00:01:39,980 --> 00:01:45,580
+She runs for a bus: no alarm, but a touch now asks for the PIN.
+
+21
+00:01:45,580 --> 00:01:50,520
+9 simulated hours of daily life: 0–1 unwanted prompts (touch sensor alone: 24–28).
