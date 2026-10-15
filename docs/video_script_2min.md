@@ -1,6 +1,6 @@
 # SparshaGuard: 2-minute video script
 
-> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:57, captions only: our intro, the website, the twin operated with a cursor in Chrome, the capacitance and static-electricity physics, the explorer and its references). Its
+> **A finished cut now exists:** `video/demo_2min/SparshaGuard_demo_2min.mp4` (1:59, captions only, for a first-time viewer: the problem, the idea and its co-developers, the twin operated with a cursor in Chrome, the capacitance and static-electricity physics, the explorer and its references). Its
 > timed captions are in `video/demo_2min/README.md`; the plan below is the earlier manual-recording guide.
 
 Built around the demo's **Play all** run (about 115 s, timings measured in the browser), with a

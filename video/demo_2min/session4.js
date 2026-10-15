@@ -1,3 +1,4 @@
+// Records the 2-minute explainer for someone who has never seen SparshaGuard: a Chrome-style window, a cursor, captions only.
 const { execSync } = require("child_process");
 const { chromium } = require(execSync("npm root -g").toString().trim() + "/playwright");
 const fs = require("fs");
@@ -5,15 +6,21 @@ const BASE = "http://localhost:8800";
 const WPS = 2.6;
 (async () => {
   const b = await chromium.launch();
-  const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 }, recordVideo: { dir: "rec3", size: { width: 1920, height: 1080 } },
+  const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 }, recordVideo: { dir: "rec4", size: { width: 1920, height: 1080 } },
     timezoneId: "Asia/Kolkata", locale: "en-IN" });
   const pg = await ctx.newPage(); const T0 = Date.now(); const now = () => (Date.now() - T0) / 1000;
   const log = []; const mark = (ev, extra = {}) => log.push({ t: now(), ev, ...extra });
-  await pg.route(BASE + "/__wrapper.html", (r) => r.fulfill({ contentType: "text/html", body: fs.readFileSync("wrapper3.html", "utf8") }));
+  await pg.route(BASE + "/__wrapper.html", (r) => r.fulfill({ contentType: "text/html", body: fs.readFileSync("wrapper4.html", "utf8") }));
+  for (const id of ["ncrb", "title", "end"])
+    await pg.route(BASE + `/__card_${id}.png`, (r) => r.fulfill({ contentType: "image/png", body: fs.readFileSync(`card4_${id}.png`) }));
   await pg.goto(BASE + "/__wrapper.html");
   const sleep = (s) => pg.waitForTimeout(s * 1000);
   const frameFor = async (part) => { for (let i = 0; i < 80; i++) { const f = pg.frames().find((x) => x.url().includes(part)); if (f) return f; await sleep(0.1); } };
-  let F = await frameFor("/index.html"); await F.waitForSelector(".card"); await sleep(0.8);
+  let F = await frameFor("/index.html"); await F.waitForSelector(".card");
+  // the cards are preloaded under the slide layer so the first frame is already the NCRB card
+  await pg.evaluate(() => { cursorVisible(false); showSlide("/__card_ncrb.png"); });
+  await pg.evaluate(() => Promise.all(["/__card_title.png", "/__card_end.png"].map((s) => new Promise((r) => { const i = new Image(); i.onload = r; i.src = s; }))));
+  await sleep(0.8);
   const words = (t) => t.split(/\s+/).length;
   const say = async (t, extra = 0) => { mark("caption", { text: t }); await pg.evaluate((t) => caption(t), t); await sleep(Math.max(0, words(t) / WPS + extra)); };
   const sayAsync = async (t) => { mark("caption", { text: t }); await pg.evaluate((t) => caption(t), t); };
@@ -32,73 +39,82 @@ const WPS = 2.6;
   const statusLog = setInterval(async () => { if (!statusOn) return; try { const s = await status(); if (s !== statusLog.last) { statusLog.last = s; mark("status", { text: s }); } } catch (e) {} }, 100);
 
   mark("start");
-  // ---------- front page: intro and website
-  await to("h1", 1300, 0.3, 0.5);
-  await say("Hi! We are Bhajanth V and Sukruth A Chinnur, co-developers of SparshaGuard at RV University, Mysuru.", 0.4);
-  await moveXY(560, 100, 900);
-  await sayAsync("Everything here is live at bhajanth13.github.io/SparshaGuard: anyone can try the digital twin and the explorer.");
-  await sleep(2.2);
-  await to('a.card[href*="demo"] .go', 1000);
-  await sleep(Math.max(0, 16 / WPS - 3.2));
+  // ---------- the problem and the idea
+  await say("In 2022, India registered 4,45,256 crimes against women: about 51 every hour.", 0.6);
+  await say("Nearly one in five was a grab or an unwanted touch. There's no time to unlock a phone.", 0.6);
+  await pg.evaluate(() => showSlide("/__card_title.png")); await sleep(0.3);
+  await say("SparshaGuard: a smartwatch that notices when another person touches her, and calls for help itself.", 0.5);
+  await say("Designed by co-developers Bhajanth V and Sukruth A Chinnur, RV University, Mysuru.", 0.5);
+
+  // ---------- the website
+  await pg.evaluate(() => { showSlide(null); cursorVisible(true); }); await sleep(0.7);
+  await sayAsync("The watch isn't built yet, so we made a digital twin: its real software on a simulated body. Try it here.");
+  await moveXY(330, 66, 1100); await sleep(1.6);
+  await to('a.card[href*="demo"] .go', 1100);
+  await sleep(Math.max(0, 21 / WPS - 4.4));
   await rip(); await sleep(0.3);
-  // opens in a new tab
   await pg.evaluate((t) => setTabs(t.slice(0, 2), 1), TABS);
   await pg.evaluate(() => openPage("/demo/sparshaguard_demo.html", "/SparshaGuard/demo/sparshaguard_demo.html", 1));
   F = await frameFor("sparshaguard_demo"); await F.waitForSelector("#status");
   await F.addStyleTag({ content: ".tiles{grid-template-columns:repeat(11,minmax(0,1fr))!important} .tile{padding:8px 4px!important;font-size:12.5px!important}" });
-  statusOn = true; await sleep(0.6);
-
-  // ---------- twin
-  await to(".watch", 900);
-  await sayAsync("The digital twin runs the watch's own firmware on a simulated sensor. We switch Guard Mode on.");
-  await sleep(2.0);
   await click("#tab-try", 800);
   await F.evaluate(() => window.scrollTo({ top: 40, behavior: "smooth" }));
-  await sleep(Math.max(0, 16 / WPS - 3.2));
-  await waitFast((s) => s.startsWith("Guarding"));
-  await to("#cv-score", 900, 0.55, 0.6);
-  await say("Physics 1, capacitance: the watch sweeps 200 frequencies through a skin electrode, five times a second.", 0.3);
+  statusOn = true; await sleep(0.4);
 
+  // ---------- a tour of the twin
+  await sayAsync("Left: the wearer. Middle: her watch. Right: her emergency contact's phone. Tiles: things that can happen to her.");
+  await to(".bodycard", 900, 0.5, 0.4);
+  await sleep(1.0); await to(".watch", 900); await sleep(1.0); await to(".phone", 900); await sleep(1.0);
+  await to('.tile[data-k="person:wrist"]', 900, 0.5, 0.5); await moveXY(1500, 960 - 70, 1400);
+  await sleep(Math.max(0, 18 / WPS - 7.5));
+  await waitFast((s) => s.startsWith("Guarding"));
+  await to(".watch", 800);
+  await say("She has turned on Guard Mode: the watch is watching for touches.", 0.3);
+  await to("#cv-score", 900, 0.55, 0.6);
+  await say("Physics 1, capacitance: her body holds a little electric charge, and the watch measures how much.", 0.3);
+
+  // ---------- 1. a stranger grabs her wrist
   await click('.tile[data-k="person:wrist"]', 800);
-  await waitFast((s) => s.startsWith("Enter PIN"), 8);
-  await to(".watch", 500, 0.5, 0.3);
-  await say("A stranger grabs her wrist: the watch vibrates, asks for a PIN, and the mic turns on.", 0);
   await to("#cv-score", 600, 0.93, 0.25);
-  await say("Capacitance: his hand closes a path back to the watch. Signal: 0.1 % → 16 %.", 0);
+  await say("A stranger grabs her wrist. His body holds charge too: the reading jumps from 0.1 % to 16 %.", 0);
+  await waitFast((s) => s.startsWith("Enter PIN"), 8);
+  await to(".watch", 600, 0.5, 0.3);
+  await say("The watch vibrates and asks for her PIN within 15 seconds. The mic starts recording.", 0);
   await waitFast((s) => s.startsWith("Alert sent"), 20);
   await to(".phone .msg", 900, 0.5, 0.35);
-  await say("No PIN: her location and the voice recording go to her emergency contact, and 112 is called.", 0.4);
+  await say("No PIN: her GPS location and the recording go to her contact, and 112 is called.", 0.4);
   await click('.tile[data-k="person:wrist"]', 600);
   await click("#reset", 600);
   await click('#screen button[data-act="on"]', 700);
-  await sayAsync("Guard Mode back on.");
-  await sleep(1.2); await waitFast((s) => s.startsWith("Guarding"));
+  await sleep(0.8); await waitFast((s) => s.startsWith("Guarding"));
 
-  await click('.tile[data-k="person:shoulder"]', 800);
+  // ---------- 2. a grab on her shoulder: static electricity
+  await to('.tile[data-k="person:shoulder"]', 900);
+  await say("What if he grabs her shoulder, far from the watch? Physics 2, static electricity.", -0.6);
+  await click('.tile[data-k="person:shoulder"]', 400);
   await to("#cv-static", 800, 0.92, 0.4);
-  await say("Physics 2, static electricity: every body carries charge. Touching bodies share it within a microsecond, so her voltage jumps.", 0);
   await waitFast((s) => s.startsWith("Enter PIN"), 8);
-  await sayAsync("She cancels with her PIN; a duress PIN would cancel on screen but alert silently.");
-  await typePin("1234"); await sleep(Math.max(0, 14 / WPS - 4.0));
-  await to("#cv-static", 800, 0.92, 0.4);
-  await say("That grab was on her shoulder: too far for the capacitive sensor, but the static jump and her pulled arm gave it away.", 0.2);
+  await say("Every body carries static charge. Touching bodies share it in a microsecond, so her voltage jumps.", 0.2);
+  await sayAsync("This time it's a friend: she types her PIN, and it cancels.");
+  await to(".watch", 600, 0.5, 0.3);
+  await typePin("1234"); await sleep(Math.max(0, 12 / WPS - 3.6));
   await click('.tile[data-k="person:shoulder"]', 600);
 
+  // ---------- 3. a struggle, 4. her own hand
   await click('.tile[data-k="struggle:null"]', 800);
   await to("#cv-static", 800, 0.85, 0.8);
-  await say("She struggles to get free: the accelerometer and gyroscope see irregular jerks. A PIN prompt, even without a touch.", 0);
+  await say("If she struggles, motion sensors feel the irregular jerks and ask for the PIN, even without a touch.", 0);
   await waitFast((s) => s.startsWith("Enter PIN"), 8);
-  await typePin("1234"); await sleep(0.3);
   await click('.tile[data-k="struggle:null"]', 600);
-
+  await typePin("1234"); await sleep(0.3);
   await click('.tile[data-k="self:null"]', 800);
   await to("#status", 800);
-  await say("Her own hand on the watch is the same body: no static jump, so no alarm.", 0.5);
+  await say("Her own hand is the same body: no new charge, so no alarm.", 0.5);
   await click('.tile[data-k="self:null"]', 600);
   statusOn = false;
 
-  // ---------- explorer: research basis
-  await sayAsync("Every threshold and value comes from published research: 60 sources, checked with SPICE and FastCap.");
+  // ---------- research basis and the explorer
+  await sayAsync("These numbers aren't guesses: every threshold comes from 60 published papers, checked with SPICE and FastCap.");
   const [tx, ty] = await pg.evaluate(() => { setTabs(["SparshaGuard", "SparshaGuard Digital Twin"], 1); return tabCenter(0); });
   await moveXY(tx, ty, 900); await rip(); await sleep(0.3);
   await pg.evaluate(() => { setTabs(["SparshaGuard", "SparshaGuard Digital Twin"], 0); showTab(0, "/SparshaGuard/"); });
@@ -107,17 +123,20 @@ const WPS = 2.6;
   await pg.evaluate((t) => setTabs(t, 2), TABS);
   await pg.evaluate(() => openPage("/explorer/sparshaguard_explorer.html", "/SparshaGuard/explorer/sparshaguard_explorer.html", 2));
   F = await frameFor("sparshaguard_explorer"); await F.waitForSelector("#presets");
-  await sleep(Math.max(0, 15 / WPS - 3.6));
-  await click('#presets [data-p="self"]', 900);
+  await sleep(Math.max(0, 16 / WPS - 3.6));
+  await click('#presets [data-p="wrist"]', 900);
   await to("#pill", 800);
-  await say("The explorer runs the same physics: pick a situation and see whether the watch would notice, and why.", 0.3);
+  await say("The physics explorer shows, for any situation, whether the watch would notice, and why.", 0.3);
   await F.evaluate(() => document.getElementById("references").scrollIntoView({ behavior: "smooth" }));
   await sleep(1.2);
   await to(".ieee li:nth-child(4)", 900, 0.3, 0.5);
-  await say("Each value is cited like a research paper: these are the 60 references.", 0.6);
-  await pg.evaluate(() => caption("")); await sleep(0.6);
+  await say("Every value is cited, like in a research paper.", 0.5);
+
+  // ---------- close
+  await pg.evaluate(() => { cursorVisible(false); showSlide("/__card_end.png"); }); await sleep(0.3);
+  await say("Try it at bhajanth13.github.io/SparshaGuard. Next: a real prototype. SparshaGuard: the touch itself raises the alarm.", 0.8);
   mark("end"); clearInterval(statusLog);
   const vpath = await pg.video().path(); await ctx.close(); await b.close();
-  fs.writeFileSync("timeline4.json", JSON.stringify({ video: vpath, log }, null, 1));
+  fs.writeFileSync("timeline5.json", JSON.stringify({ video: vpath, log }, null, 1));
   console.log("video", vpath, "length", log[log.length - 1].t.toFixed(1));
 })();

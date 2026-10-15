@@ -20,6 +20,9 @@ iframe{position:absolute;background:#fff;left:0;top:86px;width:1920px;height:874
 .cap{position:absolute;left:0;top:960px;width:1920px;height:120px;display:flex;align-items:center;justify-content:center;padding:0 120px;color:#fff;font-size:34px;line-height:1.3;font-weight:600;text-align:center;transition:opacity .35s}
 .cap.off{opacity:0}
 #cursor{position:absolute;left:0;top:0;width:26px;height:38px;pointer-events:none;z-index:10;transform:translate(960px,500px);filter:drop-shadow(1px 2px 2px rgba(0,0,0,.35))}
+#slide{position:absolute;left:0;top:0;width:1920px;height:960px;z-index:8;opacity:0;transition:opacity .6s;pointer-events:none}
+#slide.on{opacity:1}
+#cursor.hid{opacity:0}
 #ripple{position:absolute;width:34px;height:34px;border-radius:50%;border:3px solid #c0306a;pointer-events:none;z-index:9;opacity:0}
 #ripple.go{animation:rip .45s ease-out}
 @keyframes rip{from{opacity:.9;transform:scale(.3)}to{opacity:0;transform:scale(1.6)}}
@@ -40,6 +43,7 @@ iframe{position:absolute;background:#fff;left:0;top:86px;width:1920px;height:874
   </div>
   <iframe class="tabframe" data-i="0" src="/index.html"></iframe>
 </div>
+<img id="slide" alt="">
 <div class="cap off" id="cap"></div>
 <div id="ripple"></div>
 <svg id="cursor" viewBox="0 0 26 38"><path d="M2 2 L2 30 L9 23.5 L13.5 34 L18 32 L13.6 21.8 L23 21.8 Z" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg>
@@ -67,5 +71,7 @@ window.tabCenter = (i) => { const t = document.querySelectorAll("#tablist .tab")
 setTabs(["SparshaGuard"], 0);
 window.ripple = () => { const r = document.getElementById("ripple"); r.style.left = cx - 17 + "px"; r.style.top = cy - 17 + "px"; r.classList.remove("go"); void r.offsetWidth; r.classList.add("go"); };
 window.caption = (t) => { const c = document.getElementById("cap"); c.classList.add("off"); setTimeout(() => { c.textContent = t; if (t) c.classList.remove("off"); }, 350); };
+window.showSlide = (src) => { const im = document.getElementById("slide"); if (src) { im.src = src; im.classList.add("on"); } else im.classList.remove("on"); };
+window.cursorVisible = (v) => document.getElementById("cursor").classList.toggle("hid", !v);
 </script>
 </html>
