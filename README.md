@@ -29,7 +29,7 @@ below; nothing is scripted to succeed.
 
 | | Result | How we know |
 |---|---|---|
-| Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 58 published sources logged in total |
+| Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 60 published sources logged in total |
 | Wrist grabs caught | 99 % (demo, fused watch), 83–93 % (studies) | 120 random trials; hours of simulated daily life |
 | Grabs anywhere on her body | 61–70 % averaged over 7 places (first design: 13 %, wrist only) | `passive_stream.py`, demo check |
 | Watch pulled off | 100 % caught, no false alarms | demo headless check |
