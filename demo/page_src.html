@@ -164,6 +164,12 @@ canvas { width: 100%; display: block; }
 .voice { margin-top: 6px; padding: 6px 8px; border-radius: 8px; background: var(--crit-soft); font-size: 12px; }
 .notes { font-size: 12.5px; color: var(--ink2); margin: 10px 0 0; }
 footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: center; }
+/* the demo cursor: during guided playback it moves to each button or body spot it presses */
+#democursor { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; opacity: 0; transition: opacity .3s; filter: drop-shadow(1px 2px 2px rgba(0,0,0,.35)); }
+#democursor.on { opacity: 1; }
+#democursor i { position: absolute; left: -15px; top: -16px; width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--touch); opacity: 0; }
+#democursor.click i { animation: dcrip .45s ease-out; }
+@keyframes dcrip { from { opacity: .9; transform: scale(.3); } to { opacity: 0; transform: scale(1.6); } }
 </style>
 
 <div class="wrap">
@@ -244,7 +250,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       <button class="btn primary" id="playall">Play all</button>
       <button class="btn" id="playone">Play this chapter</button>
       <button class="btn" id="next">Next chapter</button>
-      <span class="hint">About 2 minutes for all eight chapters</span>
+      <span class="hint">2 minutes for all eight chapters</span>
     </div>
   </div>
   <div class="card bar" id="bar-try" hidden>
@@ -376,9 +382,45 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     return s + ` <span style="color:var(--muted)">· ${((simT - scnStart) / FS).toFixed(1)} s</span>`;
   }
 
+  // ------------------------------------------------------------------ demo cursor
+  // During guided playback a pointer moves to what each step presses (a chapter, the watch's
+  // buttons, the spot on her body) and clicks it, so the story looks like someone using the page.
+  const cur = document.createElement("div"); cur.id = "democursor"; cur.setAttribute("aria-hidden", "true");
+  cur.innerHTML = `<svg viewBox="0 0 26 38" width="24" height="35"><path d="M2 2 L2 30 L9 23.5 L13.5 34 L18 32 L13.6 21.8 L23 21.8 Z" fill="#fff" stroke="#000" stroke-width="2" stroke-linejoin="round"/></svg><i></i>`;
+  document.body.appendChild(cur);
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let curX = innerWidth / 2, curY = innerHeight / 2, curAnim = 0;
+  const placeCursor = () => { cur.style.transform = `translate(${curX - 3}px, ${curY - 2}px)`; };
+  function cursorShow(on, from) {
+    if (on && from) { const r = from.getBoundingClientRect(); curX = r.left + r.width / 2; curY = r.top + r.height / 2; placeCursor(); }
+    cur.classList.toggle("on", on);
+  }
+  const cursorOn = () => cur.classList.contains("on");
+  function cursorTo(x, y, ms) {
+    cancelAnimationFrame(curAnim); const x0 = curX, y0 = curY, t0 = performance.now();
+    const f = (now) => { const k = calm ? 1 : Math.min(1, (now - t0) / ms), e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      curX = x0 + (x - x0) * e; curY = y0 + (y - y0) * e; placeCursor(); if (k < 1) curAnim = requestAnimationFrame(f); };
+    curAnim = requestAnimationFrame(f);
+  }
+  function cursorClick() { cur.classList.remove("click"); void cur.offsetWidth; cur.classList.add("click"); }
+  const aimEl = (sel, optional) => () => { const el = document.querySelector(sel); if (el && optional) el._optional = true; return el; };
+  const aimFig = (x, y) => () => ({ fig: [x, y] });                 // a point on the wearer figure (its viewBox units)
+  function aimPoint(t) {
+    if (!t) return null;
+    const el = t.fig ? document.querySelector(".figure") : t;
+    const r = el.getBoundingClientRect(), off = r.top < 0 || r.bottom > innerHeight;
+    if (off && el._optional) return null;                         // a chapter button below the fold: don't scroll for it
+    if (off) el.scrollIntoView({ block: "nearest" });
+    if (t.fig) { const m = el.getScreenCTM(); return [m.a * t.fig[0] + m.c * t.fig[1] + m.e, m.b * t.fig[0] + m.d * t.fig[1] + m.f]; }
+    const q = el.getBoundingClientRect(); return [q.left + q.width / 2, q.top + q.height / 2];
+  }
+  const ON_BTN = aimEl('#screen button[data-act="on"]');
+  const WRIST = aimFig(156, 178);
+
   // ------------------------------------------------------------------ guided chapters
-  // a step: { wait: seconds } or { until: () => bool }, then optional do() and say (caption)
-  const typePin = (pin) => [...pin].map((d) => ({ wait: 0.55, do: () => press(d) }));
+  // a step: { wait: seconds } or { until: () => bool }, then an optional aim (the cursor moves
+  // there and clicks), then optional do() and say (caption)
+  const typePin = (pin) => [...pin].map((d) => ({ wait: 0.05, aim: aimEl(`.pad button[data-key="${d}"]`), aimMs: 300, do: () => press(d) }));
   const armed = () => fw.state === "armed" && !(flash && simT < flash.until);
   // Wait for the watch's own decision. If it misses (a few % of grabs: e.g. both bodies near the
   // same voltage, or the touch lands mid-step), say so honestly and let him grab again.
@@ -398,58 +440,58 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   const CHAPTERS = [
     { t: "Guard Mode", steps: [
       { fresh: true, say: "A woman is walking home alone. She turns on Guard Mode.", sub: "One tap on the watch." },
-      { wait: 1.2, do: () => fw.setGuard(true), say: "First, the watch learns her: 5 seconds of her own body on the sensor.", sub: "Each reading sweeps 200 frequencies, 5 times a second." },
+      { wait: 1.2, aim: ON_BTN, do: () => fw.setGuard(true), say: "First, the watch learns her: 5 seconds of her own body on the sensor.", sub: "Each reading sweeps 200 frequencies, 5 times a second." },
       { until: () => fw.state === "armed", say: "Now it is guarding. The signal stays flat while nobody touches her.", sub: "That flat line is her own body, with sweat and movement, inside the noise." },
-      { wait: 3.5 } ] },
+      { wait: 2.5 } ] },
     { t: "A stranger grabs her wrist", steps: [
-      { ready: true, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
+      { ready: true, aim: WRIST, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
       { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %, and her body's static jumps too.", sub: "His palm closes a path through the strap electrode; touching her, his body shares its charge with hers." },
       { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }), say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds. The microphone turns on." },
       { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
       { until: () => fw.state === "alert", say: "Alert: her live location and the voice recording go to her contacts, and 112 is called.", sub: "With her heart rate. No button needed: the touch itself raised the alarm." },
-      { wait: 4, do: endScene } ] },
+      { wait: 2.5, do: endScene } ] },
     { t: "A friend holds her hand", steps: [
-      { ready: true, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, pull: false, vA: otherVoltage(), label: "A friend holds her hand" }) },
+      { ready: true, aim: WRIST, say: "Later, a friend takes her hand to cross the road.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, pull: false, vA: otherVoltage(), label: "A friend holds her hand" }) },
       { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, pull: false, label: "A friend holds her hand" }), say: "Another person's hand held at the watch for 2 seconds asks for the PIN.", sub: "The sensor can't tell a friend from a stranger, so the PIN decides." },
-      { wait: 1.2, say: "She types her PIN, 1234.", sub: "" }, ...typePin("1234"),
+      { wait: 0.8, say: "She types her PIN, 1234.", sub: "" }, ...typePin("1234"),
       { wait: 0.3, say: "Cancelled. The watch keeps guarding.", sub: "" },
-      { wait: 2.5, do: endScene }, { wait: 1 } ] },
+      { wait: 1.8, do: endScene }, { wait: 0.4 } ] },
     { t: "Forced to cancel", steps: [
-      { ready: true, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger forces her to cancel" }) },
+      { ready: true, aim: WRIST, say: "A stranger grabs her and forces her to cancel.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger forces her to cancel" }) },
       { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger forces her to cancel" }), say: "The watch asks for the PIN.", sub: "" },
-      { wait: 1.2, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
+      { wait: 0.8, say: "She types her duress PIN, 9999.", sub: "" }, ...typePin("9999"),
       { wait: 0.3, say: "The screen says \"Cancelled\", so he thinks it worked…", sub: "" },
-      { wait: 2.2, say: "…but her emergency contact gets a silent alert with her location, and 112 is called.", sub: "" },
-      { wait: 3.5, do: endScene } ] },
+      { wait: 2, say: "…but her emergency contact gets a silent alert with her location, and 112 is called.", sub: "" },
+      { wait: 2.6, do: endScene } ] },
     { t: "The watch is ripped off", steps: [
-      { ready: true, say: "He rips the watch off her wrist.", sub: "", do: () => startScene("strap_off:null") },
+      { ready: true, aim: WRIST, say: "He rips the watch off her wrist.", sub: "", do: () => startScene("strap_off:null") },
       { until: () => fw.state === "alert", say: "The electrode loses her skin: alert in under a second, no PIN asked.", sub: "The watch compares each reading with its own off-the-wrist signature." },
-      { wait: 4, do: endScene } ] },
+      { wait: 3, do: endScene } ] },
     { t: "Grabbed anywhere", steps: [
-      { ready: true, say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
+      { ready: true, aim: aimFig(138, 84), say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
       { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the lower chart." },
       { until: promptOrRetry("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], label: "A stranger grabs her shoulder and pulls" }), say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
-      { wait: 1.5, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
-      { wait: 2, do: endScene }, { wait: 1 } ] },
+      { wait: 1, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 1.5, do: endScene }, { wait: 0.4 } ] },
     { t: "She fights back", steps: [
-      { ready: true, say: "Someone corners her and she struggles to get free.", sub: "", do: () => startScene("struggle:null", { label: "She struggles to get free" }) },
+      { ready: true, aim: aimFig(150, 140), say: "Someone corners her and she struggles to get free.", sub: "", do: () => startScene("struggle:null", { label: "She struggles to get free" }) },
       { wait: 0.8, say: "No touch was felt yet, but her wrist jerks irregularly and turns fast.", sub: "Accelerometer and gyroscope: a struggle looks nothing like walking, running or a wave." },
       { until: promptOrRetry("struggle:null", { label: "She struggles to get free" }), say: "Signs of a struggle: the watch asks for her PIN, and the microphone turns on.", sub: "" },
-      { wait: 1.2, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
-      { wait: 1.5, do: endScene }, { wait: 1 } ] },
+      { wait: 0.8, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 1, do: endScene }, { wait: 0.4 } ] },
     { t: "Everyday life", steps: [
       { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
-      { wait: 1, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
-      { wait: 4, do: endScene },
-      { wait: 1.5, do: () => { sensor.setContext("bus"); startScene("object:railing_wrist"); }, say: "On the bus, her strap rests on a metal pole.", sub: "Metal pulls her body to 0 V and holds it there: not a person." },
-      { wait: 4.5, do: endScene },
-      { wait: 1.5, do: () => startScene("brush:other_arm", { vA: otherVoltage(), label: "A stranger brushes past her arm" }), say: "A stranger brushes past her arm.", sub: "Another body, but no pulling within 3 seconds: ignored." },
+      { wait: 1, aim: WRIST, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
+      { wait: 2.8, do: endScene },
+      { wait: 1, aim: aimFig(171, 150), do: () => { sensor.setContext("bus"); startScene("object:railing_wrist"); }, say: "On the bus, her strap rests on a metal pole.", sub: "Metal pulls her body to 0 V and holds it there: not a person." },
+      { wait: 2.6, do: endScene },
+      { wait: 0.8, aim: aimFig(56, 112), do: () => startScene("brush:other_arm", { vA: otherVoltage(), label: "A stranger brushes past her arm" }), say: "A stranger brushes past her arm.", sub: "Another body, but no pulling within 3 seconds: ignored." },
       { wait: 2, do: endScene },
-      { wait: 3, do: () => startScene("bystander:null"), say: "Someone stands very close.", sub: "No touch: no sharp step, nothing on the sweep." },
-      { wait: 4, do: endScene },
-      { wait: 1, do: () => { sensor.setContext("walking"); startScene("run:null"); }, say: "She runs to catch a bus.", sub: "Running alone is not an alarm; while she runs, any touch asks for the PIN at once." },
-      { wait: 5, do: endScene },
-      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 0–1 unwanted prompts across runs, against 24–28 for a sweep-only watch.", sub: "" }, { wait: 3 } ] },
+      { wait: 1.2, aim: aimFig(186, 50), do: () => startScene("bystander:null"), say: "Someone stands very close.", sub: "No touch: no sharp step, nothing on the sweep." },
+      { wait: 3, do: endScene },
+      { wait: 0.5, aim: aimFig(30, 200), do: () => { sensor.setContext("walking"); startScene("run:null"); }, say: "She runs to catch a bus.", sub: "Running alone is not an alarm; while she runs, any touch asks for the PIN at once." },
+      { wait: 3.5, do: endScene },
+      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 0–1 unwanted prompts across runs, against 24–28 for a sweep-only watch.", sub: "" } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
@@ -464,10 +506,14 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     const first = steps[0];
     if (first.fresh) resetAll();
     else if (first.ready && (fw.state === "off" || fw.state === "alert")) {
-      resetAll(); fw.setGuard(true);
-      pre = [{ say: "Guard Mode back on: the watch re-learns her for 5 seconds.", sub: "" }, { until: armed }];
+      resetAll();
+      pre = [{ aim: ON_BTN, do: () => fw.setGuard(true), say: "Guard Mode back on: the watch re-learns her for 5 seconds.", sub: "" }, { until: armed }];
     } else if (first.ready) pre = [{ until: armed }];
+    if (cursorOn()) pre.unshift({ aim: aimEl(`#chapters button[data-i="${i}"]`, true), aimMs: 450 });
     const all = [...pre, ...steps];
+    if (playAll && i === CHAPTERS.length - 1)           // Play all always ends at 2:00, then the cursor goes away
+      all.push({ until: () => performance.now() - playStart >= PLAY_MS }, { do: () => cursorShow(false) });
+    else if (!playAll) all.push({ do: () => cursorShow(false) });
     runner = {
       tick() {
         while (k < all.length) {
@@ -475,6 +521,11 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
           if (s.wait !== undefined && !s._started) { s._started = true; wait = s.wait; }
           if (s.wait !== undefined && (wait -= 1 / FS) > 0) return;
           if (s.until && !s.until()) return;
+          if (s.aim && cursorOn() && !s._aimed) {
+            if (!s._aimAt) { const pt = aimPoint(s.aim()); if (!pt) s._aimed = true; else { cursorTo(pt[0], pt[1], s.aimMs || 550); s._aimAt = performance.now() + (s.aimMs || 550) + 100; } }
+            if (s._aimAt && performance.now() < s._aimAt) return;
+            if (!s._aimed) { s._aimed = true; cursorClick(); }
+          }
           if (s.do) s.do(); if (s.say !== undefined) setCaption(s.say, s.sub);
           k++; if (k < all.length) delete all[k]._started;
         }
@@ -483,11 +534,12 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         else { playAll = false; if (i + 1 < CHAPTERS.length) { chapter = i + 1; renderChapters(); } }
       },
     };
-    all.forEach((s) => delete s._started);
+    all.forEach((s) => { delete s._started; delete s._aimAt; delete s._aimed; });
   }
-  function stopRunner() { runner = null; playAll = false; }
-  $("playall").addEventListener("click", () => { CHAPTERS.forEach((c) => (c.done = false)); playAll = true; runChapter(0); });
-  $("playone").addEventListener("click", () => { playAll = false; runChapter(chapter); });
+  function stopRunner() { runner = null; playAll = false; cursorShow(false); }
+  const PLAY_MS = 120000; let playStart = 0;
+  $("playall").addEventListener("click", () => { CHAPTERS.forEach((c) => (c.done = false)); playAll = true; playStart = performance.now(); cursorShow(true, $("playall")); runChapter(0); });
+  $("playone").addEventListener("click", () => { playAll = false; cursorShow(true, $("playone")); runChapter(chapter); });
   $("next").addEventListener("click", () => { stopRunner(); chapter = (chapter + 1) % CHAPTERS.length; renderChapters(); runChapter(chapter); });
 
   // ------------------------------------------------------------------ try it yourself
