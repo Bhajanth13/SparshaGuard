@@ -43,7 +43,6 @@ h1 span { color: var(--touch); }
 .card ul { margin: 0; padding-left: 18px; color: var(--ink2); font-size: 14.5px; }
 .go { margin-top: auto; padding-top: 6px; font-weight: 600; color: var(--touch); }
 .go::after { content: " →"; }
-.newtab { font-size: 12.5px; color: var(--muted); margin-top: -6px; }
 .facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 28px 0 0; }
 @media (max-width: 720px) { .facts { grid-template-columns: minmax(0, 1fr); } }
 .fact { border-top: 2px solid var(--line); padding-top: 10px; }
@@ -59,7 +58,7 @@ footer a { color: inherit; }
   <p class="lede">A safety smartwatch where a stranger's touch raises the alarm. Once Guard Mode is on, another person's grab starts a 15-second PIN countdown; no PIN sends her location to her contacts and calls 112.</p>
 
   <div class="cards">
-    <a class="card" href="demo/sparshaguard_demo.html" target="_blank" rel="noopener">
+    <a class="card" href="demo/sparshaguard_demo.html">
       <h2>Digital twin</h2>
       <p>The watch's own firmware running on a simulated sensor, in real time.</p>
       <ul>
@@ -67,9 +66,9 @@ footer a { color: inherit; }
         <li>Try it yourself: grab her, brush past, rip the watch off</li>
         <li>Enter the PIN on the watch (1234, duress 9999)</li>
       </ul>
-      <span class="go">Open the demo</span><span class="newtab">opens in a new tab ↗</span>
+      <span class="go">Open the demo</span>
     </a>
-    <a class="card" href="explorer/sparshaguard_explorer.html" target="_blank" rel="noopener">
+    <a class="card" href="explorer/sparshaguard_explorer.html">
       <h2>Physics explorer</h2>
       <p>Pick what happens to her and see whether the watch would notice, and why.</p>
       <ul>
@@ -77,7 +76,7 @@ footer a { color: inherit; }
         <li>The static-charge channel for touches anywhere on her body</li>
         <li>Where on her body a grab is caught</li>
       </ul>
-      <span class="go">Open the explorer</span><span class="newtab">opens in a new tab ↗</span>
+      <span class="go">Open the explorer</span>
     </a>
   </div>
 
@@ -91,12 +90,4 @@ footer a { color: inherit; }
     <p>Simulated, not yet measured: values come from published papers and are checked with SPICE and MIT FastCap; a battery-powered prototype (Gate 1) will calibrate them. Both pages work offline once opened.</p>
   </footer>
 </div>
-<script>
-// Open each tool in a new tab even where a browser or app ignores target="_blank".
-document.querySelectorAll("a.card").forEach((a) => a.addEventListener("click", (e) => {
-  if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;   // let the browser handle its own shortcuts
-  const w = window.open(a.href, "_blank");
-  if (w) { w.opener = null; e.preventDefault(); }                        // opened: done; blocked: the link opens normally
-}));
-</script>
 </html>

@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>SparshaGuard Touch Explorer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +48,8 @@
 body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
 .wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 40px; }
 header { display: grid; gap: 6px; margin-bottom: 22px; }
+.home { justify-self: start; display: inline-block; font-family: var(--f-body); font-weight: 500; font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--muted); text-decoration: none; margin-bottom: 4px; }
+.home:hover { color: var(--touch); }
 .eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 h1 { font-family: var(--f-display); font-stretch: 75%; font-weight: 780; font-size: clamp(30px, 5vw, 46px); line-height: 1.02; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 h1 .sp { color: var(--touch); }
@@ -176,6 +179,7 @@ a.cite:hover { text-decoration: underline; }
 
 <div class="wrap">
   <header>
+    <a class="home" href="../index.html">← Home</a>
     <div class="eyebrow">SparshaGuard · physics explorer · values from 60 published sources</div>
     <h1><span class="sp">Sparsha</span>Guard Touch Explorer</h1>
     <p class="lede">Pick what happens to her and see, in plain words, whether the watch would notice, and why.</p>
