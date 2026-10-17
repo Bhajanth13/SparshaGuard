@@ -44,8 +44,7 @@ About 490 spoken words in total, at a calm 140 words a minute. **[Next]** marks 
 
 **Slide 5: Prototype & Demonstration** (1:48–2:20)
 
-> Before building hardware, we built a digital twin: the watch's real software running on a simulated body,
-> live on our website.
+> We built a digital twin: the watch's real software on a simulated body, live on our website.
 > In the middle, a stranger grabs her wrist. The touch signal jumps to 16 %, and the static line jumps too:
 > another body. So the watch asks for her PIN, and the mic is on.
 > On the right, she touches the watch with her own hand. The touch signal jumps just as much, but the static line
