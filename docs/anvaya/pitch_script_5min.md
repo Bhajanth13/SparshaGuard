@@ -55,7 +55,8 @@ About 591 spoken words, at a calm pace with pauses for the slide changes. The sa
 
 ## Notes for the presenters
 
-- Slides 1, 3 and 5 play their 3D animations by themselves when the slide opens. Let slide 3's charge cloud hit the strap before you say "asks for her PIN"; on slide 5 the labels fade in once the watch has opened up.
+- Present from `SparshaGuard_ANVAYA_2k26.html`: open it in Chrome or Edge (works offline), press **F** for full screen, then **→ / Space / click** to move on and **←** to go back. **N** shows these notes with a clock, **T** restarts the clock, **1–9 / 0** jump to a slide. The .pptx and PDF are backups.
+- The 3D watch is live: it glides between slides, plays the touch event on slide 3 (cloud hits the strap → PIN countdown → "Alert sent" → duress "Cancelled", with the matching card lit), and opens up on slide 5 with labels that follow each part.
 - Present from PowerPoint (Slide Show from the start). Keep the .pptx and its PDF copy on a USB drive; the PDF has no animations but shows every slide.
 - Likely questions: *What if a friend touches her?* Her PIN cancels it. *Is it built?* The software runs on a digital twin; the battery bench prototype is the next step. *Why these prices?* Making cost is our estimate from distributor prices; supplier quotes come next.
 - Business-side figures (₹6,500, ₹17,000, ₹11,500 making cost) are our estimates; market figures come from MoSPI, IDC 2025 and NARI 2025; crime figures from NCRB Crime in India 2023.
