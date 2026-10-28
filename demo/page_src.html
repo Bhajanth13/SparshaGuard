@@ -4,9 +4,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* One stage, read left to right: where she is touched -> her watch -> her contact's phone.
-   Below it, one control bar: a guided story with captions, or a few tiles to try it yourself.
-   The science (sweep, firmware log, numbers) is folded away until asked for. */
+/* Read top to bottom, then left to right. On top, one bar: the story's caption with its controls
+   (or the touch tiles in "Try it yourself"). Below it the stage: where she is touched -> her watch ->
+   what the watch checks -> her contact's phone. The science (sweep, firmware log, numbers) is
+   folded away until asked for. */
 :root {
   --paper: #eef1f4; --panel: #ffffff; --ink: #13202a; --ink2: #4a5866; --muted: #74818d; --line: #dbe1e7; --grid: #e8ecf0;
   --base: #6b7a88; --touch: #c0306a; --touch-soft: rgba(192, 48, 106, 0.12); --warn: #b77700; --warn-soft: rgba(250, 178, 25, 0.18);
@@ -53,13 +54,14 @@ header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center
 @media (max-width: 760px) { header { grid-template-columns: 1fr; justify-items: start; } .tools { justify-content: flex-start; } }
 
 /* stage */
-.stage { display: grid; grid-template-columns: 260px minmax(0, 1fr) 300px; gap: 16px; align-items: stretch; }
-@media (max-width: 1060px) { .stage { grid-template-columns: 220px minmax(0, 1fr); } .phonecol { grid-column: 1 / -1; justify-self: center; } }
-@media (max-width: 640px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.stage { display: grid; grid-template-columns: 210px 300px minmax(0, 1fr) 260px; gap: 14px; align-items: stretch; margin-top: 14px; }
+@media (max-width: 1240px) { .stage { grid-template-columns: 200px 300px minmax(0, 1fr); } .phonecol { grid-column: 1 / -1; } }
+@media (max-width: 860px) { .stage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .center { grid-column: 1 / -1; order: -2; } .checks { grid-column: 1 / -1; order: -1; } }
+@media (max-width: 560px) { .stage { grid-template-columns: minmax(0, 1fr); } }
 .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px; min-width: 0; }
 .label { font-size: 11.5px; text-transform: uppercase; letter-spacing: .7px; color: var(--muted); margin: 0 0 6px; }
 .bodycard { display: flex; flex-direction: column; }
-.figure { width: 100%; max-width: 250px; margin: auto; display: block; }
+.figure { width: 100%; max-width: 190px; margin: auto; display: block; }
 .figure .b { fill: var(--body); stroke: var(--body-line); stroke-width: 1.5; }
 .figure .ghost { fill: var(--body); opacity: .55; }
 .figure .w { fill: var(--ink); }
@@ -71,7 +73,7 @@ header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center
 .touchnow { font-size: 13px; color: var(--ink2); min-height: 40px; }
 .touchnow b { color: var(--ink); }
 
-.center { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 .watchbox { position: relative; width: 300px; height: 300px; display: grid; place-items: center; }
 .ringsvg { position: absolute; inset: 0; transform: rotate(-90deg); pointer-events: none; }
 .ringsvg circle { fill: none; stroke-width: 9; stroke-linecap: round; }
@@ -100,17 +102,36 @@ header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center
 .rec::before { content: ""; display: inline-block; width: 7px; height: 7px; background: #ff5050; border-radius: 50%; margin-right: 5px; }
 .pulse { width: 7px; height: 7px; border-radius: 50%; background: #5cc98a; display: inline-block; margin-right: 5px; }
 .status { font-family: var(--f-display); font-stretch: 90%; font-weight: 700; font-size: 16px; text-align: center; min-height: 24px; }
-.signal { width: 100%; max-width: 560px; }
-.signal .top { display: flex; justify-content: space-between; align-items: baseline; }
-.signal .val { font-family: var(--f-mono); font-size: 13px; color: var(--ink2); }
-.signal + .signal { margin-top: 6px; }
+/* what the watch checks: one row per check, each with a light, a plain answer and a live trace */
+.checks { display: flex; flex-direction: column; gap: 8px; }
+.ck { border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px 6px; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; column-gap: 8px; align-items: center; transition: border-color .2s, background .2s; }
+.ck .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-size: 11.5px; background: var(--grid); color: var(--ink2); transition: background .2s, color .2s; }
+.ck .q { font-weight: 600; font-size: 13.5px; }
+.ck .v { font-family: var(--f-mono); font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap; }
+.ck .a { grid-column: 2 / -1; font-size: 12.5px; color: var(--ink2); min-height: 18px; }
+.ck canvas { grid-column: 1 / -1; margin-top: 4px; }
+.ck[data-s="on"] { border-color: var(--touch); background: var(--touch-soft); }
+.ck[data-s="on"] .n { background: var(--touch); color: #fff; }
+.ck[data-s="on"] .a { color: var(--ink); }
+.ck[data-s="wait"] { border-color: var(--warn); }
+.ck[data-s="wait"] .n { background: var(--warn); color: #fff; }
+.ck[data-s="no"] .n { background: var(--calm); color: #fff; }
+.ck[data-s="no"] .a { color: var(--calm); }
+.decision { border-radius: 12px; padding: 10px 12px; background: var(--paper); display: grid; gap: 2px; }
+.decision b { font-family: var(--f-display); font-stretch: 90%; font-weight: 700; font-size: 16px; }
+.decision span { font-size: 12.5px; color: var(--ink2); }
+.decision[data-s="prompt"] { background: var(--warn-soft); } .decision[data-s="prompt"] b { color: var(--warn); }
+.decision[data-s="alert"] { background: var(--crit-soft); } .decision[data-s="alert"] b { color: var(--crit); }
+.decision[data-s="ok"] b { color: var(--calm); }
+.rule { font-size: 11.5px; color: var(--muted); margin: 0; }
+.rule b { color: var(--ink2); font-weight: 600; }
 .settings { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--ink2); margin: 0 0 10px; }
 .settings select { font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); }
 canvas { width: 100%; display: block; }
 
 .phonecol { display: flex; justify-content: center; }
-.phone { width: 280px; background: var(--case); border-radius: 30px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); align-self: start; }
-.pscreen { background: var(--panel); border-radius: 22px; min-height: 380px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.phone { width: 260px; background: var(--case); border-radius: 30px; padding: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); align-self: start; }
+.pscreen { background: var(--panel); border-radius: 22px; min-height: 400px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .phead { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--touch-soft); color: var(--touch); display: grid; place-items: center; font-weight: 700; font-size: 10px; letter-spacing: .02em; }
 .pname { font-weight: 600; font-size: 13.5px; } .psub { font-size: 11.5px; color: var(--muted); }
@@ -121,26 +142,28 @@ canvas { width: 100%; display: block; }
 .empty { color: var(--muted); font-size: 12.5px; text-align: center; margin: auto 0; }
 .sim { font-size: 11px; color: var(--muted); text-align: center; margin-top: auto; }
 
-/* control bar */
-.bar { margin-top: 14px; }
-.chapters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.chapters button { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 6px 12px 6px 6px; cursor: pointer; font-size: 13px; }
-.chapters button .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--grid); font-family: var(--f-mono); font-size: 11.5px; }
-.chapters button[aria-current="step"] { border-color: var(--touch); font-weight: 600; }
-.chapters button[aria-current="step"] .n { background: var(--touch); color: #fff; }
-.chapters button.done .n { background: var(--calm); color: #fff; }
-.caption { font-family: var(--f-display); font-stretch: 92%; font-weight: 600; font-size: 22px; line-height: 1.3; min-height: 58px; }
-.caption .sub { display: block; font-family: var(--f-body); font-weight: 400; font-size: 14px; color: var(--ink2); margin-top: 4px; }
-.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+/* story bar: chapter steps and controls on one line, the caption right under them */
+.sbtop { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+.chap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; min-width: 0; }
+.chapname { font-size: 12.5px; color: var(--muted); }
+@media (max-width: 560px) { .controls { margin-left: 0; } .chapters button { width: 30px; height: 30px; } .figure { max-width: 140px; } }
+.chapters { display: flex; gap: 4px; }
+.chapters button { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-family: var(--f-mono); font-size: 12px; padding: 0; color: var(--ink2); }
+.chapters button[aria-current="step"] { background: var(--touch); border-color: var(--touch); color: #fff; }
+.chapters button.done { background: var(--calm); border-color: var(--calm); color: #fff; }
+.caption { font-family: var(--f-display); font-stretch: 92%; font-weight: 600; font-size: 21px; line-height: 1.3; min-height: 52px; margin-top: 10px; }
+.caption .sub { display: block; font-family: var(--f-body); font-weight: 400; font-size: 14px; color: var(--ink2); margin-top: 3px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-left: auto; }
 .btn { border: 1px solid var(--line); background: var(--panel); border-radius: 10px; padding: 9px 16px; cursor: pointer; font-weight: 600; font-size: 14px; }
 .btn.primary { background: var(--touch); border-color: var(--touch); color: #fff; }
 .btn:disabled { opacity: .45; cursor: default; }
-.hint { font-size: 12.5px; color: var(--muted); margin-left: auto; }
-.tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 1060px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.hint { font-size: 12.5px; color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 6px; }
+@media (max-width: 1240px) { .tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.tile { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 10px 8px; cursor: pointer; display: grid; justify-items: center; gap: 4px; text-align: center; font-size: 13px; font-weight: 500; }
-.tile svg { width: 34px; height: 34px; }
+.tile { border: 1px solid var(--line); background: var(--panel); border-radius: 12px; padding: 8px 4px; cursor: pointer; display: grid; justify-items: center; align-content: start; gap: 3px; text-align: center; font-size: 12.5px; font-weight: 500; line-height: 1.2; }
+.tile svg { width: 28px; height: 28px; }
 .tile .k { font-size: 11px; color: var(--muted); font-weight: 400; }
 .tile[aria-pressed="true"] { border-color: var(--touch); background: var(--touch-soft); }
 .tile[aria-pressed="true"] .k { color: var(--touch); }
@@ -187,10 +210,35 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     </div>
   </header>
 
+  <!-- ================= story bar (guided) or touch tiles (try it yourself) ================= -->
+  <div class="card bar" id="bar-guided">
+    <div class="sbtop">
+      <div class="chap"><div class="chapters" id="chapters" role="group" aria-label="Chapters"></div><span class="chapname" id="chapname"></span></div>
+      <div class="controls">
+        <button class="btn primary" id="playall">Play all · 2 min</button>
+        <button class="btn" id="playone">Play this chapter</button>
+        <button class="btn" id="next">Next</button>
+      </div>
+    </div>
+    <div class="caption" id="caption" aria-live="polite"></div>
+  </div>
+  <div class="card bar" id="bar-try" hidden>
+    <div class="sbtop" style="margin-bottom:10px">
+      <span class="hint">Tap a tile to start a touch, tap again to stop. Answer on the watch: PIN <b>1234</b>, duress PIN <b>9999</b>.</span>
+      <div class="controls">
+        <div class="ctx" id="ctx" role="group" aria-label="Where she is">
+          <button data-c="walking" aria-pressed="true">Walking</button><button data-c="bus" aria-pressed="false">Bus</button><button data-c="desk" aria-pressed="false">Desk</button>
+        </div>
+        <button class="btn" id="reset">Start over</button>
+      </div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
   <!-- ================= stage ================= -->
   <div class="stage">
     <div class="card bodycard">
-      <p class="label">The wearer</p>
+      <p class="label">Where she is touched</p>
       <svg class="figure" viewBox="0 0 200 300" role="img" aria-label="Body outline showing where she is touched">
         <g id="m-bystander" class="m"><circle class="ghost" cx="186" cy="48" r="18"/><rect class="ghost" x="166" y="70" width="40" height="110" rx="18"/></g>
         <circle class="b" cx="100" cy="42" r="22"/>
@@ -223,18 +271,18 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <div class="watch" id="watch"><div class="screen" id="screen"></div></div>
       </div>
       <div class="status" id="status"></div>
-      <div class="signal">
-        <div class="top"><p class="label" style="margin:0">Sensor signal (change from her baseline)</p><span class="val" id="sigval"></span></div>
-        <canvas id="cv-score" height="110" role="img" aria-label="Sensor signal over the last 30 seconds against the 0.3 percent touch threshold"></canvas>
-      </div>
-      <div class="signal">
-        <div class="top"><p class="label" style="margin:0">Static on her body (passive channel) and arm jerks</p><span class="val" id="statval"></span></div>
-        <canvas id="cv-static" height="84" role="img" aria-label="Her body voltage as the watch sees it over the last 30 seconds, with contact steps and arm jerks marked"></canvas>
-      </div>
-      <div class="signal">
-        <div class="top"><p class="label" style="margin:0">Skin response (EDA) and transmit check</p><span class="val" id="edaval"></span></div>
-        <canvas id="cv-eda" height="70" role="img" aria-label="Her skin conductance over the last 30 seconds, and the change in the 100 kHz transmit current"></canvas>
-      </div>
+    </div>
+
+    <div class="card checks" aria-live="polite">
+      <p class="label" style="margin:0">What the watch checks</p>
+      <div class="ck" id="ck-body"><span class="n">1</span><span class="q">Another person touched her</span><span class="v" id="ckv-body"></span><span class="a" id="cka-body"></span>
+        <canvas id="cv-static" height="40" role="img" aria-label="Her body's static voltage as the watch sees it, last 30 seconds, with contact steps marked"></canvas></div>
+      <div class="ck" id="ck-hold"><span class="n">2</span><span class="q">A hand held on the watch</span><span class="v" id="ckv-hold"></span><span class="a" id="cka-hold"></span>
+        <canvas id="cv-score" height="40" role="img" aria-label="Touch sensor signal, last 30 seconds, against the 0.3 percent touch level"></canvas></div>
+      <div class="ck" id="ck-move"><span class="n">3</span><span class="q">She is pulled, or her skin reacts with fear</span><span class="v" id="ckv-move"></span><span class="a" id="cka-move"></span>
+        <canvas id="cv-eda" height="40" role="img" aria-label="Her skin conductance, last 30 seconds, with arm jerks marked"></canvas></div>
+      <div class="decision" id="decision"><b id="dec-b"></b><span id="dec-s"></span></div>
+      <p class="rule">PIN prompt when <b>1 + 2</b> (at the wrist) or <b>1 + 3</b> (anywhere on her body). A struggle, or any touch while she runs, also prompts.</p>
     </div>
 
     <div class="phonecol">
@@ -246,28 +294,6 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- ================= control bar ================= -->
-  <div class="card bar" id="bar-guided">
-    <div class="chapters" id="chapters"></div>
-    <div class="caption" id="caption" aria-live="polite"></div>
-    <div class="controls">
-      <button class="btn primary" id="playall">Play all</button>
-      <button class="btn" id="playone">Play this chapter</button>
-      <button class="btn" id="next">Next chapter</button>
-      <span class="hint">2 minutes for all eight chapters</span>
-    </div>
-  </div>
-  <div class="card bar" id="bar-try" hidden>
-    <div class="controls" style="margin:0 0 10px">
-      <span class="label" style="margin:0">Tap a tile to start a touch, tap again to stop. Answer on the watch: PIN <b>1234</b>, duress <b>9999</b>.</span>
-      <div class="ctx" id="ctx" style="margin-left:auto" role="group" aria-label="Where she is">
-        <button data-c="walking" aria-pressed="true">Walking</button><button data-c="bus" aria-pressed="false">Bus</button><button data-c="desk" aria-pressed="false">Desk</button>
-      </div>
-      <button class="btn" id="reset">Start over</button>
-    </div>
-    <div class="tiles" id="tiles"></div>
   </div>
 
   <!-- ================= the science ================= -->
@@ -451,7 +477,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { wait: 2.5 } ] },
     { t: "A stranger grabs her wrist", steps: [
       { ready: true, aim: WRIST, say: "A stranger grabs her wrist.", sub: "", do: () => startScene("person:wrist", { offElectrode: false, bare: true, vA: otherVoltage(), label: "A stranger grabs her wrist" }) },
-      { wait: 0.6, say: "The signal jumps from about 0.1 % to about 16 %, and her body's static jumps too.", sub: "His palm closes a path through the strap electrode; touching her, his body shares its charge with hers." },
+      { wait: 0.6, say: "Checks 1 and 2 light up: another person touched her, and a hand is held on the watch.", sub: "The touch sensor jumps from about 0.1 % to about 16 %; touching her, his body shares its static charge with hers." },
       { until: promptOrRetry("person:wrist", { offElectrode: false, bare: true, label: "A stranger grabs her wrist" }), say: "Held 2 seconds, by another body: the watch vibrates and asks for her PIN.", sub: "She has 15 seconds. The microphone turns on." },
       { wait: 3, say: "She can't answer. The 15 seconds run out…", sub: "" },
       { until: () => fw.state === "alert", say: "Alert: her live location and the voice recording go to her contacts, and 112 is called.", sub: "With her heart rate. No button needed: the touch itself raised the alarm." },
@@ -476,8 +502,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     { t: "Grabbed anywhere", steps: [
       { ready: true, aim: aimFig(138, 84), say: "Someone grabs her shoulder. She freezes: no pulling, no struggle.", sub: "70 % of women assaulted report freezing (Möller 2017), so a grab that only holds must still count.",
         do: () => startScene("person:shoulder", { pull: false, fearAmp: 3, vA: otherVoltage(), label: "A stranger grabs her shoulder; she freezes" }) },
-      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the static chart." },
-      { until: promptOrRetry("person:shoulder", { pull: false, fearAmp: 3, label: "A stranger grabs her shoulder; she freezes" }), say: "2–3 seconds later her skin responds with fear sweat: the watch asks for her PIN.", sub: "Skin conductance from two pads on the steel back (lowest chart). Had he pulled her, the jerks would have decided at once." },
+      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: check 1 lights up." },
+      { until: promptOrRetry("person:shoulder", { pull: false, fearAmp: 3, label: "A stranger grabs her shoulder; she freezes" }), say: "2–3 seconds later her skin responds with fear sweat: the watch asks for her PIN.", sub: "Check 3: skin conductance from two pads on the steel back. Had he pulled her, the jerks would have decided at once." },
       { wait: 0.8, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
       { wait: 1.2, do: endScene }, { wait: 0.4 } ] },
     { t: "She fights back", steps: [
@@ -502,7 +528,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
-    $("chapters").innerHTML = CHAPTERS.map((c, i) => `<button data-i="${i}" ${i === chapter ? 'aria-current="step"' : ""} class="${c.done ? "done" : ""}"><span class="n">${i + 1}</span>${c.t}</button>`).join("");
+    $("chapters").innerHTML = CHAPTERS.map((c, i) => `<button data-i="${i}" ${i === chapter ? 'aria-current="step"' : ""} class="${c.done && i !== chapter ? "done" : ""}" title="${c.t}" aria-label="Chapter ${i + 1}: ${c.t}">${i + 1}</button>`).join("");
+    $("chapname").textContent = `${chapter + 1} of ${CHAPTERS.length} · ${CHAPTERS[chapter].t}`;
   }
   $("chapters").addEventListener("click", (ev) => { const b = ev.target.closest("button"); if (!b) return; stopRunner(); chapter = +b.dataset.i; renderChapters(); setCaption(CHAPTERS[chapter].t, "Press “Play this chapter”."); });
   function setCaption(t, sub) { $("caption").innerHTML = `${t}${sub ? `<span class="sub">${sub}</span>` : ""}`; }
@@ -648,7 +675,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
 
   // ------------------------------------------------------------------ charts
   const COLS = {};
-  const readCols = () => { const cs = getComputedStyle(document.documentElement); for (const v of ["--f-mono", "--muted", "--grid", "--touch", "--touch-soft", "--warn", "--base"]) COLS[v] = cs.getPropertyValue(v).trim(); };
+  const readCols = () => { const cs = getComputedStyle(document.documentElement); for (const v of ["--f-mono", "--muted", "--grid", "--touch", "--touch-soft", "--warn", "--warn-soft", "--base"]) COLS[v] = cs.getPropertyValue(v).trim(); };
   readCols();
   try { const mq = matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener ? mq.addEventListener("change", readCols) : mq.addListener(readCols); } catch (e) { /* colours stay as read */ }
   const css = (v) => COLS[v];
@@ -664,62 +691,49 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     if (cv._dirty || cv._dpr !== dpr) { cv.width = Math.round(W * dpr); cv.height = Math.round(h * dpr); cv._dpr = dpr; cv._dirty = false; }
     const g = cv._g || (cv._g = cv.getContext("2d")); g.setTransform(dpr, 0, 0, dpr, 0, 0); return { g, W, H: h };
   }
+  // compact live traces inside the checks: last 30 s, no axes, one reference line each
+  const X30 = (W, t) => 2 + (W - 4) * (1 - (simT - t) / (30 * FS));
   function drawScore() {
     const { g, W, H } = setup($("cv-score")); if (!W) return; g.clearRect(0, 0, W, H);
-    const L = 40, R = 6, T = 6, B = 16, y0 = Math.log10(0.05), y1 = Math.log10(30);
-    const Y = (p) => T + (H - T - B) * (1 - (Math.log10(Math.max(p, 0.05)) - y0) / (y1 - y0));
-    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
-    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
-    for (const p of [0.1, 1, 10]) { g.beginPath(); g.moveTo(L, Y(p)); g.lineTo(W - R, Y(p)); g.stroke(); g.fillText(`${p}%`, 2, Y(p) + 4); }
-    g.fillText("now", W - R - 22, H - 3); g.fillText("30 s ago", L, H - 3);
-    g.fillStyle = css("--touch-soft");
-    let run = null;
-    for (const h of hist) { if (h.active && run === null) run = h.t; if (!h.active && run !== null) { g.fillRect(X(run), T, X(h.t) - X(run), H - T - B); run = null; } }
-    if (run !== null) g.fillRect(X(run), T, W - R - X(run), H - T - B);
-    g.setLineDash([6, 4]); g.strokeStyle = css("--warn"); g.lineWidth = 1.5; g.beginPath(); g.moveTo(L, Y(0.3)); g.lineTo(W - R, Y(0.3)); g.stroke(); g.setLineDash([]);
-    g.fillStyle = css("--warn"); g.fillText("touch threshold 0.3 %", L + 4, Y(0.3) - 5);
-    g.strokeStyle = css("--touch"); g.lineWidth = 2; g.beginPath();
-    hist.forEach((h, i) => { const x = X(h.t), y = Y(h.score); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    const y0 = Math.log10(0.05), y1 = Math.log10(30);
+    const Y = (p) => 3 + (H - 6) * (1 - (Math.log10(Math.max(p, 0.05)) - y0) / (y1 - y0));
+    g.fillStyle = css("--touch-soft"); let run = null;
+    for (const h of hist) { if (h.active && run === null) run = h.t; if (!h.active && run !== null) { g.fillRect(X30(W, run), 0, X30(W, h.t) - X30(W, run), H); run = null; } }
+    if (run !== null) g.fillRect(X30(W, run), 0, W - X30(W, run), H);
+    g.setLineDash([4, 3]); g.strokeStyle = css("--warn"); g.lineWidth = 1; g.beginPath(); g.moveTo(0, Y(0.3)); g.lineTo(W, Y(0.3)); g.stroke(); g.setLineDash([]);
+    g.font = `10px ${css("--f-mono")}`; g.fillStyle = css("--warn"); g.fillText("touch level", 4, Y(0.3) - 3);
+    g.strokeStyle = css("--touch"); g.lineWidth = 1.8; g.beginPath();
+    hist.forEach((h, i) => { const x = X30(W, h.t), y = Y(h.score); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
   }
   function drawStatic() {
-    const { g, W, H } = setup($("cv-static")); if (!W) return; g.clearRect(0, 0, W, H);
-    const L = 40, R = 6, T = 6, B = 14;
-    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
+    const { g, W, H } = setup($("cv-static")); if (!W || !shist.length) return; g.clearRect(0, 0, W, H);
     let lo = Infinity, hi = -Infinity; for (const h of shist) { lo = Math.min(lo, h.lo); hi = Math.max(hi, h.hi); }
-    if (!shist.length) return;
     const pad = Math.max(0.02, 0.15 * (hi - lo)); lo -= pad; hi += pad;
-    const Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
-    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
-    for (const v of [lo + pad, hi - pad]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillText(`${v.toFixed(2)} V`, 0, Y(v) + 4); }
+    const Y = (v) => 3 + (H - 6) * (1 - (v - lo) / (hi - lo));
+    g.font = `10px ${css("--f-mono")}`;
     for (const m of marks) {
-      const x = X(m.f); if (x < L) continue;
-      if (m.kind === "jerk") { g.fillStyle = css("--warn"); g.fillRect(x - 1.5, H - B - 6, 3, 6); continue; }
-      g.strokeStyle = m.kind === "person" ? css("--touch") : css("--muted"); g.lineWidth = 1.5; g.setLineDash(m.kind === "person" ? [] : [3, 3]);
-      g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke(); g.setLineDash([]);
-      g.fillStyle = m.kind === "person" ? css("--touch") : css("--muted");
-      const lab = { person: "another body", earthed: "metal / earth", object: "object", self: "her own hand" }[m.kind];
-      g.fillText(lab, Math.min(x + 3, W - R - g.measureText(lab).width), T + 9);
+      if (m.kind === "jerk") continue;
+      const x = X30(W, m.f); if (x < 0) continue;
+      const col = m.kind === "person" ? css("--touch") : css("--muted");
+      g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash(m.kind === "person" ? [] : [3, 3]); g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); g.setLineDash([]);
+      const lab = { person: "another person", earthed: "metal", object: "object", self: "her own hand" }[m.kind];
+      g.fillStyle = col; g.fillText(lab, Math.max(2, Math.min(x + 3, W - 2 - g.measureText(lab).width)), 10);
     }
-    g.strokeStyle = css("--base"); g.lineWidth = 1.6; g.beginPath();
-    shist.forEach((h, i) => { const x = X(h.t), y = Y(h.v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
-    g.fillStyle = css("--warn"); g.fillText("▮ arm jerk", W - R - 64, H - 2);
+    g.strokeStyle = css("--base"); g.lineWidth = 1.5; g.beginPath();
+    shist.forEach((h, i) => { const x = X30(W, h.t), y = Y(h.v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
   }
   function drawEda() {
     const { g, W, H } = setup($("cv-eda")); if (!W || !ehist.length) return; g.clearRect(0, 0, W, H);
-    const L = 40, R = 40, T = 6, B = 12;
-    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
     let lo = Infinity, hi = -Infinity; for (const h of ehist) { lo = Math.min(lo, h.eda); hi = Math.max(hi, h.eda); }
-    hi = Math.max(hi, lo + 0.6); const Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
-    let txMax = 5; for (const h of ehist) txMax = Math.max(txMax, h.tx);
-    const YT = (v) => T + (H - T - B) * (1 - v / txMax);
-    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
-    for (const v of [lo, hi]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillText(`${v.toFixed(2)} µS`, 0, Y(v) + 4); }
-    g.fillText(`+${txMax.toFixed(0)} %`, W - R + 4, T + 8); g.fillText("0 %", W - R + 4, H - B);
-    g.strokeStyle = css("--warn"); g.lineWidth = 1.2; g.setLineDash([3, 3]); g.beginPath();
-    ehist.forEach((h, i) => { const x = X(h.t), y = YT(h.tx); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.setLineDash([]);
-    g.strokeStyle = css("--touch"); g.lineWidth = 1.6; g.beginPath();
-    ehist.forEach((h, i) => { const x = X(h.t), y = Y(h.eda); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
-    g.fillStyle = css("--touch"); g.fillText("— skin", L + 4, H - 1); g.fillStyle = css("--warn"); g.fillText("‐‐ transmit", L + 56, H - 1);
+    hi = Math.max(hi, lo + 0.6); const Y = (v) => 3 + (H - 9) * (1 - (v - lo) / (hi - lo));
+    if (fw.watching !== null && fw.watching !== undefined) {           // the window in which a fear response counts
+      const t0 = fw.watching * FS; g.fillStyle = css("--warn-soft");
+      g.fillRect(X30(W, t0 + 0.8 * FS), 0, X30(W, t0 + 4.5 * FS) - X30(W, t0 + 0.8 * FS), H);
+    }
+    for (const m of marks) { if (m.kind !== "jerk") continue; const x = X30(W, m.f); if (x < 0) continue; g.fillStyle = css("--warn"); g.fillRect(x - 1.5, H - 6, 3, 6); }
+    g.strokeStyle = css("--touch"); g.lineWidth = 1.8; g.beginPath();
+    ehist.forEach((h, i) => { const x = X30(W, h.t), y = Y(h.eda); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    g.font = `10px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.fillText("skin", 4, 10); g.fillStyle = css("--warn"); g.fillText("▮ arm jerk", 34, 10);
   }
   function drawSweep(amp) {
     if (!$("science").classList.contains("open")) return;
@@ -738,11 +752,60 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     const li = document.createElement("li");
     li.innerHTML = `<span class="lt">${rtcTime(true)}</span><span class="${e.type}">${e.text}</span>`;
     $("log").prepend(li);
+    if (e.type === "prompt") {
+      const t = e.text, pulled = /pulled/.test(t), skin = /skin responded/.test(t), struggle = /struggle/i.test(t), run = /running/.test(t);
+      const sb = fw.lastStep && fw.lastStep.kind === "person" && fw.t / FS - fw.lastStep.t < 8 ? fw.lastStep : null;
+      latch = { body: sb ? ["on", `${(1000 * Math.abs(sb.size)).toFixed(0)} mV step`, "Yes: their bodies shared static charge in under 2 ms"] : null, why: t.replace(/: (vibrate, )?ask for PIN \(15 s\)/, "").replace(/ \(fear sweat.*\)/, ""),
+        s: pulled || skin || struggle || run ? "on" : "", v: "",
+        a: pulled ? "Yes: her arm was pulled" : skin ? "Yes: a fear response in her skin (she may have frozen)" : struggle ? "Yes: she is struggling to get free" : run ? "She was running when touched" : "Not needed: checks 1 + 2 decided" };
+    }
     if (e.type === "alert") { callStart = simT; addMsg("alert"); sAlert(); }
     if (e.type === "silent") addMsg("silent");
     if (e.type === "cancel") { flash = { until: simT + 2 * FS }; sOk(); }
   }
-  let lastSig = "", lastTouch = "", lastStat = "", lastEda = "";
+  // ------------------------------------------------------------------ what the watch checks
+  // Plain answers from the firmware's own state: 1 = a person-like static step (not her own hand,
+  // metal or an object), 2 = the sweep held above 0.3 %, 3 = pulling or a fear response after 1.
+  let latch = null;                      // why the last prompt started, kept while it is on screen
+  const ckSet = {};
+  function ck(id, st, v, a) {
+    const key = st + "|" + v + "|" + a; if (ckSet[id] === key) return; ckSet[id] = key;
+    $("ck-" + id).dataset.s = st; $("ckv-" + id).textContent = v; $("cka-" + id).textContent = a;
+  }
+  function renderChecks() {
+    const now = simT / FS, on = fw.state !== "off" && fw.state !== "learning";
+    if (!on) { ck("body", "", "", "Waiting for Guard Mode"); ck("hold", "", "", ""); ck("move", "", "", ""); }
+    else {
+      const s = fw.lastStep, recent = s && now - s.t < 6;
+      if (latch && latch.body && (fw.state === "prompt" || fw.state === "alert")) ck("body", ...latch.body);
+      else if (!recent) ck("body", "", "", "No: no sharp jump in her body's static");
+      else if (s.kind === "person") ck("body", "on", `${(1000 * Math.abs(s.size)).toFixed(0)} mV step`, "Yes: their bodies shared static charge in under 2 ms");
+      else ck("body", "no", "", { self: "No: her own hand (the 100 kHz check jumped at the same moment)", earthed: "No: metal pulled her to 0 V", object: "No: a small object, not a person" }[s.kind] || "No");
+      const sc = `${(100 * fw.score).toFixed(1)} %`;
+      if (fw.active && !fw.vetoed) ck("hold", "on", sc, fw.holdSeconds >= 2 ? "Yes: held 2 s or more" : `Yes: held ${fw.holdSeconds.toFixed(1)} of 2 s`);
+      else if (fw.active) ck("hold", "no", sc, "A hand is on the watch, but no other person touched her");
+      else ck("hold", "", sc, "No hand on the watch");
+      if (latch && (fw.state === "prompt" || fw.state === "alert")) ck("move", latch.s, latch.v, latch.a);
+      else if (fw.watching !== null && fw.watching !== undefined) {
+        const t0 = fw.watching, j = fw.jerksSince(t0), base = fw.eda.find(([t]) => t >= t0), rise = base ? pasNow.eda - base[1] : 0;
+        ck("move", "wait", `${(now - t0).toFixed(1)} s`, `Watching: ${j} arm jerk${j === 1 ? "" : "s"}, skin ${rise >= 0 ? "+" : ""}${rise.toFixed(2)} µS (needs 2 jerks or +0.45 µS)`);
+      } else if (fw.running) ck("move", "wait", "", "She is running: any touch now asks for the PIN at once");
+      else ck("move", "", "", "Checked only after check 1");
+    }
+    let b, sub = "", ds = "";
+    if (fw.state === "off") { b = "Guard Mode is off"; sub = "Turn it on from the watch."; }
+    else if (fw.state === "learning") { b = "Learning her baseline"; sub = "5 seconds of her own body on the sensor."; }
+    else if (fw.state === "prompt") { b = `PIN prompt · ${fw.pinSecondsLeft} s to answer`; sub = latch ? latch.why : ""; ds = "prompt"; }
+    else if (fw.state === "alert") { b = "Alert sent to her contacts, 112 called"; sub = latch ? latch.why : "No PIN in time."; ds = "alert"; }
+    else if (flash && simT < flash.until) { b = "Cancelled with her PIN"; sub = "Still guarding."; ds = "ok"; }
+    else if (fw.watching !== null && fw.watching !== undefined) { b = "Another person touched her: watching"; sub = "Pulled within 3 s, or fear in her skin within 4.5 s, asks for the PIN."; }
+    else if (fw.active && fw.vetoed) { b = "No alarm"; sub = "A hand on the watch alone is her own hand or an object."; ds = "ok"; }
+    else { b = "Guarding · no alarm"; sub = ""; ds = "ok"; }
+    const key = b + sub + ds;
+    if (key !== ckSet._dec) { ckSet._dec = key; $("dec-b").textContent = b; $("dec-s").textContent = sub; $("decision").dataset.s = ds; }
+  }
+  let pasNow = { eda: 0 };
+  let lastTouch = "";
   function step() {
     simT += 1;
     if (runner) runner.tick();
@@ -759,22 +822,17 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     while (marks.length && marks[0].f < simT - 30 * FS) marks.shift();
     hist.push({ t: simT, score: fw.state === "off" || fw.state === "learning" ? 0.05 : 100 * fw.score, active: fw.active && fw.state !== "off" });
     while (hist.length > 30 * FS) hist.shift();
-    const sv = fw.state === "off" || fw.state === "learning" ? "" : `${(100 * fw.score).toFixed(2)} %`;
-    if (sv !== lastSig) { $("sigval").textContent = sv; lastSig = sv; }
+    pasNow = pas;
     const tn = describe();
     if (tn !== lastTouch) { $("touchnow").innerHTML = tn; lastTouch = tn; }
-    const stv = `${pas.u[pas.u.length - 1].toFixed(2)} V`;
-    if (stv !== lastStat) { $("statval").textContent = stv; lastStat = stv; }
-    const ev = `${pas.eda.toFixed(2)} µS · transmit +${ehist[ehist.length - 1].tx.toFixed(0)} %`;
-    if (ev !== lastEda) { $("edaval").textContent = ev; lastEda = ev; }
-    renderWatch(); drawScore(); drawStatic(); drawEda(); drawSweep(amp);
+    renderWatch(); renderChecks(); drawScore(); drawStatic(); drawEda(); drawSweep(amp);
   }
   function resetAll() {
     clearInterval(timer);
     const c = document.querySelector("#ctx button[aria-pressed=true]").dataset.c;
     sensor = new SGSensor.SensorTwin(SG, { seed: (Math.random() * 1e9) | 0, context: c, v0: +$("v0").value });
     fw = new SGFirmware.Firmware(sensor.offWristReference(), { RULE: $("rule").value }); fw.onEvent = logEvent;
-    simT = 0; scn = null; msgs = []; flash = null; hist.length = 0; shist.length = 0; marks.length = 0; lastScreen = "";
+    simT = 0; scn = null; msgs = []; flash = null; latch = null; hist.length = 0; shist.length = 0; marks.length = 0; lastScreen = "";
     $("log").innerHTML = ""; $("msgs").innerHTML = `<div class="empty">No alerts</div>`;
     paintScene();
     timer = setInterval(step, 1000 / FS);

@@ -32,7 +32,7 @@ src = src.replace("/*FUSED*/", json.dumps(fz))
 chk = json.loads((here.parent / "demo/demo_check.json").read_text())
 hold = chk["hold_without_pull_caught"]
 sig = {"struggle": chk["struggle_without_touch_caught"]["fused2"], "runAlone": chk["running_alone_prompted"]["fused2"],
-       "touchRun": chk["touch_while_running_caught"]["fused2"], "self": chk["own_hand_prompted"]["fused2"],
+       "touchRun": chk["touch_while_running_caught"]["fused2"], "self": chk["own_hand_prompted"]["fused2"], "selfF": chk["own_hand_prompted"]["fused"],
        "hold": sum(h["fused2"] for h in hold.values()) / len(hold), "holdF": sum(h["fused"] for h in hold.values()) / len(hold)}
 src = src.replace("/*SIGNS*/", json.dumps(sig))
 tx = json.loads((here.parent / "data/transmit_results.json").read_text())

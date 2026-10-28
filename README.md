@@ -271,12 +271,18 @@ for the hackathon demonstration. It is split the way the real device is:
   watch's own off-the-wrist signature, and the PIN state machine (15 s window, correct / wrong /
   duress PIN). It never sees which scenario is playing. "Show the science" can switch it back to
   the first design (sweep only) and change how charged people are.
-- **Page**: one stage (where she is touched, her watch with a hold/countdown ring and the live
-  sensor signal, the static channel with arm jerks, her contact's phone) and two modes: *Guided
-  demo* (eight chapters with captions, "Play all" runs the whole story in about 2 minutes) and
-  *Try it yourself* (nine touch tiles, including a shoulder grab that pulls, a brush in a crowd and
-  holding her phone; answer the PIN on the watch). "Show the science" opens the
-  sweep, the firmware log and the headline numbers.
+- **Page**: a story bar on top (chapter caption and controls, or the touch tiles in *Try it
+  yourself*), then one stage: where she is touched, her watch with a hold/countdown ring, **what
+  the watch checks** (1 another person touched her, 2 a hand held on the watch, 3 she is pulled or
+  her skin reacts with fear, each with its live trace, then the decision and why) and her
+  contact's phone. *Guided demo* has eight chapters; "Play all" runs the whole story in 2 minutes.
+  "Show the science" opens the sweep, the firmware log and the headline numbers.
+
+The explorer (`explorer/sparshaguard_explorer.html`) is one guided page of five questions, each
+with its control beside its chart: try a touch (the same three checks), where on her body a grab
+is caught, how it ignores her own hand, what if she freezes, and how often it prompts by mistake.
+The circuit view, static-channel physics, 3D field result, other sensors and references are
+folded under "For engineers".
 
 `node demo/check_demo.js` runs the same files headless, with no scripted outcomes, and feeds
 every sensor frame to three firmwares side by side (bodies at ~10 V; 70 % of grabs pull her arm,
