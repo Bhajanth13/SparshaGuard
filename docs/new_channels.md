@@ -96,7 +96,30 @@ step was found) was tried and dropped: it added about 6 points of wrist grabs at
 
 ## Results
 
-Full study re-run in progress; the twin check (`node demo/check_demo.js`, bodies at ~10 V) gives 88 % of grabs caught over 7 places with F2 (F: 70 %), 62–65 % of grabs that only hold her (F: 0 %), her own hand never prompting, and 0.22 unwanted prompts per hour (same as F).
+**Study** (`passive_stream.py`; improved input + ADS1115; 40 grabs per place and voltage, 6 h of
+walking, bus and desk life per setting; fig 17, 18; `data/passive_stream_results.json`):
+
+| Body voltage | Body coverage, F | Body coverage, F2 | Wrist, F / F2 | Other places, F | Other places, F2 | Unwanted prompts/h, F / F2 |
+|---|---|---|---|---|---|---|
+| 1 V | 60 % | 74 % | 68 % / 62 % | 56–66 % | 71–79 % | 0.28 / 0.28 |
+| 10 V | 62 % | 75 % | 68 % / 68 % | 59–65 % | 74–80 % | 0.11 / 0.11 |
+| 100 V | 60 % | 76 % | 72 % / 72 % | 53–68 % | 73–83 % | 0.06 / 0.11 |
+
+Rule A (today's sweep only) covers 12–13 % of the body at 4–5 unwanted prompts per hour.
+Unwanted prompts exclude a friend holding her wrist (the PIN is the right answer there).
+Across 0.3–100 V, F2 covers 69–76 % of the body against 58–62 % for F, at the same 0.1–0.4
+prompts per hour. With today's input and the ESP32 ADC, F2 needs 10 V or more (64 % at 10 V,
+9 % at 1 V).
+
+Both rules catch fewer wrist grabs than in the 14 October study (83–88 % then): a grabber's palm
+now covers her watch face in 30 % of wrist grabs, which shrinks the static step, and skin-stretch
+noise is added. At 1 V the own-hand veto also wrongly vetoes a few of those palm-over-face grabs
+(62 % against 68 %). The transmit check on its own (F2-tx, F2 without the skin path) gives the
+same coverage as F; its value is that her own hand never prompts.
+
+**Digital twin** (`node demo/check_demo.js`, bodies at ~10 V): F2 catches 88 % of grabs over
+7 places (F: 70 %), 62–65 % of grabs that only hold her (F: 0 %), her own palm on the watch never
+prompts (F: 2.5 %), and unwanted prompts stay at 0.22 per hour.
 
 ## What is still unknown
 

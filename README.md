@@ -29,22 +29,26 @@ below; nothing is scripted to succeed.
 
 | | Result | How we know |
 |---|---|---|
-| Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 60 published sources logged in total |
-| Wrist grabs caught | 99 % (demo, fused watch), 83–93 % (studies) | 120 random trials; hours of simulated daily life |
-| Grabs anywhere on her body | 61–70 % averaged over 7 places (first design: 13 %, wrist only) | `passive_stream.py`, demo check |
+| Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 72 published sources logged in total |
+| Wrist grabs caught | 88 % (demo), 62–72 % (study, incl. his palm over her watch face) | 120 random trials; hours of simulated daily life |
+| Grabs anywhere on her body | 74–76 % averaged over 7 places (study), 88 % (demo); first design 13 %, wrist only | `passive_stream.py`, demo check |
+| A grab that only holds her (she freezes) | 62–65 % caught through her skin response (fused rule of 14 Oct: 0 %) | demo check |
 | Watch pulled off | 100 % caught, no false alarms | demo headless check |
-| Unwanted PIN prompts | 0–1 in 9 simulated hours (demo); ~0.07 per hour (study). First design: ~3–4 per hour | same simulations |
+| Unwanted PIN prompts | 2 in 9 simulated hours (demo); 0.1–0.3 per hour (study). First design: ~4–5 per hour | same simulations |
 | Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `ltspice/`, `fem/` |
 
 **How the fused watch decides.** A PIN prompt needs *another body*. When another person touches
 her, the two bodies share static charge and her voltage jumps in under a millisecond; her own
 footsteps and movements are slower, metal holds her at 0 V, and a phone pulls her only a few %.
-So the watch prompts when (wrist) the sweep sees a hand held 2 s *and* another body touched her, or
-(anywhere) another body touched her *and* the accelerometer feels her arm being pulled. Two
+Her own hand on the glass can still shift the reading, so a small 100 kHz current sent from the
+steel back checks for it: that current jumps only when her own hand covers the watch. So the watch
+prompts when (wrist) the sweep sees a hand held 2 s *and* another body touched her, or (anywhere)
+another body touched her *and* either the accelerometer feels her arm being pulled or her skin
+conductance rises 1–4 s later, the fear response that still comes when she freezes. Two
 things are still estimates until Gate 1: how charged people are on Indian floors (results hold
-from about 1 V to 100 V with the bootstrapped input and an ADS1115) and how often a grab pulls her
-arm (70 % assumed; a grab that only holds is missed away from the wrist). See
-`docs/whole_body_fusion.md`.
+from about 1 V to 100 V with the bootstrapped input and an ADS1115) how often a grab pulls her
+arm (70 % assumed), and how strongly her wrist skin responds to fear. See
+`docs/whole_body_fusion.md` and `docs/new_channels.md`.
 
 **Signs of assault from her own movement** (digital twin; thresholds are estimates, because no
 published wrist data for assaults was found):

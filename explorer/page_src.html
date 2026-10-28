@@ -180,7 +180,7 @@ a.cite:hover { text-decoration: underline; }
 <div class="wrap">
   <header>
     <a class="home" href="../index.html">← Home</a>
-    <div class="eyebrow">SparshaGuard · physics explorer · values from 60 published sources</div>
+    <div class="eyebrow">SparshaGuard · physics explorer · values from 72 published sources</div>
     <h1><span class="sp">Sparsha</span>Guard Touch Explorer</h1>
     <p class="lede">Pick what happens to her and see, in plain words, whether the watch would notice, and why.</p>
     <nav class="tabs" role="tablist" aria-label="Section">
@@ -388,7 +388,7 @@ a.cite:hover { text-decoration: underline; }
           <p class="sub">Two pads on the steel back measure skin conductance. Fear makes the sweat glands fire: a response starts 1–3 s after the cause, rises for 1–3 s and fades over 2–10 s {S61}. The wrist responds less than the palm {S64, S65}. The watch counts a rise of at least 0.45 µS, 0.8–4.5 s after another body touched her, if it is not too fast and not during an arm jerk (rules in the style of {S66}).</p>
           <div class="fusedopts"><label>What happens <select id="eda-s"><option value="attack" selected>A stranger grabs her (startle / fear)</option><option value="brush">A stranger brushes past her</option><option value="ns">Nothing (spontaneous responses)</option></select></label></div>
           <div class="plot" id="eda-plot"></div>
-          <div class="stats" id="eda-out"></div>
+          <div class="stats" id="eda-out" style="margin-top:10px"></div>
           <p class="note">Values: first startle response 1.56 ± 0.35 µS at 2.34 s at the palm {S63}; 1–5 spontaneous responses a minute at rest {S62}; a grab gives a response with probability 0.9, a brush 0.3, and the wrist gives 0.2–0.6 of the palm: these three are estimates. EDA cannot tell fear from surprise, which is why the threshold is high and why it only confirms a contact the static channel already saw.</p>
         </section>
         <section class="card" id="sig-card">
@@ -728,7 +728,7 @@ a.cite:hover { text-decoration: underline; }
       li(person && pull, `<b>Motion.</b> ${st.touch === "person" ? (pull ? "Her arm is jerked 2–5 times within 3 s: she is being pulled." : "No pulling within 3 s: a brush, a friend's hand, or she has frozen.") : "Not checked: no other body touched her."}`) +
       li(person && !pull && fear, `<b>Skin (EDA).</b> ${st.touch === "person" ? (pull ? "Not needed: the pulling already decided." : fear ? "1–3 s later her skin conductance rises by more than 0.45 µS: a fear response, so a grab that holds her still counts." : "No skin response above 0.45 µS within 4.5 s.") : "Not checked: no other body touched her."}`);
     $("f-note").textContent = st.touch === "none" ? "" :
-      fire ? (wristPath ? "Wrist path: a held touch at the watch AND another body. " : pull ? "Anywhere path: another body AND pulling, wherever he touched her. " : "Anywhere path: another body AND a fear response of her skin, wherever he touched her (70 % of women report freezing during an assault {S68}). ") + "She has 15 s to enter her PIN; a friend's touch is cancelled the same way." :
+      fire ? (wristPath ? "Wrist path: a held touch at the watch AND another body. " : pull ? "Anywhere path: another body AND pulling, wherever he touched her. " : "Anywhere path: another body AND a fear response of her skin, wherever he touched her (70 % of women report freezing during an assault). ") + "She has 15 s to enter her PIN; a friend's touch is cancelled the same way." :
       st.touch === "person" ? (person ? "Another body touched her, but without a held touch at the watch or pulling this is treated as a brush. In the simulation a brush prompted only when it happened to coincide with her own brisk arm movement: about once in 9 hours." : "Both bodies at nearly the same voltage give no step. Then only the sweep can catch a wrist grab; this is the main thing Gate 1 must measure.")
       : sweep ? "The first design would have asked for the PIN here; the fused watch ignores it because no other body touched her." : "";
     return decision;
@@ -886,14 +886,14 @@ a.cite:hover { text-decoration: underline; }
   // transmit / shunt study (sg_newch.py, fig 19)
   const TX = /*TRANSMIT*/;
   document.querySelector("#tx-tbl tbody").innerHTML = Object.keys(TX).filter((k) => k[0] !== "_").map((k) =>
-    `<tr><td>${k[0].toUpperCase() + k.slice(1)}</td><td>×${TX[k].transmit[1].toFixed(2)}</td><td>×${TX[k].receive[1].toFixed(1)}</td></tr>`).join("");
+    `<tr><td>${k[0].toUpperCase() + k.slice(1)}</td><td>×${TX[k].transmit[1].toFixed(1)}</td><td>×${TX[k].receive[1].toFixed(1)}</td></tr>`).join("");
   // skin response card: the shape of a typical response at the wrist [S61, S63; E for the wrist factor]
   function renderEDA() {
     const kind = $("eda-s").value, wrist = 0.4, svgW = $("eda-plot").clientWidth || 520, H = 170;
     const amp = { attack: 1.56, brush: 0.3, ns: 0.1 }[kind] * wrist, on = kind === "ns" ? 4 : 2 + 2.3, tr = 2, th = 5;
     const pts = []; for (let t = 0; t <= 16; t += 0.1) { const dt = t - on; let y = 0; if (dt >= 0) y = dt < tr ? amp * 0.5 * (1 - Math.cos(Math.PI * dt / tr)) : amp * Math.pow(2, -(dt - tr) / th); pts.push([t, y]); }
     const m = { l: 44, r: 10, t: 10, b: 26 }, W = svgW, X = (t) => m.l + (W - m.l - m.r) * t / 16, Y = (v) => m.t + (H - m.t - m.b) * (1 - v / 0.8);
-    let g = `<svg width="${W}" height="${H}" role="img" aria-label="Skin conductance after the event">`;
+    let g = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Skin conductance after the event">`;
     for (const v of [0, 0.2, 0.4, 0.6, 0.8]) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v.toFixed(1)}</text>`;
     g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(0.45)}" y2="${Y(0.45)}" stroke="var(--warn)" stroke-dasharray="4 3"/><text x="${W - m.r}" y="${Y(0.45) - 5}" text-anchor="end" font-size="11" fill="var(--warn)">watch counts 0.45 µS</text>`;
     g += `<rect x="${X(2.8)}" width="${X(6.5) - X(2.8)}" y="${m.t}" height="${H - m.t - m.b}" fill="var(--touch-soft)"/>`;

@@ -180,7 +180,7 @@ a.cite:hover { text-decoration: underline; }
 <div class="wrap">
   <header>
     <a class="home" href="../index.html">← Home</a>
-    <div class="eyebrow">SparshaGuard · physics explorer · values from 60 published sources</div>
+    <div class="eyebrow">SparshaGuard · physics explorer · values from 72 published sources</div>
     <h1><span class="sp">Sparsha</span>Guard Touch Explorer</h1>
     <p class="lede">Pick what happens to her and see, in plain words, whether the watch would notice, and why.</p>
     <nav class="tabs" role="tablist" aria-label="Section">
@@ -300,11 +300,12 @@ a.cite:hover { text-decoration: underline; }
       </section>
 
       <section class="card" id="fused-card" aria-live="polite">
-        <div class="chead"><h2>The fused watch: sweep + static + motion <span class="tag ok">simulated · fig 17–18</span></h2></div>
-        <p class="sub">The same electrode also reads her body's static voltage. Another person touching her anywhere shares charge [<a class="cite" href="#ref-S21">21</a>] and makes her voltage jump in under a millisecond [<a class="cite" href="#ref-S54">54</a>]; metal, a phone or her own hand do not look like that. A PIN prompt needs another body.</p>
+        <div class="chead"><h2>The fused watch: sweep + static + motion + skin <span class="tag ok">simulated · fig 17–19</span></h2></div>
+        <p class="sub">The same electrode also reads her body's static voltage. Another person touching her anywhere shares charge [<a class="cite" href="#ref-S21">21</a>] and makes her voltage jump in under a millisecond [<a class="cite" href="#ref-S54">54</a>]; metal, a phone or her own hand do not look like that. A PIN prompt needs another body, then either pulling or a fear response of her skin.</p>
         <div class="fusedopts">
           <label>Static difference between the two bodies <select id="f-dv"><option value="1">~1 V (humid, conductive floor)</option><option value="10" selected>~10 V</option><option value="100">~100 V (dry day)</option></select></label>
           <label class="check" style="margin:0"><input type="checkbox" id="f-pull" checked> he pulls or shakes her arm</label>
+          <label class="check" style="margin:0"><input type="checkbox" id="f-fear" checked> her skin responds (fear sweat)</label>
         </div>
         <span class="pill" id="f-pill"></span>
         <ul class="fpath" id="f-path"></ul>
@@ -374,7 +375,21 @@ a.cite:hover { text-decoration: underline; }
           <div class="fusedopts"><label>Typical body voltage <select id="fz-v0"><option value="1.0">~1 V</option><option value="10.0" selected>~10 V</option><option value="100.0">~100 V</option></select></label></div>
           <div class="locbars" id="fz-bars"></div>
           <div class="kv" id="fz-kv"></div>
-          <p class="note">Grabs that only hold (about 30 %, an estimate) give no pulling and are missed away from the wrist. A friend holding her wrist still prompts; her PIN cancels it. Motion rates and street body voltages are estimates until Gate 1.</p>
+          <p class="note">Grabs that only hold (about 30 %, an estimate) give no pulling; since 28 October the skin-response path catches most of them, if her skin responds as published startle responses do. Since then the signals also include her own hand changing k, skin-stretch noise and a grabber's palm over her watch face, so the 14 Oct rule F looks a little worse than before. A friend holding her wrist still prompts; her PIN cancels it. Motion rates, fear responses and street body voltages are estimates until Gate 1.</p>
+        </section>
+        <section class="card" id="tx-card">
+          <div class="chead"><h2>Her own hand, and the transmit check <span class="tag ok">simulated · fig 19</span></h2></div>
+          <p class="sub">The watch reads her body voltage through the fraction k = C<sub>GE</sub> / (C<sub>GE</sub> + C<sub>GB</sub> + C<sub>in</sub>). Her palm on the glass adds a few pF between her body and the watch ground, so k drops and the reading jumps with no charge moving. The fix: send 0.5 V at 100 kHz into her skin from the steel back and watch that current. Her hand on the watch makes it jump at the same instant; a stranger touching her elsewhere leaves it flat.</p>
+          <div class="tblwrap"><table class="tbl" id="tx-tbl"><thead><tr><th>Touch</th><th>Transmit current</th><th>Shunt pad on the strap</th></tr></thead><tbody></tbody></table></div>
+          <p class="note">Why not shunt mode? In DiamondTouch the table is earthed [<a class="cite" href="#ref-S71">71</a>], so a grounded hand drains the signal [<a class="cite" href="#ref-S70">70</a>]. A battery watch floats: the earth around her sits at 99 % of her own potential at 100 kHz, so a stranger's hand on the strap raises the received signal just as hers does. Shunt mode cannot tell whose hand it is on a wrist, so the watch uses the transmit current only to recognise her own hand. Current into her body: about 7 µA, under the 100 µA that IEC 60601-1 allows for patient auxiliary current even at low frequency [<a class="cite" href="#ref-S69">69</a>].</p>
+        </section>
+        <section class="card" id="eda-card">
+          <div class="chead"><h2>Skin response (EDA) <span class="tag">simulated · estimates marked</span></h2></div>
+          <p class="sub">Two pads on the steel back measure skin conductance. Fear makes the sweat glands fire: a response starts 1–3 s after the cause, rises for 1–3 s and fades over 2–10 s [<a class="cite" href="#ref-S61">61</a>]. The wrist responds less than the palm [<a class="cite" href="#ref-S64">64</a>, <a class="cite" href="#ref-S65">65</a>]. The watch counts a rise of at least 0.45 µS, 0.8–4.5 s after another body touched her, if it is not too fast and not during an arm jerk (rules in the style of [<a class="cite" href="#ref-S66">66</a>]).</p>
+          <div class="fusedopts"><label>What happens <select id="eda-s"><option value="attack" selected>A stranger grabs her (startle / fear)</option><option value="brush">A stranger brushes past her</option><option value="ns">Nothing (spontaneous responses)</option></select></label></div>
+          <div class="plot" id="eda-plot"></div>
+          <div class="stats" id="eda-out" style="margin-top:10px"></div>
+          <p class="note">Values: first startle response 1.56 ± 0.35 µS at 2.34 s at the palm [<a class="cite" href="#ref-S63">63</a>]; 1–5 spontaneous responses a minute at rest [<a class="cite" href="#ref-S62">62</a>]; a grab gives a response with probability 0.9, a brush 0.3, and the wrist gives 0.2–0.6 of the palm: these three are estimates. EDA cannot tell fear from surprise, which is why the threshold is high and why it only confirms a contact the static channel already saw.</p>
         </section>
         <section class="card" id="sig-card">
           <div class="chead"><h2>Signs of assault in Guard Mode <span class="tag">twin · estimated</span></h2></div>
@@ -387,6 +402,8 @@ a.cite:hover { text-decoration: underline; }
               <tr><td>Microphone</td><td>Turns on when the PIN prompt starts. The correct PIN deletes the recording; no PIN, a wrong PIN or the duress PIN sends it with the alert</td><td>Shown in the twin</td></tr>
               <tr><td>GPS</td><td>Live location goes with every alert, also the silent duress alert</td><td>Shown in the twin</td></tr>
               <tr><td>Heart rate</td><td>Confirmation only: rises too slowly to start an alarm, so the alert reports it against her usual rate</td><td>Shown in the twin</td></tr>
+              <tr><td>Skin response (EDA)<br><small>two pads on the steel back</small></td><td>After another body touched her: a rise of 0.45 µS or more 0.8–4.5 s later asks for the PIN even if she is not pulled (she may have frozen)</td><td id="sig-hold"></td></tr>
+              <tr><td>Her own hand<br><small>100 kHz transmit check</small></td><td>A static step at the same instant as a jump in the transmit current is her own hand on the watch, never a person</td><td id="sig-self"></td></tr>
             </tbody>
           </table></div>
           <p class="note">Running and her own quick gestures are what make motion-only alarms fail, so the watch looks for irregular, repeated, fast movement. A published smartwatch study classified scripted punches and shoves with 99.6 % accuracy [<a class="cite" href="#ref-S34">34</a>]; fall detectors in daily use reach 0.025–0.3 false alarms per hour [<a class="cite" href="#ref-S33">33</a>, <a class="cite" href="#ref-S56">56</a>]; real assaults are messier, and Gate 1 must record them safely (staged).</p>
@@ -486,6 +503,18 @@ a.cite:hover { text-decoration: underline; }
       <li id="ref-S58"><span class="n">[58]</span><span>B. B. Majumdar, et al. (BITS Pilani Hyderabad), &ldquo;Harassment of women in public transport, Hyderabad,&rdquo; <i>Transportation Research Record</i>, n.d. [Online]. Available: <a href="https://journals.sagepub.com/home/trr" target="_blank" rel="noopener">https://journals.sagepub.com/home/trr</a></span></li>
       <li id="ref-S59"><span class="n">[59]</span><span>K. Nabors and J. White, &ldquo;FastCap: A Multipole Accelerated 3-D Capacitance Extraction Program,&rdquo; <i>IEEE Trans. Computer-Aided Design 10(11):1447-1459</i>, 1991. doi: <a href="https://doi.org/10.1109/43.97624" target="_blank" rel="noopener">10.1109/43.97624</a></span></li>
       <li id="ref-S60"><span class="n">[60]</span><span>H. Vogt, G. Atkinson, and P. Nenzi, &ldquo;Ngspice User&#x27;s Manual,&rdquo; <i>ngspice project</i>, n.d. [Online]. Available: <a href="https://ngspice.sourceforge.io/docs.html" target="_blank" rel="noopener">https://ngspice.sourceforge.io/docs.html</a></span></li>
+      <li id="ref-S61"><span class="n">[61]</span><span>M. E. Dawson, A. M. Schell, and D. L. Filion, &ldquo;The electrodermal system,&rdquo; <i>Handbook of Psychophysiology, 3rd ed., Cambridge University Press</i>, 2007. doi: <a href="https://doi.org/10.1017/CBO9780511546396.007" target="_blank" rel="noopener">10.1017/CBO9780511546396.007</a></span></li>
+      <li id="ref-S62"><span class="n">[62]</span><span>W. Boucsein, D. C. Fowles, S. Grimnes, G. Ben-Shakhar, W. T. Roth, M. E. Dawson, and D. L. Filion, &ldquo;Publication recommendations for electrodermal measurements,&rdquo; <i>Psychophysiology 49(8):1017-1034</i>, 2012. doi: <a href="https://doi.org/10.1111/j.1469-8986.2012.01384.x" target="_blank" rel="noopener">10.1111/j.1469-8986.2012.01384.x</a></span></li>
+      <li id="ref-S63"><span class="n">[63]</span><span>F. R. Walker, A. Thomson, K. Pfingst, E. Vlemincx, E. Aidman, and E. Nalivaiko, &ldquo;Habituation of the electrodermal response - A biological correlate of resilience?,&rdquo; <i>PLOS ONE 14(1):e0210078</i>, 2019. doi: <a href="https://doi.org/10.1371/journal.pone.0210078" target="_blank" rel="noopener">10.1371/journal.pone.0210078</a></span></li>
+      <li id="ref-S64"><span class="n">[64]</span><span>M.-Z. Poh, N. C. Swenson, and R. W. Picard, &ldquo;A wearable sensor for unobtrusive, long-term assessment of electrodermal activity,&rdquo; <i>IEEE Trans. Biomed. Eng. 57(5):1243-1252</i>, 2010. doi: <a href="https://doi.org/10.1109/TBME.2009.2038487" target="_blank" rel="noopener">10.1109/TBME.2009.2038487</a></span></li>
+      <li id="ref-S65"><span class="n">[65]</span><span>B. van Dooren, J. J. G. de Vries, and J. H. Janssen, &ldquo;Emotional sweating across the body: comparing 16 different skin conductance measurement locations,&rdquo; <i>Physiology &amp; Behavior 106(2):298-304</i>, 2012. doi: <a href="https://doi.org/10.1016/j.physbeh.2012.01.020" target="_blank" rel="noopener">10.1016/j.physbeh.2012.01.020</a></span></li>
+      <li id="ref-S66"><span class="n">[66]</span><span>I. R. Kleckner, R. M. Jones, O. Wilder-Smith, et al., &ldquo;Simple, transparent, and flexible automated quality assessment procedures for ambulatory electrodermal activity data,&rdquo; <i>IEEE Trans. Biomed. Eng. 65(7):1460-1467</i>, 2018. doi: <a href="https://doi.org/10.1109/TBME.2017.2758643" target="_blank" rel="noopener">10.1109/TBME.2017.2758643</a></span></li>
+      <li id="ref-S67"><span class="n">[67]</span><span>H. de Talhouet and J. G. Webster, &ldquo;The origin of skin-stretch-caused motion artifacts under electrodes,&rdquo; <i>Physiological Measurement 17(2):81-93</i>, 1996. doi: <a href="https://doi.org/10.1088/0967-3334/17/2/003" target="_blank" rel="noopener">10.1088/0967-3334/17/2/003</a></span></li>
+      <li id="ref-S68"><span class="n">[68]</span><span>A. Möller, H. P. Söndergaard, and L. Helström, &ldquo;Tonic immobility during sexual assault - a common reaction predicting post-traumatic stress disorder and severe depression,&rdquo; <i>Acta Obstet. Gynecol. Scand. 96(8):932-938</i>, 2017. doi: <a href="https://doi.org/10.1111/aogs.13174" target="_blank" rel="noopener">10.1111/aogs.13174</a></span></li>
+      <li id="ref-S69"><span class="n">[69]</span><span>IEC, &ldquo;IEC 60601-1: Medical electrical equipment - General requirements for basic safety and essential performance,&rdquo; <i>International standard</i>, 2005. [Online]. Available: <a href="https://webstore.iec.ch/publication/2606" target="_blank" rel="noopener">https://webstore.iec.ch/publication/2606</a></span></li>
+      <li id="ref-S70"><span class="n">[70]</span><span>T. G. Zimmerman, J. R. Smith, J. A. Paradiso, D. Allport, and N. Gershenfeld, &ldquo;Applying electric field sensing to human-computer interfaces,&rdquo; <i>Proc. CHI &#x27;95</i>, 1995. doi: <a href="https://doi.org/10.1145/223904.223940" target="_blank" rel="noopener">10.1145/223904.223940</a></span></li>
+      <li id="ref-S71"><span class="n">[71]</span><span>P. Dietz and D. Leigh, &ldquo;DiamondTouch: a multi-user touch technology,&rdquo; <i>Proc. UIST 2001, pp. 219-226</i>, 2001. doi: <a href="https://doi.org/10.1145/502348.502389" target="_blank" rel="noopener">10.1145/502348.502389</a></span></li>
+      <li id="ref-S72"><span class="n">[72]</span><span>&ldquo;Fingertip forces and completion time for index finger and thumb touchscreen gestures,&rdquo; <i>J. Electromyography and Kinesiology</i>, 2017. [Online]. Available: <a href="https://www.sciencedirect.com/science/article/abs/pii/S1050641116301225" target="_blank" rel="noopener">https://www.sciencedirect.com/science/article/abs/pii/S1050641116301225</a></span></li>
     </ol>
   </section>
   <footer>
@@ -916,13 +945,13 @@ const SG = (() => {
     return 1000 * F_K * dvb;                                         // mV at the watch
   }
   function fused(st, sc) {
-    const dv = +$("f-dv").value, pull = $("f-pull").checked, mv = staticStep(st, dv);
+    const dv = +$("f-dv").value, pull = $("f-pull").checked, fear = $("f-fear").checked, mv = staticStep(st, dv);
     const sweep = st.touch !== "none" && sc >= SG.TRIGGER;
     let kind = "none", what = "No sharp step: nothing touched her, so her body voltage only drifts slowly.";
     if (st.touch === "person") { kind = mv >= F_THR ? "person" : "small";
       what = mv >= F_THR ? `Another body: her voltage jumps ${mv >= 1000 ? (mv / 1000).toFixed(1) + " V" : mv.toFixed(0) + " mV"} at the watch in under 1 ms (detection level ${F_THR.toFixed(1)} mV).`
                          : `Step of ${mv.toFixed(1)} mV is under the ${F_THR.toFixed(1)} mV detection level: the two bodies are too close in voltage.`; }
-    if (st.touch === "self") what = "Her own hand: one body, no charge to share, no step.";
+    if (st.touch === "self") what = "Her own hand: one body, no charge to share. As her palm settles on the glass the static reading still changes (the fraction k drops), but over 10–100 ms and at the same instant as a jump in the 100 kHz transmit current: classed as her own hand, not a person.";
     if (st.touch === "bystander") what = "No touch: a person walking up shifts her voltage over about a second, far too slowly to count as a contact.";
     if (st.touch === "object") {
       const o = st.object;
@@ -931,7 +960,7 @@ const SG = (() => {
       else what = "An insulating table shares no charge: no step.";
     }
     const person = kind === "person", atWrist = st.touch === "person" && st.loc === "wrist";
-    const wristPath = sweep && person, anyPath = person && pull, fire = wristPath || anyPath;
+    const wristPath = sweep && person, anyPath = person && (pull || fear), fire = wristPath || anyPath;
     const pill = $("f-pill");
     const cls = fire ? "trig" : "hid";
     const decision = { fire, wristPath, kind };
@@ -940,9 +969,10 @@ const SG = (() => {
     const li = (ok, t) => `<li><span class="ic ${ok ? "y" : "n"}">${ok ? "✓" : "–"}</span><span>${t}</span></li>`;
     $("f-path").innerHTML = li(person, "<b>Static channel.</b> " + what) +
       li(sweep, `<b>Sweep.</b> ${sweep ? `Changes by ${fmtPct(sc)} %, above 0.3 %: a touch at the watch.` : "Below the 0.3 % level: no touch at the watch."}`) +
-      li(person && pull, `<b>Motion.</b> ${st.touch === "person" ? (pull ? "Her arm is jerked 2–5 times within 3 s: she is being pulled." : "No pulling within 3 s: a brush, or a friend's hand.") : "Not checked: no other body touched her."}`);
+      li(person && pull, `<b>Motion.</b> ${st.touch === "person" ? (pull ? "Her arm is jerked 2–5 times within 3 s: she is being pulled." : "No pulling within 3 s: a brush, a friend's hand, or she has frozen.") : "Not checked: no other body touched her."}`) +
+      li(person && !pull && fear, `<b>Skin (EDA).</b> ${st.touch === "person" ? (pull ? "Not needed: the pulling already decided." : fear ? "1–3 s later her skin conductance rises by more than 0.45 µS: a fear response, so a grab that holds her still counts." : "No skin response above 0.45 µS within 4.5 s.") : "Not checked: no other body touched her."}`);
     $("f-note").textContent = st.touch === "none" ? "" :
-      fire ? (wristPath ? "Wrist path: a held touch at the watch AND another body. " : "Anywhere path: another body AND pulling, wherever he touched her. ") + "She has 15 s to enter her PIN; a friend's touch is cancelled the same way." :
+      fire ? (wristPath ? "Wrist path: a held touch at the watch AND another body. " : pull ? "Anywhere path: another body AND pulling, wherever he touched her. " : "Anywhere path: another body AND a fear response of her skin, wherever he touched her (70 % of women report freezing during an assault). ") + "She has 15 s to enter her PIN; a friend's touch is cancelled the same way." :
       st.touch === "person" ? (person ? "Another body touched her, but without a held touch at the watch or pulling this is treated as a brush. In the simulation a brush prompted only when it happened to coincide with her own brisk arm movement: about once in 9 hours." : "Both bodies at nearly the same voltage give no step. Then only the sweep can catch a wrist grab; this is the main thing Gate 1 must measure.")
       : sweep ? "The first design would have asked for the PIN here; the fused watch ignores it because no other body touched her." : "";
     return decision;
@@ -950,6 +980,7 @@ const SG = (() => {
   const refuse = () => last && verdict(last.st, last.sc, fused(last.st, last.sc));
   $("f-dv").addEventListener("change", refuse);
   $("f-pull").addEventListener("change", refuse);
+  $("f-fear").addEventListener("change", refuse);
 
   // ------------------------------------------------------------- wiring
   function render() {
@@ -1089,20 +1120,46 @@ const SG = (() => {
       marks: [[g, cd, "var(--touch)"]] });
   }
 
-  const FZ = {"1.0": {"loc": {"wrist": {"A": 0.858, "F": 0.875}, "forearm": {"A": 0.0, "F": 0.575}, "upper_arm": {"A": 0.0, "F": 0.6}, "other_arm": {"A": 0.0, "F": 0.558}, "shoulder": {"A": 0.0, "F": 0.592}, "waist": {"A": 0.0, "F": 0.567}, "face_hair": {"A": 0.0, "F": 0.592}}, "body": {"A": 0.123, "F": 0.623}, "fp": {"A": 4.206, "F": 0.111}}, "10.0": {"loc": {"wrist": {"A": 0.85, "F": 0.833}, "forearm": {"A": 0.0, "F": 0.592}, "upper_arm": {"A": 0.0, "F": 0.642}, "other_arm": {"A": 0.0, "F": 0.617}, "shoulder": {"A": 0.0, "F": 0.692}, "waist": {"A": 0.0, "F": 0.592}, "face_hair": {"A": 0.0, "F": 0.642}}, "body": {"A": 0.121, "F": 0.658}, "fp": {"A": 3.65, "F": 0.0}}, "100.0": {"loc": {"wrist": {"A": 0.933, "F": 0.867}, "forearm": {"A": 0.0, "F": 0.617}, "upper_arm": {"A": 0.0, "F": 0.625}, "other_arm": {"A": 0.0, "F": 0.575}, "shoulder": {"A": 0.0, "F": 0.567}, "waist": {"A": 0.0, "F": 0.6}, "face_hair": {"A": 0.0, "F": 0.55}}, "body": {"A": 0.133, "F": 0.629}, "fp": {"A": 4.261, "F": 0.056}}};
-  const SIG = {"struggle": 0.9916666666666667, "runAlone": 0.016666666666666666, "touchRun": 0.9916666666666667};
+  const FZ = {"1.0": {"loc": {"wrist": {"A": 0.858, "F": 0.683, "F2": 0.625}, "forearm": {"A": 0.0, "F": 0.583, "F2": 0.775}, "upper_arm": {"A": 0.0, "F": 0.658, "F2": 0.792}, "other_arm": {"A": 0.0, "F": 0.575, "F2": 0.733}, "shoulder": {"A": 0.0, "F": 0.592, "F2": 0.775}, "waist": {"A": 0.0, "F": 0.558, "F2": 0.708}, "face_hair": {"A": 0.0, "F": 0.567, "F2": 0.733}}, "body": {"A": 0.123, "F": 0.602, "F2": 0.735}, "fp": {"A": 4.761, "F": 0.278, "F2": 0.278}}, "10.0": {"loc": {"wrist": {"A": 0.933, "F": 0.675, "F2": 0.675}, "forearm": {"A": 0.0, "F": 0.592, "F2": 0.742}, "upper_arm": {"A": 0.0, "F": 0.6, "F2": 0.758}, "other_arm": {"A": 0.0, "F": 0.592, "F2": 0.758}, "shoulder": {"A": 0.0, "F": 0.592, "F2": 0.75}, "waist": {"A": 0.0, "F": 0.65, "F2": 0.792}, "face_hair": {"A": 0.0, "F": 0.633, "F2": 0.8}}, "body": {"A": 0.133, "F": 0.619, "F2": 0.754}, "fp": {"A": 4.317, "F": 0.111, "F2": 0.111}}, "100.0": {"loc": {"wrist": {"A": 0.875, "F": 0.725, "F2": 0.725}, "forearm": {"A": 0.0, "F": 0.558, "F2": 0.775}, "upper_arm": {"A": 0.0, "F": 0.567, "F2": 0.75}, "other_arm": {"A": 0.0, "F": 0.575, "F2": 0.775}, "shoulder": {"A": 0.0, "F": 0.533, "F2": 0.75}, "waist": {"A": 0.0, "F": 0.558, "F2": 0.733}, "face_hair": {"A": 0.0, "F": 0.683, "F2": 0.833}}, "body": {"A": 0.125, "F": 0.6, "F2": 0.763}, "fp": {"A": 3.983, "F": 0.056, "F2": 0.111}}};
+  const SIG = {"struggle": 1, "runAlone": 0, "touchRun": 1, "self": 0, "hold": 0.638888888888889, "holdF": 0.0};
   const pc = (x) => `${Math.round(100 * x)} %`;
   $("sig-struggle").textContent = `${pc(SIG.struggle)} of struggles caught without any touch`;
   $("sig-run").textContent = `${pc(SIG.touchRun)} of touches while running caught; ${pc(SIG.runAlone)} of runs alone prompted`;
+  $("sig-hold").textContent = `${pc(SIG.hold)} of grabs that only hold her caught (rule F: ${pc(SIG.holdF)})`;
+  $("sig-self").textContent = `${pc(SIG.self)} of her own palm on the watch prompted`;
+  // transmit / shunt study (sg_newch.py, fig 19)
+  const TX = {"_baseline": {"transmit_uA": 7.442200449723197, "receive_uA": 3.116755184647899, "earth_over_body": 0.9922388006379137}, "her hand on the glass": {"transmit": [1.2577206249975463, 1.6023372303872696, 2.3242876721390244], "receive": [0.9712375611088906, 0.98869545072523, 0.9957792822217885]}, "her hand on the strap": {"transmit": [9.314650832855778, 15.794377643564792, 28.972497619636716], "receive": [18.506938083760065, 37.05857709291538, 78.86027473146977]}, "stranger: hand on the strap only": {"transmit": [2.636779513476542, 3.441092380176852, 4.762074088172422], "receive": [4.3068214324129945, 7.013585829714698, 12.29683353763742]}, "stranger: grabs wrist skin + strap": {"transmit": [9.637292930918335, 16.525357380870446, 31.333848142094322], "receive": [19.212151973701896, 38.947188960615364, 87.18395447323267]}, "stranger: grabs forearm": {"transmit": [1.0046194488956495, 1.0100805046937196, 1.0447105087991653], "receive": [1.0093417497922181, 1.024778936228535, 1.1155468342716826]}, "stranger: grabs shoulder": {"transmit": [1.0000518098736433, 1.000170911168947, 1.0005649552734273], "receive": [0.9999877844680473, 0.9999968765397667, 0.9999991494569902]}, "metal pole on the strap": {"transmit": [2.822592419380003, 4.203810320462427, 6.360165605325945], "receive": [4.874570354676483, 8.80937558924867, 16.761038815943536]}};
+  document.querySelector("#tx-tbl tbody").innerHTML = Object.keys(TX).filter((k) => k[0] !== "_").map((k) =>
+    `<tr><td>${k[0].toUpperCase() + k.slice(1)}</td><td>×${TX[k].transmit[1].toFixed(1)}</td><td>×${TX[k].receive[1].toFixed(1)}</td></tr>`).join("");
+  // skin response card: the shape of a typical response at the wrist [S61, S63; E for the wrist factor]
+  function renderEDA() {
+    const kind = $("eda-s").value, wrist = 0.4, svgW = $("eda-plot").clientWidth || 520, H = 170;
+    const amp = { attack: 1.56, brush: 0.3, ns: 0.1 }[kind] * wrist, on = kind === "ns" ? 4 : 2 + 2.3, tr = 2, th = 5;
+    const pts = []; for (let t = 0; t <= 16; t += 0.1) { const dt = t - on; let y = 0; if (dt >= 0) y = dt < tr ? amp * 0.5 * (1 - Math.cos(Math.PI * dt / tr)) : amp * Math.pow(2, -(dt - tr) / th); pts.push([t, y]); }
+    const m = { l: 44, r: 10, t: 10, b: 26 }, W = svgW, X = (t) => m.l + (W - m.l - m.r) * t / 16, Y = (v) => m.t + (H - m.t - m.b) * (1 - v / 0.8);
+    let g = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Skin conductance after the event">`;
+    for (const v of [0, 0.2, 0.4, 0.6, 0.8]) g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${m.l - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v.toFixed(1)}</text>`;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(0.45)}" y2="${Y(0.45)}" stroke="var(--warn)" stroke-dasharray="4 3"/><text x="${W - m.r}" y="${Y(0.45) - 5}" text-anchor="end" font-size="11" fill="var(--warn)">watch counts 0.45 µS</text>`;
+    g += `<rect x="${X(2.8)}" width="${X(6.5) - X(2.8)}" y="${m.t}" height="${H - m.t - m.b}" fill="var(--touch-soft)"/>`;
+    if (kind !== "ns") g += `<line x1="${X(2)}" x2="${X(2)}" y1="${m.t}" y2="${H - m.b}" stroke="var(--touch)"/><text x="${X(2) + 4}" y="${m.t + 11}" font-size="11" fill="var(--touch)">${kind === "attack" ? "grab" : "brush"}</text>`;
+    g += `<path d="${pts.map((p, i) => (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1)).join(" ")}" fill="none" stroke="var(--touch)" stroke-width="2.5"/>`;
+    for (const t of [0, 4, 8, 12, 16]) g += `<text x="${X(t)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="var(--muted)">${t} s</text>`;
+    $("eda-plot").innerHTML = g + "</svg>";
+    $("eda-out").innerHTML = kind === "attack" ? `<span>Typical size at the wrist <b>${amp.toFixed(2)} µS</b></span><span><b style="color:var(--calm)">Above 0.45 µS</b> in most grabs</span>`
+      : kind === "brush" ? `<span>Typical size <b>${amp.toFixed(2)} µS</b></span><span><b>Usually below 0.45 µS</b>: a startled response is smaller than fear</span>`
+      : `<span>Spontaneous responses <b>1–5 a minute</b>, mostly under 0.1 µS at the wrist</span>`;
+  }
+  $("eda-s").addEventListener("change", renderEDA); renderEDA();
   const LOCN = { wrist: "Wrist", forearm: "Forearm", upper_arm: "Upper arm", other_arm: "Other arm", shoulder: "Shoulder", waist: "Waist", face_hair: "Face / hair" };
   function renderFZ() {
     const r = FZ[$("fz-v0").value];
     $("fz-bars").innerHTML = Object.keys(LOCN).map((l) => `<span>${LOCN[l]}</span><div class="bars">` +
-      `<div class="bar" title="Fused: ${Math.round(100 * r.loc[l].F)} %"><i style="width:${100 * r.loc[l].F}%;background:var(--touch)"></i></div>` +
+      `<div class="bar" title="Fused + skin + transmit (F2): ${Math.round(100 * r.loc[l].F2)} %"><i style="width:${100 * r.loc[l].F2}%;background:var(--touch)"></i></div>` +
+      `<div class="bar" title="Fused, 14 Oct (F): ${Math.round(100 * r.loc[l].F)} %"><i style="width:${100 * r.loc[l].F}%;background:var(--warn)"></i></div>` +
       `<div class="bar" title="Sweep only: ${Math.round(100 * r.loc[l].A)} %"><i style="width:${100 * r.loc[l].A}%;background:var(--base)"></i></div></div>`).join("") +
-      `<span></span><div class="legend" style="margin:4px 0 0"><span><i style="background:var(--touch)"></i>Fused</span><span><i style="background:var(--base)"></i>Sweep only</span></div>`;
-    $("fz-kv").innerHTML = `<div><b>${Math.round(100 * r.body.F)} %</b>grabs caught, whole body (sweep only ${Math.round(100 * r.body.A)} %)</div>` +
-      `<div><b>${(16 * r.fp.F).toFixed(1)}</b>unwanted PIN prompts in a 16-hour day (sweep only ${Math.round(16 * r.fp.A)})</div>`;
+      `<span></span><div class="legend" style="margin:4px 0 0"><span><i style="background:var(--touch)"></i>Fused + skin + transmit</span><span><i style="background:var(--warn)"></i>Fused (14 Oct)</span><span><i style="background:var(--base)"></i>Sweep only</span></div>`;
+    $("fz-kv").innerHTML = `<div><b>${Math.round(100 * r.body.F2)} %</b>grabs caught, whole body (14 Oct rule ${Math.round(100 * r.body.F)} %, sweep only ${Math.round(100 * r.body.A)} %)</div>` +
+      `<div><b>${(16 * r.fp.F2).toFixed(1)}</b>unwanted PIN prompts in a 16-hour day (14 Oct rule ${(16 * r.fp.F).toFixed(1)}, sweep only ${Math.round(16 * r.fp.A)})</div>`;
   }
   $("fz-v0").addEventListener("change", renderFZ);
   renderFZ();

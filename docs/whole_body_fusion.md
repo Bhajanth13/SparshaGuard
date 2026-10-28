@@ -146,3 +146,11 @@ followed 0.8–4.5 s later by a rise in skin conductance of 0.45 µS or more pro
 with no pulling (70 % of women report freezing during assault [S68]). Shunt mode was checked and
 rejected: on a floating watch a stranger's hand raises the signal just as hers does.
 The digital twin and the explorer now use F2.
+
+| Body voltage | Body coverage F → F2 | Unwanted prompts/h F → F2 |
+|---|---|---|
+| 1 V | 60 % → 74 % | 0.28 → 0.28 |
+| 10 V | 62 % → 75 % | 0.11 → 0.11 |
+| 100 V | 60 % → 76 % | 0.06 → 0.11 |
+
+(Re-run on 28 October with the new effects, so F's numbers here are lower than the table above.)
