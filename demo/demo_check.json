@@ -1,116 +1,166 @@
 {
- "note": "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (rule A) and data/passive_stream_results.json (rule F, improved input, v0 = 10 V)",
+ "note": "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (rule A) and data/passive_stream_results.json (rules F and F2, improved input, v0 = 10 V)",
  "body_voltage_v0": 10,
  "grabs_caught": {
   "wrist": {
-   "active": 0.9166666666666666,
-   "fused": 0.9916666666666667
+   "active": 0.925,
+   "fused": 0.8833333333333333,
+   "fused2": 0.8833333333333333
   },
   "forearm": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6916666666666667,
+   "fused2": 0.8833333333333333
   },
   "upper_arm": {
    "active": 0,
-   "fused": 0.65
+   "fused": 0.675,
+   "fused2": 0.8833333333333333
   },
   "other_arm": {
    "active": 0,
-   "fused": 0.65
+   "fused": 0.6583333333333333,
+   "fused2": 0.8833333333333333
   },
   "shoulder": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6666666666666666,
+   "fused2": 0.875
   },
   "waist": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6666666666666666,
+   "fused2": 0.875
   },
   "face_hair": {
    "active": 0,
-   "fused": 0.6583333333333333
+   "fused": 0.6583333333333333,
+   "fused2": 0.8833333333333333
   }
  },
  "body_average": {
-  "active": 0.13095238095238096,
-  "fused": 0.7035714285714285
+  "active": 0.13214285714285715,
+  "fused": 0.7,
+  "fused2": 0.8809523809523808
  },
  "strap_removal_caught": {
   "active": 1,
-  "fused": 1
+  "fused": 1,
+  "fused2": 1
  },
  "struggle_without_touch_caught": {
   "active": 0,
-  "fused": 0.9916666666666667
+  "fused": 1,
+  "fused2": 1
  },
  "running_alone_prompted": {
   "active": 0,
-  "fused": 0.016666666666666666
+  "fused": 0,
+  "fused2": 0
+ },
+ "hold_without_pull_caught": {
+  "shoulder": {
+   "active": 0,
+   "fused": 0,
+   "fused2": 0.65
+  },
+  "forearm": {
+   "active": 0,
+   "fused": 0,
+   "fused2": 0.6166666666666667
+  },
+  "waist": {
+   "active": 0,
+   "fused": 0,
+   "fused2": 0.65
+  }
+ },
+ "own_hand_prompted": {
+  "active": 1,
+  "fused": 0.025,
+  "fused2": 0
  },
  "touch_while_running_caught": {
   "active": 0,
-  "fused": 0.9916666666666667
+  "fused": 1,
+  "fused2": 1
  },
  "daily_life": {
   "walking": {
    "unwanted_prompts_per_hour": {
-    "active": 0.6666666666666666,
-    "fused": 0
+    "active": 2.6666666666666665,
+    "fused": 0,
+    "fused2": 0
    },
    "friend_wrist_prompts_per_hour": {
     "active": 0,
-    "fused": 0
+    "fused": 0,
+    "fused2": 0
    },
    "causes_per_hour": {
     "active": {
-     "self": 0.6666666666666666
+     "self": 2.6666666666666665
     },
-    "fused": {}
+    "fused": {},
+    "fused2": {}
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 1.9646652140191634
+   "closest_to_off_wrist_pct": 1.9528484192487545
   },
   "bus": {
    "unwanted_prompts_per_hour": {
-    "active": 4,
-    "fused": 0
+    "active": 6.666666666666667,
+    "fused": 0.6666666666666666,
+    "fused2": 0.6666666666666666
    },
    "friend_wrist_prompts_per_hour": {
     "active": 0,
-    "fused": 0
+    "fused": 0,
+    "fused2": 0
    },
    "causes_per_hour": {
     "active": {
-     "self": 1,
-     "object:railing_wrist": 3
+     "self": 1.6666666666666665,
+     "object:railing_wrist": 4.999999999999999
     },
-    "fused": {}
+    "fused": {
+     "person:other_arm": 0.3333333333333333,
+     "no event (static / motion)": 0.3333333333333333
+    },
+    "fused2": {
+     "person:other_arm": 0.3333333333333333,
+     "no event (static / motion)": 0.3333333333333333
+    }
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 1.9895899264605232
+   "closest_to_off_wrist_pct": 1.9940037070028882
   },
   "desk": {
    "unwanted_prompts_per_hour": {
-    "active": 4.666666666666667,
-    "fused": 0
+    "active": 6,
+    "fused": 0,
+    "fused2": 0
    },
    "friend_wrist_prompts_per_hour": {
     "active": 0,
-    "fused": 0
+    "fused": 0,
+    "fused2": 0
    },
    "causes_per_hour": {
     "active": {
-     "object:wood_table": 3.666666666666667,
-     "self": 1
+     "object:wood_table": 4.333333333333333,
+     "self": 1.6666666666666665
     },
-    "fused": {}
+    "fused": {},
+    "fused2": {}
    },
    "false_strap_alerts": 0,
-   "closest_to_off_wrist_pct": 2.0206008293753315
+   "closest_to_off_wrist_pct": 2.0190459182513436
   }
  },
  "mean_unwanted_prompts_per_hour": {
-  "active": 3.111111111111111,
-  "fused": 0
+  "active": 5.111111111111112,
+  "fused": 0.2222222222222222,
+  "fused2": 0.2222222222222222
  }
 }

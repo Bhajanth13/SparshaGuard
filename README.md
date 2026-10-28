@@ -125,9 +125,10 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `whole_body.py`, `docs/whole_body_detection.md` | Can it detect a touch anywhere on her body? Active-sweep limit, passive body-potential channel, proposed design (fig10–fig12) |
 | `sg_passive.py` | Passive static channel in time: her body voltage at 500 Hz, wrist accelerometer, and the firmware's contact-step detector |
 | `passive_stream.py`, `fusion_study.py`, `docs/whole_body_fusion.md` | Fused alarm rules (sweep + static + motion) over body places, places and body voltages (fig15–fig18) |
+| `sg_newch.py`, `docs/new_channels.md` | Her own hand on the glass, skin-stretch noise, the 100 kHz transmit check (shunt mode rejected, fig19) and skin response (EDA); rule F2 |
 | `fem/bem_capacitance.py`, `fem/hand_near_strap.py` | Boundary-element electrostatic solver and the hand-near-strap 3D calculation |
 | `fem/fastcap_crosscheck.py` | The same 3D calculation in FastCap, MIT's reference capacitance solver (fig14, `fem/fastcap_results.json`); build steps in its docstring |
-| `figures/` | All figures, fig0–fig18, 200 dpi PNG |
+| `figures/` | All figures, fig0–fig19, 200 dpi PNG |
 | `docs/project_map.mmd`, `.svg` | One-page map of the whole project (Mermaid source and picture) |
 | `docs/video_script_2min.md` | Narration and shot list for the 2-minute hackathon video |
 | `video/` | Earlier 13-minute explainer (`SparshaGuard_Explained.mp4`, `.html`, narration script). **Outdated:** made before the 3D forearm result, so it overstates forearm grabs; see `video/README.md` |
@@ -254,33 +255,40 @@ for the hackathon demonstration. It is split the way the real device is:
   misses the outer electrode in 15% of wrist grabs).
 - **Passive twin** (`PassiveTwin` in `demo/sensor.js`): the JavaScript port of `sg_passive.py`.
   Her body voltage at 500 Hz (walking charge and leak, charge sharing at contact, a person walking
-  up, earthed metal, a phone, her arm movement, ADS1115 noise) and a wrist accelerometer at 50 Hz.
+  up, earthed metal, a phone, her arm movement, her own hand on the glass, skin-stretch noise,
+  ADS1115 noise), a wrist accelerometer at 50 Hz, the transmit-check current and her skin
+  conductance (EDA) at 5 Hz.
 - **Firmware** (`demo/firmware.js`): the detection pipeline of `event_stream.py` (0.3% threshold,
   2 s hold, frozen baseline, no classifier gate), the static contact-step detector of
   `sg_passive.py` (sharp, settled, standing out from the signal around it; classed as another
-  person, earthed metal or a small object), the fused rule F, a strap-removal check against the
+  person, earthed metal or a small object; her own hand on the glass is vetoed by a 100 kHz
+  transmit check), the fused rule F2 (F plus a skin-response path for grabs that only hold her),
+  a strap-removal check against the
   watch's own off-the-wrist signature, and the PIN state machine (15 s window, correct / wrong /
   duress PIN). It never sees which scenario is playing. "Show the science" can switch it back to
   the first design (sweep only) and change how charged people are.
 - **Page**: one stage (where she is touched, her watch with a hold/countdown ring and the live
   sensor signal, the static channel with arm jerks, her contact's phone) and two modes: *Guided
-  demo* (seven chapters with captions, "Play all" runs the whole story in about 2 minutes) and
+  demo* (eight chapters with captions, "Play all" runs the whole story in about 2 minutes) and
   *Try it yourself* (nine touch tiles, including a shoulder grab that pulls, a brush in a crowd and
   holding her phone; answer the PIN on the watch). "Show the science" opens the
   sweep, the firmware log and the headline numbers.
 
 `node demo/check_demo.js` runs the same files headless, with no scripted outcomes, and feeds
-every sensor frame to two firmwares side by side (bodies at ~10 V; 70 % of grabs pull her arm):
+every sensor frame to three firmwares side by side (bodies at ~10 V; 70 % of grabs pull her arm,
+the rest only hold her):
 
-| | First design (sweep only) | Fused watch |
-|---|---|---|
-| Wrist grabs caught | 92 % | 99 % |
-| Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 65–66 % |
-| Average over 7 places | 13 % | 70 % |
-| Unwanted PIN prompts, 9 h of walking, bus and desk (incl. 2 runs per hour) | 28 (a metal pole, a table, her own hand) | 0 (earlier runs: 1, a brush while she moved her arm briskly) |
-| Struggle to get free, no touch felt | 0 % | 99 % |
-| Touch while she runs | 0 % | 99 % (running alone prompted 1.7 % of runs) |
-| Strap removals caught | 100 % | 100 % |
+| | First design (sweep only) | Fused F (14 Oct) | Fused F2 (now) |
+|---|---|---|---|
+| Wrist grabs caught | 93 % | 88 % | 88 % |
+| Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 66–69 % | 88 % |
+| Average over 7 places | 13 % | 70 % | 88 % |
+| A grab that only holds her (shoulder, forearm, waist) | 0 % | 0 % | 62–65 % |
+| Her own hand on the watch prompted | 100 % | 2.5 % | 0 % |
+| Unwanted PIN prompts per hour (walking, bus, desk, incl. runs) | 5.1 | 0.22 | 0.22 |
+| Struggle to get free, no touch felt | 0 % | 100 % | 100 % |
+| Touch while she runs / running alone | 0 % / 0 % | 100 % / 0 % | 100 % / 0 % |
+| Strap removals caught | 100 % | 100 % | 100 % |
 
 No false strap alarms: normal wearing never comes closer than 2.0% to the off-wrist signature
 (the alarm needs 0.4%). This matches `event_stream.py` and `passive_stream.py` within the

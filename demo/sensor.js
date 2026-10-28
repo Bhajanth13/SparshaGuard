@@ -27,6 +27,17 @@
 //   gestures 150-350, pulls 200-500, struggling 400-900. Heart rate [E]: resting 65-85 bpm,
 //   +15 walking, +55 running, +30 under stress (a pull or a struggle), rising with a ~20 s and
 //   falling with a ~60 s time constant.
+// New channels (28 Oct 2026, port of sg_newch.py; values and sources listed there):
+//   her own hand on the watch adds C_hand between her body and the watch ground through the glass
+//   (palm 4-12 cm^2, stack 1.5-3 mm, er 3-7 [G/E]), landing at 0.1-0.3 m/s [E, S72], so k falls in
+//   ~10-100 ms with no charge moving; a stranger's palm covers her watch face in 30 % of wrist grabs [E]
+//   transmit check: 0.5 V at 100 kHz from the steel back; its current is 1 + C_hand / C_load0
+//   (C_load0 8-25 pF [G]) with 0.3 % noise [E]; the firmware knows C_load0 / (C_GE+C_GB+C_in) to 20 % [E]
+//   skin-stretch artefacts: a 0.3-3 mV bump per arm jerk, 0.05-0.5 mV of arm-swing ripple [S67/E]
+//   EDA (skin conductance, uS, once per frame): responses start 1-3 s after the stimulus, rise 1-3 s,
+//   half-recover in 2-10 s [S61]; spontaneous ones 1-5 per minute [S62]; a grab -> response with
+//   probability 0.9, median 1.56 uS at the palm [S63]; a brush 0.3 / 0.3 uS, a friend 0.2 [E];
+//   the wrist gives 0.2-0.6 of the palm [S64, S65, E]; pressure blips of 0.05-0.5 uS on arm jerks [E].
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -77,6 +88,15 @@
   const ACTIVITY = new Set(["run", "struggle"]);       // her own movements, not touches
   const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
+  const NC = { TX_NOISE: 0.003, P_STRANGER_FACE: 0.3 };
+  // her (or his) hand settling on the watch glass: C = C_contact d_eff / (g + d_eff) as the gap closes
+  function handOnGlass(R, cover) {
+    const area = cover ? R.uni(4, 12) : R.uni(0.5, 1.5), er = R.uni(3, 7), d = R.uni(1.5e-3, 3e-3);
+    const cc = 8.854e-12 * er * area * 1e-4 / d + R.uni(0.3, 1.5) * pF, deff = d / er;
+    const n = Math.max(2, Math.round(10e-3 / R.uni(0.1, 0.3) * PFS)), ramp = new Float64Array(n);
+    for (let i = 0; i < n; i++) { const g = 10e-3 * (1 - i / (n - 1)); ramp[i] = cc * deff / (g + deff); }
+    return { cc, ramp, i: 0, lifting: false };
+  }
   const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
 
   class PassiveTwin {
@@ -100,6 +120,19 @@
       this.running = false; this.struggling = false; this.stress = 0;
       this.runCad = R.uni(2.5, 3.0); this.runEnmo = R.uni(0.6, 1.0);
       this.swing = R.uni(100, 200); this.hrRest = R.uni(65, 85); this.hr = this.hrRest + 10;
+      // new channels
+      this.cload0 = R.uni(8, 25) * pF; this.calErr = R.uni(-0.2, 0.2); this.hand = null; this.chand = 0;
+      this.arts = []; this.swingArt = R.uni(0.05e-3, 0.5e-3);
+      this.eda = { wrist: R.uni(0.2, 0.6), scl: R.uni(0.5, 5.0), drift: 0, resp: [], art: [], t: 0,
+                   ns: R.uni(1, 5) / 60 * (ctxName === "walking" ? 1.5 : 1) };
+    }
+    // the transmit-check gain the firmware calibrated at start-up: C_load0 / (C_GE + C_GB + C_in), off by up to 20 %
+    get txGain() { return this.cload0 / (this.cge + this.f.cgb + this.f.cin) * (1 + this.calErr); }
+    _edaRespond(kind, amp) {
+      const R = this.R, [p, med, sd] = { attack: [0.9, 1.56, 0.25], brush: [0.3, 0.3, 0.6], friend: [0.2, 0.3, 0.6] }[kind];
+      if (amp === undefined && !R.p(p)) return;
+      const a = (amp ?? med * Math.exp(sd * R.n())) * this.eda.wrist;
+      this.eda.resp.push({ t0: this.eda.t + R.uni(1, 3), a, tr: R.uni(1, 3), th: R.uni(2, 10) });
     }
     setContext(name, first) {
       this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
@@ -116,6 +149,9 @@
       const R = this.R, vb = this.q / this.cb;
       this.contact = ev;
       if (ev.kind === "person") {
+        const mood = ev.brush ? "brush" : /friend/i.test(ev.label || "") ? "friend" : "attack";
+        this._edaRespond(mood, ev.fearAmp);
+        if (ev.detail === "wrist" && (ev.face ?? R.p(NC.P_STRANGER_FACE))) this.hand = handOnGlass(R, true);   // his palm over her watch
         const va = ev.vA ?? this.strangerVoltage();
         const cc = ev.bare ? null : 8.854e-12 * R.uni(1.2, 5.1) * R.uni(40, 80) * 1e-4 / (R.uni(0.16e-3, 0.58e-3) * R.uni(1, 2));
         this.q = share(va, vb, R.uni(110, 250) * pF, this.cb, cc) * this.cb;
@@ -125,6 +161,8 @@
           for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0), gy: R.uni(200, 500) });
           this.stress = 30;
         }
+      } else if (ev.kind === "self") {
+        this.hand = handOnGlass(R, true);                                        // her palm settles on the watch
       } else if (ev.kind === "run") {
         this.running = true;
       } else if (ev.kind === "struggle") {
@@ -141,6 +179,7 @@
       if (this.pinned) { this.pinned = false; this.q = -this._vind() * this.cb * this._cm; }   // keeps the charge that cancelled vind
       if (this.app) { this.app.leaving = true; this.app.s = 0; }
       this.hum = 1; this.contact = null; this.running = false; this.struggling = false;
+      if (this.hand) this.hand.lifting = true;
     }
     _vind() {
       const A = this.app; if (!A) return 0;
@@ -151,7 +190,7 @@
     }
     // one firmware frame (0.2 s): 100 passive samples, 10 accelerometer samples
     frame(nP = PFS / FS) {
-      const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), rms = this.f.adc / 4;
+      const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), tx = new Float64Array(nP), rms = this.f.adc / 4;
       const dq = this.sign * this.vpeak / (this.Rg * this.cadence), stride = 2 / this.cadence;
       for (let i = 0; i < nP; i++, this.n++) {
         const t = this.n / PFS;
@@ -169,7 +208,16 @@
         this._cm = (1 + this.posture * this.m2 * this.mnorm) * (1 - (1 - ONE_FOOT) * lift);   // [S40, S42]
         if (this.app) { this.app.s++; if (this.app.leaving && this.app.s >= PFS) this.app = null; }
         const v = this.pinned ? 0 : this.q / (this.cb * this._cm) + this._vind();
-        u[i] = this.k * v + rms * R.n();
+        const H = this.hand;                                                    // a hand settling on / lifting off the glass
+        if (H) {
+          if (!H.lifting) this.chand = H.i < H.ramp.length ? H.ramp[H.i++] : H.cc;
+          else { H.i = Math.min(H.i, H.ramp.length) - 1; this.chand = H.i >= 0 ? H.ramp[H.i] : 0; if (H.i < 0) { this.hand = null; this.chand = 0; } }
+        }
+        const k = this.cge / (this.cge + this.f.cgb + this.f.cin + this.chand);
+        let art = this.walking ? this.swingArt * Math.sin(Math.PI * this.cadence * t + this.phase) : 0;   // arm-swing ripple [E]
+        for (const b of this.arts) { const j = this.n - b.at; if (j >= 0 && j < b.w) art += b.a * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, b.w - 1))); }
+        u[i] = k * v + art + rms * R.n();
+        tx[i] = 1 + this.chand / this.cload0 + NC.TX_NOISE * R.n();
         hum[i] = this.indoor ? this.hum : 0;
       }
       const nI = IMU_FS / FS, acc = new Float64Array(nI), gyro = new Float64Array(nI);
@@ -185,15 +233,30 @@
         if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34), gy: 20 });   // starting/braking [S45], 12/h [E]
         if (this.struggling && R.u() < 2.5 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.08, 0.2) * IMU_FS), g: R.uni(2, 4), gy: R.uni(400, 900) });   // [E]
         for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) { const k = 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); a += p.g * k; w = Math.max(w, (p.gy || 0) * k); } }
+        for (const p of this.pulses) if (!p.art && p.g >= 1.0) {                 // skin stretch [S67/E] and pad pressure [E]
+          p.art = true;
+          this.arts.push({ at: p.at * (PFS / IMU_FS), w: Math.max(4, p.w * (PFS / IMU_FS)), a: R.uni(0.3e-3, 3e-3) * (R.p(0.5) ? 1 : -1) });
+          this.eda.art.push({ t0: p.at / IMU_FS, a: R.uni(0.05, 0.5) * (R.p(0.5) ? 1 : -1) });
+        }
         this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
         acc[i] = a; gyro[i] = w;
       }
+      this.arts = this.arts.filter((b) => this.n - b.at < b.w);
+      // skin conductance, once per frame [S61-S65 / E]
+      const E = this.eda, te = (E.t = this.n / PFS);
+      if (R.u() < E.ns / FS) E.resp.push({ t0: te, a: -Math.log(1 - R.u()) * 0.1 * E.wrist, tr: R.uni(1, 3), th: R.uni(2, 10) });
+      E.drift += 0.002 * R.n();
+      let sc = E.scl + E.drift;
+      for (const r of E.resp) { const dt = te - r.t0; if (dt >= 0) sc += dt < r.tr ? r.a * 0.5 * (1 - Math.cos(Math.PI * dt / r.tr)) : r.a * Math.pow(2, -(dt - r.tr) / r.th); }
+      for (const b of E.art) { const dt = te - b.t0; if (dt >= 0 && dt < 2) sc += b.a * (dt < 0.2 ? dt / 0.2 : Math.exp(-(dt - 0.2) / 0.6)); }
+      E.resp = E.resp.filter((r) => te - r.t0 < r.tr + 8 * r.th); E.art = E.art.filter((b) => te - b.t0 < 2);
+      const eda = Math.max(0.01, sc + 0.005 * R.n());
       // heart rate, once per frame [E]
       const target = this.hrRest + (this.running ? 55 : this.walking ? 15 : 0) + this.stress;
       this.hr += (target - this.hr) * (1 / FS) / (target > this.hr ? 20 : 60);
       this.stress *= Math.exp(-1 / (FS * 120));
       if (this.struggling) this.stress = 30;
-      return { u, hum, acc, gyro, hr: this.hr, rms, indoor: this.indoor };
+      return { u, hum, acc, gyro, hr: this.hr, rms, indoor: this.indoor, tx, eda, txGain: this.txGain, handPF: this.chand / pF };
     }
   }
 

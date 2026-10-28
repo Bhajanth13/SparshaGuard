@@ -1,13 +1,23 @@
 """Time-domain study of the fused alarm logic: active sweep + passive static channel + accelerometer.
 
-Rules compared (the PIN prompt is what a rule fires):
+Since 28 Oct 2026 the signals include her own hand on the watch changing k, skin-stretch motion
+artefacts, the 100 kHz transmit check and EDA (sg_newch.py). Rules compared (the PIN prompt is what
+a rule fires):
   A   today: active sweep held 2 s (event_stream.py, 0.3 %, no classifier gate)
-  F   fused (proposed):
+  F   fused (14 Oct design), on the new, more realistic signals:
         wrist path    active sweep held 2 s AND a 'person' contact step within 4 s before it
         anywhere path 'person' contact step AND agitation (>= 2 jerks over 1.25 g) within 3 s
         earthed metal (pulled to 0 V, or hum gone indoors) never counts as a person
-  F+  fused, plus a fallback: active sweep held 6 s with no earthed step (for grabs between
-      uncharged bodies)
+  F2  fused with the new channels (default since 28 Oct 2026):
+        a contact step that coincides with a transmit-current jump and matches the k change it
+        predicts is her own hand on the watch, never a person
+        wrist path    as F
+        anywhere path 'person' step AND (agitation within 3 s OR a skin conductance response of at
+                      least EDA_TH starting 0.8-4.5 s after it, for a grab that holds her still)
+  F2-tx  F2 without the EDA path (to show what each new channel adds)
+A transmit-based "rescue" (a hand landing on the watch whose static change exceeds its k change =
+another person) was tried on 28 Oct 2026: +6 points of wrist grabs at 10 V for ~0.5 more unwanted
+prompts per hour while walking, so it is not used.
 Active-sweep outcomes come from event_stream.py (data/event_stream_results.json): a wrist grab
 starts a 2 s hold 92.5 % of the time, and each harmless cause starts one at the rates found there.
 The passive channel and accelerometer are simulated sample by sample (sg_passive.py).
@@ -21,6 +31,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import plotstyle as ps
+import sg_newch as NC
 import sg_passive as P
 
 ps.apply()
@@ -30,7 +41,10 @@ LOC_LABEL = {"wrist": "Wrist", "forearm": "Forearm", "upper_arm": "Upper arm", "
 CTX = {"walking": "Walking alone at night", "bus": "Bus / metro commute", "desk": "Desk / home"}
 V0S = [0.3, 1.0, 3.0, 10.0, 30.0, 100.0]
 HOURS = 6                        # simulated hours per place and voltage
-PULL = 0.7                       # share of grabs that pull or shake her arm [E]
+PULL = 0.7                       # share of grabs that pull or shake her arm [E]; 70 % of women report
+                                 # significant freezing during sexual assault [S68], so many grabs only hold
+SELF_RATE = 3.0                  # touch sessions on the watch per hour [S38]
+SELF_D = ("logn", 5, 9, 60)      # session length [S38]
 # harmless events per hour [E, as event_stream.py where it has them]; phone use 5.3 per hour,
 # log-normal duration, median 30 s, mean 212 s [S39] (PHONE_D from event_stream.py)
 PHONE_D = ("logn", 30, 212, 1800)
@@ -44,7 +58,6 @@ BACKGROUND = {
 }
 # harmless causes of an active-sweep 2 s hold, per hour, read from event_stream.py (rule A at 0.3 %,
 # 2 s, no classifier gate), with what the passive channel sees at that moment and how long it lasts
-SELF_D = ("logn", 5, 9, 60)                                    # [S38]
 CAUSE_MAP = {"her hand on watch": ("none", SELF_D), "phone": ("phone", PHONE_D),
              "bystander close": ("approach", (5, 60)), "strap on metal pole": ("earthed", (20, 120)),
              "hand on railing": ("earthed", (30, 300)), "wrist on table": ("none", (60, 600)),
@@ -77,8 +90,11 @@ def stranger_voltage(v0, rng):
 
 def add_event(sc, kind, detail, t0, t1, v0, rng, attack=False):
     if kind in ("person", "brush"):
-        sc.add(kind="person", t0=t0, t1=t1, loc=detail or "wrist", attack=attack,
-               pull=attack and rng.random() < PULL, v_a=stranger_voltage(v0, rng))
+        loc = detail or "wrist"
+        sc.add(kind="person", t0=t0, t1=t1, loc=loc, attack=attack, pull=attack and rng.random() < PULL,
+               v_a=stranger_voltage(v0, rng), face=loc == "wrist" and rng.random() < NC.P_STRANGER_FACE)
+    elif kind == "self":                                # her hand on the watch: taps or the palm over the face
+        sc.add(kind="self", t0=t0, t1=t1, cover=rng.random() < NC.P_COVER)
     elif kind == "earthed":
         sc.add(kind="earthed", t0=t0, t1=t1)
     elif kind == "approach":
@@ -90,31 +106,51 @@ def add_event(sc, kind, detail, t0, t1, v0, rng, attack=False):
 
 
 def scene_steps(sc):
+    """Static steps seen by the 14 Oct firmware (st) and by the firmware with the transmit check
+    (st2), the accelerometer, and the EDA trace."""
+    ti, acc = sc.accel()                                # first: it records the arm jerks
     t, v, hum = sc.body_voltage()
     u = sc.watch_signal(v)
-    ti, acc = sc.accel()
-    st = P.contact_steps(u, P.FRONT[sc.front]["adc"] / 4, sc.heel, hum, sc.indoor)
-    return st, ti, acc
+    rms = P.FRONT[sc.front]["adc"] / 4
+    st = P.contact_steps(u, rms, sc.heel, hum, sc.indoor)
+    st2 = P.contact_steps(u, rms, sc.heel, hum, sc.indoor, tx=sc.tx, gain=sc.tx_gain()) if sc.new else st
+    eda = NC.EDA(sc.rng, sc.ctx, sc.T)
+    for ev in sc.events:
+        if ev["kind"] == "person" and not ev.get("small"):
+            eda.respond(ev["t0"], "attack" if ev.get("attack") else ("friend" if ev.get("loc") == "wrist" else "brush"))
+    jt = [tj for tj, _ in sc.jerks]
+    for tj in jt:
+        eda.jerk(tj)
+    te, sce = eda.signal()
+    return st, st2, ti, acc, (te, sce, jt)
+
+
+def scr(e, t0, th=None):
+    te, sce, jt = e
+    return NC.scr_after(te, sce, t0, jt, NC.EDA_TH if th is None else th)
 
 
 # ------------------------------------------------------------------------------ grab trials
 def grab_trials(ctx, loc, v0, front, n, seed):
     rng = np.random.default_rng(seed)
-    hit = {"A": 0, "F": 0, "F+": 0}
+    hit = {"A": 0, "F": 0, "F2": 0, "F2-tx": 0}
     for _ in range(n):
-        sc = P.Scene(ctx, 16, v0, front, rng)
+        sc = P.Scene(ctx, 16, v0, front, rng, new=True)
         va = stranger_voltage(v0, rng)
         sc.add(kind="approach", t0=6.5, t1=8.0, dmin=0.25, v_a=va, stay=True)   # he walks up
-        sc.add(kind="person", t0=8.0, t1=14.0, loc=loc, attack=True, pull=rng.random() < PULL, v_a=va)
-        st, ti, acc = scene_steps(sc)
-        person = [s for s in st if s[2] == "person" and 7.9 <= s[0] <= 8.2]
+        sc.add(kind="person", t0=8.0, t1=14.0, loc=loc, attack=True, pull=rng.random() < PULL, v_a=va,
+               face=loc == "wrist" and rng.random() < NC.P_STRANGER_FACE)
+        st, st2, ti, acc, e = scene_steps(sc)
         active = loc == "wrist" and rng.random() < P_ACTIVE_WRIST          # starts its hold at 8 s, fires at 10 s
-        wrist_path = active and bool(person)
-        anywhere = any(P.agitation(ti, acc, s[0], sc.heel) for s in person)
-        fallback = active and not any(s[2] == "earthed" for s in st)        # 6 s hold: grab lasts 6 s here
+        person = [s for s in st if s[2] == "person" and 7.9 <= s[0] <= 8.2]
+        person2 = [s for s in st2 if s[2] == "person" and 7.9 <= s[0] <= 8.2]
+        agit = any(P.agitation(ti, acc, s[0], sc.heel) for s in person)
+        agit2 = any(P.agitation(ti, acc, s[0], sc.heel) for s in person2)
+        eda2 = any(scr(e, s[0]) for s in person2)
         hit["A"] += active
-        hit["F"] += wrist_path or anywhere
-        hit["F+"] += wrist_path or anywhere or fallback
+        hit["F"] += (active and bool(person)) or agit
+        hit["F2-tx"] += (active and bool(person2)) or agit2
+        hit["F2"] += (active and bool(person2)) or agit2 or eda2
     return {k: v / n for k, v in hit.items()}
 
 
@@ -122,10 +158,20 @@ def grab_trials(ctx, loc, v0, front, n, seed):
 def daily_life(ctx, v0, front, hours, seed):
     rng = np.random.default_rng(seed)
     T = 3600
-    fp = {"A": 0.0, "F": 0.0, "F+": 0.0}
-    causes = {"F": {}, "F+": {}}
+    fp = {"A": 0.0, "F": 0.0, "F2": 0.0, "F2-tx": 0.0}
+    causes = {"F": {}, "F2": {}, "F2-tx": {}}
+
+    def count(rule, name):
+        fp[rule] += 1
+        causes[rule][name] = causes[rule].get(name, 0) + 1
+    self_holds = sum(r for n, _, r, *_ in ACTIVE_CAUSES[ctx] if n == "her hand on watch")
     for _ in range(hours):
-        sc = P.Scene(ctx, T, v0, front, rng)
+        sc = P.Scene(ctx, T, v0, front, rng, new=True)
+        # her hand on the watch: ~3 touch sessions per hour [S38]; the ones that start a 2 s hold come below
+        for _ in range(rng.poisson(max(0.0, SELF_RATE - self_holds))):
+            d = duration(rng, *SELF_D)
+            t0 = rng.uniform(10, T - d - 5)
+            add_event(sc, "self", None, t0, t0 + d, v0, rng)
         for kind, detail, rate, *dur in BACKGROUND[ctx]:
             for _ in range(rng.poisson(rate)):
                 d = duration(rng, *dur)
@@ -142,25 +188,20 @@ def daily_life(ctx, v0, front, hours, seed):
                 holds.append((t0, d, name))
                 if pas in ("earthed", "approach", "phone", "person"):
                     add_event(sc, pas, "wrist", t0, t0 + d, v0, rng)
-        st, ti, acc = scene_steps(sc)
-        person = [s for s in st if s[2] == "person"]
-        earthed = [s for s in st if s[2] == "earthed"]
+                if name == "her hand on watch":
+                    add_event(sc, "self", None, t0, t0 + d, v0, rng)
+        st, st2, ti, acc, e = scene_steps(sc)
         fp["A"] += len(holds)
-        for t0, d, name in holds:
-            near = any(t0 - 4 <= s[0] <= t0 + 2 for s in person)
-            if near:
-                fp["F"] += 1; fp["F+"] += 1
-                causes["F"][name] = causes["F"].get(name, 0) + 1
-                causes["F+"][name] = causes["F+"].get(name, 0) + 1
-            elif d >= 6 and not any(t0 - 1 <= s[0] <= t0 + d for s in earthed):
-                fp["F+"] += 1
-                causes["F+"][name + " (6 s fallback)"] = causes["F+"].get(name + " (6 s fallback)", 0) + 1
-        for s in person:
-            if P.agitation(ti, acc, s[0], sc.heel):
-                lab = "contact + agitation"
-                fp["F"] += 1; fp["F+"] += 1
-                causes["F"][lab] = causes["F"].get(lab, 0) + 1
-                causes["F+"][lab] = causes["F+"].get(lab, 0) + 1
+        for rule, steps in (("F", st), ("F2-tx", st2), ("F2", st2)):
+            person = [s for s in steps if s[2] == "person"]
+            for t0, d, name in holds:
+                if any(t0 - 4 <= s[0] <= t0 + 2 for s in person):
+                    count(rule, name)
+            for s in person:
+                if P.agitation(ti, acc, s[0], sc.heel):
+                    count(rule, "contact + agitation")
+                elif rule == "F2" and scr(e, s[0]):
+                    count(rule, "contact + skin response (EDA)")
     return {k: v / hours for k, v in fp.items()}, {r: {k: v / hours for k, v in c.items()} for r, c in causes.items()}
 
 
@@ -168,30 +209,37 @@ def seed(*parts):
     return zlib.crc32(repr(parts).encode())
 
 
+def one_setting(args):
+    front, v0 = args
+    cov = {ctx: {loc: grab_trials(ctx, loc, v0, front, 40, seed(ctx, loc, v0, front)) for loc in LOCS} for ctx in CTX}
+    fps = {ctx: daily_life(ctx, v0, front, HOURS, seed(ctx, v0, front)) for ctx in CTX}
+    return front, v0, cov, fps
+
+
 def main():
-    res = {}
-    for front in ("improved", "current"):
-        res[front] = {}
-        for v0 in V0S:
-            cov = {ctx: {loc: grab_trials(ctx, loc, v0, front, 40, seed(ctx, loc, v0, front)) for loc in LOCS} for ctx in CTX}
-            fps = {ctx: daily_life(ctx, v0, front, HOURS, seed(ctx, v0, front)) for ctx in CTX}
-            row = {"coverage": cov, "prompts_per_hour": {c: fps[c][0] for c in CTX}, "causes": {c: fps[c][1] for c in CTX}}
-            row["body_avg"] = {r: float(np.mean([cov[c][l][r] for c in CTX for l in LOCS])) for r in ("A", "F", "F+")}
-            row["fp_avg"] = {r: float(np.mean([row["prompts_per_hour"][c][r] for c in CTX])) for r in ("A", "F", "F+")}
-            # a friend holding her wrist is a real touch by another person: the PIN is the right answer there
-            fr = {r: float(np.mean([row["causes"][c].get(r, {}).get("friend holds her wrist", 0) for c in CTX])) for r in ("F", "F+")}
-            fr["A"] = sum(r for n, _, r, *_ in ACTIVE_CAUSES["desk"] if n == "friend holds her wrist") / 3
-            row["fp_avg_strangers_excl_friend"] = {r: row["fp_avg"][r] - fr[r] for r in ("A", "F", "F+")}
-            res[front][str(v0)] = row
-            print(front, v0, {k: round(100 * x, 1) for k, x in row["body_avg"].items()}, {k: round(x, 2) for k, x in row["fp_avg"].items()}, {k: round(x, 2) for k, x in row["fp_avg_strangers_excl_friend"].items()}, flush=True)
+    from multiprocessing import Pool
+    res = {"improved": {}, "current": {}}
+    with Pool() as pool:                                # each setting has its own seeds: same results in any order
+        done = pool.map(one_setting, [(f, v) for f in ("improved", "current") for v in V0S])
+    for front, v0, cov, fps in done:
+        row = {"coverage": cov, "prompts_per_hour": {c: fps[c][0] for c in CTX}, "causes": {c: fps[c][1] for c in CTX}}
+        R = ("A", "F", "F2", "F2-tx")
+        row["body_avg"] = {r: float(np.mean([cov[c][l][r] for c in CTX for l in LOCS])) for r in R}
+        row["fp_avg"] = {r: float(np.mean([row["prompts_per_hour"][c][r] for c in CTX])) for r in R}
+        # a friend holding her wrist is a real touch by another person: the PIN is the right answer there
+        fr = {r: float(np.mean([row["causes"][c].get(r, {}).get("friend holds her wrist", 0) for c in CTX])) for r in R[1:]}
+        fr["A"] = sum(r for n, _, r, *_ in ACTIVE_CAUSES["desk"] if n == "friend holds her wrist") / 3
+        row["fp_avg_strangers_excl_friend"] = {r: row["fp_avg"][r] - fr[r] for r in R}
+        res[front][str(v0)] = row
+        print(front, v0, {k: round(100 * x, 1) for k, x in row["body_avg"].items()}, {k: round(x, 2) for k, x in row["fp_avg"].items()}, {k: round(x, 2) for k, x in row["fp_avg_strangers_excl_friend"].items()}, flush=True)
     json.dump(res, open("data/passive_stream_results.json", "w"), indent=1)
     figures(res)
 
 
 def figures(res):
-    rules = [("A", "A · today: active sweep only", ps.SERIES[0]),
-             ("F", "F · fused: static step + motion, wrist needs a person step", ps.SERIES[2]),
-             ("F+", "F+ · fused, plus 6 s active fallback", ps.SERIES[3])]
+    rules = [("A", "A · active sweep only", ps.SERIES[0]),
+             ("F", "F · fused (14 Oct): static step + motion", ps.SERIES[3]),
+             ("F2", "F2 · fused + transmit check + EDA", ps.SERIES[2])]
     fig, (a1, a2) = plt.subplots(1, 2, figsize=(15, 6.4))
     for front, ls in (("improved", "-"), ("current", ":")):
         xs = [float(v) for v in res[front]]

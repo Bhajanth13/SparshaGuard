@@ -35,6 +35,7 @@ STATUS_FILL = {
     "Context only": PatternFill("solid", fgColor="F2F2F2"),
     "Whole-body study": PatternFill("solid", fgColor="FCE4D6"),
     "Fusion study": PatternFill("solid", fgColor="EADCF0"),
+    "In model (28 Oct 2026)": PatternFill("solid", fgColor="D9EAD3"),
     "In model (Oct 2026 update)": PatternFill("solid", fgColor="C6E0B4"),
 }
 
@@ -250,6 +251,43 @@ SOURCES = [
      "https://doi.org/10.1109/43.97624", "Reference solver used to check the 3D field calculation"),
     ("S60", "H. Vogt, G. Atkinson, P. Nenzi", "Ngspice User's Manual", "ngspice project", None, "Manual", "-",
      "https://ngspice.sourceforge.io/docs.html", "Circuit simulator used to check the Python solver"),
+    ("S61", "M. E. Dawson, A. M. Schell, D. L. Filion", "The electrodermal system",
+     "Handbook of Psychophysiology, 3rd ed., Cambridge University Press", 2007, "Book chapter", "-",
+     "https://doi.org/10.1017/CBO9780511546396.007", "SCR timing via secondary summaries (iWorx lab handout, Movisens docs); check the chapter"),
+    ("S62", "W. Boucsein, D. C. Fowles, S. Grimnes, G. Ben-Shakhar, W. T. Roth, M. E. Dawson, D. L. Filion",
+     "Publication recommendations for electrodermal measurements", "Psychophysiology 49(8):1017-1034", 2012,
+     "Journal article", "-", "https://doi.org/10.1111/j.1469-8986.2012.01384.x",
+     "Spontaneous-response rates via EDA analysis guides citing Boucsein 2012 (secondary)"),
+    ("S63", "F. R. Walker, A. Thomson, K. Pfingst, E. Vlemincx, E. Aidman, E. Nalivaiko",
+     "Habituation of the electrodermal response - A biological correlate of resilience?", "PLOS ONE 14(1):e0210078", 2019,
+     "Journal article", "-", "https://doi.org/10.1371/journal.pone.0210078", "First-response values from a search snippet; check the paper"),
+    ("S64", "M.-Z. Poh, N. C. Swenson, R. W. Picard",
+     "A wearable sensor for unobtrusive, long-term assessment of electrodermal activity",
+     "IEEE Trans. Biomed. Eng. 57(5):1243-1252", 2010, "Journal article", "-", "https://doi.org/10.1109/TBME.2009.2038487", "Abstract"),
+    ("S65", "B. van Dooren, J. J. G. de Vries, J. H. Janssen",
+     "Emotional sweating across the body: comparing 16 different skin conductance measurement locations",
+     "Physiology & Behavior 106(2):298-304", 2012, "Journal article", "-", "https://doi.org/10.1016/j.physbeh.2012.01.020",
+     "Wrist results via later papers citing it (secondary)"),
+    ("S66", "I. R. Kleckner, R. M. Jones, O. Wilder-Smith, et al.",
+     "Simple, transparent, and flexible automated quality assessment procedures for ambulatory electrodermal activity data",
+     "IEEE Trans. Biomed. Eng. 65(7):1460-1467", 2018, "Journal article", "-", "https://doi.org/10.1109/TBME.2017.2758643",
+     "Rule structure only; thresholds not verified here"),
+    ("S67", "H. de Talhouet, J. G. Webster", "The origin of skin-stretch-caused motion artifacts under electrodes",
+     "Physiological Measurement 17(2):81-93", 1996, "Journal article", "-", "https://doi.org/10.1088/0967-3334/17/2/003", "Abstract"),
+    ("S68", "A. Möller, H. P. Söndergaard, L. Helström",
+     "Tonic immobility during sexual assault - a common reaction predicting post-traumatic stress disorder and severe depression",
+     "Acta Obstet. Gynecol. Scand. 96(8):932-938", 2017, "Journal article", "-", "https://doi.org/10.1111/aogs.13174", ""),
+    ("S69", "IEC", "IEC 60601-1: Medical electrical equipment - General requirements for basic safety and essential performance",
+     "International standard", 2005, "Standard", "-", "https://webstore.iec.ch/publication/2606",
+     "Patient auxiliary current limits via secondary sources; check the standard's table"),
+    ("S70", "T. G. Zimmerman, J. R. Smith, J. A. Paradiso, D. Allport, N. Gershenfeld",
+     "Applying electric field sensing to human-computer interfaces", "Proc. CHI '95", 1995, "Conference paper", "-",
+     "https://doi.org/10.1145/223904.223940", "Loading, transmit and shunt modes"),
+    ("S71", "P. Dietz, D. Leigh", "DiamondTouch: a multi-user touch technology", "Proc. UIST 2001, pp. 219-226", 2001,
+     "Conference paper", "-", "https://doi.org/10.1145/502348.502389", ""),
+    ("S72", "(authors not verified)", "Fingertip forces and completion time for index finger and thumb touchscreen gestures",
+     "J. Electromyography and Kinesiology", 2017, "Journal article", "-",
+     "https://www.sciencedirect.com/science/article/abs/pii/S1050641116301225", "Snippet: tap completion time"),
 ]
 
 SHORT = {"S1": "Sato et al. 2012 (Touché)", "S2": "Harrison et al. 2012 (Cap. Fingerprinting)",
@@ -273,11 +311,16 @@ SHORT = {"S1": "Sato et al. 2012 (Touché)", "S2": "Harrison et al. 2012 (Cap. F
          "S49": "Mow et al. 2024", "S50": "BMRCL EIA", "S51": "ISEC WP 437 (2019)", "S52": "Espressif ESP-FAQ",
          "S53": "Step-to-Charge 2024", "S54": "IEC 61000-4-2", "S55": "Ramallah ELF survey",
          "S56": "Aziz et al. 2017", "S57": "Indraganti et al. 2014", "S58": "Majumdar et al. (Hyderabad)",
-         "S59": "Nabors & White 1991 (FastCap)", "S60": "ngspice manual"}
+         "S59": "Nabors & White 1991 (FastCap)", "S60": "ngspice manual",
+         "S61": "Dawson et al. 2007", "S62": "Boucsein et al. 2012", "S63": "Walker et al. 2019",
+         "S64": "Poh et al. 2010", "S65": "van Dooren et al. 2012", "S66": "Kleckner et al. 2018",
+         "S67": "de Talhouet & Webster 1996", "S68": "Möller et al. 2017", "S69": "IEC 60601-1",
+         "S70": "Zimmerman et al. 1995", "S71": "Dietz & Leigh 2001", "S72": "Touchscreen gestures 2017"}
 
 # --------------------------------------------------------------------------- values
 # category, parameter, value, unit, conditions, source, location, status, used-as, notes
 IN, PEND, BENCH, CTX = "In model v0.3", "Pending integration", "Benchmark only", "Context only"
+NEW = "In model (28 Oct 2026)"
 WB = "Whole-body study"
 FU = "Fusion study"
 UP = "In model (Oct 2026 update)"
@@ -465,6 +508,21 @@ V = [
     ("Passive sensing", "Indoor 50 Hz electric field in homes, geometric mean", 9.6, "V/m", "32 homes, log-normal", "S55", "Abstract", CTX, "", ""),
     ("Clothing", "Thermal insulation of a sari, by drape", "0.62 – 0.94", "clo", "Manikin, ISO 9920", "S57", "Abstract", CTX, "", ""),
     ("Harassment", "Physical harassment in public transport: touching / groping", "58.8 / 53.2", "% of victims", "Hyderabad, 583 respondents", "S58", "Press", CTX, "", "Secondary"),
+    # ---- 28 Oct 2026: new channels (sg_newch.py)
+    ("EDA", "Skin conductance response onset after the stimulus", "1 – 3", "s", "Most responses", "S61", "Chapter (via summaries)", NEW, "Onset 1–3 s; watch window 0.8–4.5 s", "Secondary"),
+    ("EDA", "Response rise time / half-recovery time", "1 – 3 / 2 – 10", "s", "Typical", "S61", "Chapter (via summaries)", NEW, "Shape of each response", "Secondary"),
+    ("EDA", "Smallest scored response", "0.01 – 0.05", "µS", "Depends on equipment noise", "S62", "Recommendations", NEW, "Context for the 0.45 µS threshold", ""),
+    ("EDA", "Spontaneous (non-specific) responses at rest / at high arousal", "1 – 5 / 20 – 25", "per min", "Threshold dependent", "S62", "Via EDA guides", NEW, "1–5 per minute, ×1.5 walking alone at night [E]", "Secondary"),
+    ("EDA", "First response to an acoustic startle: size / latency", "1.56 ± 0.35 / 2.34 ± 0.16", "µS / s", "30 young adults, 95 dB, 50 ms", "S63", "Results (snippet)", NEW, "Median fear response at the palm", "Check the paper"),
+    ("EDA", "Distal forearm as an EDA site", "Viable; high correlation with palm", "-", "Physical, cognitive, emotional stressors", "S64", "Abstract", NEW, "Wrist gives 0.2–0.6 × the palm [E]", ""),
+    ("EDA", "Wrist responsiveness among 16 sites; correlation with fingers", "Intermediate; r = 0.55 – 0.59", "-", "17 participants, emotional film clips", "S65", "Via later papers", NEW, "Wrist factor 0.2–0.6 [E]", "Secondary"),
+    ("EDA", "Artefact rules for ambulatory EDA", "Out of range, changing too fast, not worn, transitions", "-", "Q Sensor, 20 children; 91 % sensitivity, 99 % specificity", "S66", "Abstract", NEW, "Rise ≤ 1 µS/s and no arm jerk [E thresholds]", ""),
+    ("Assault", "Women reporting significant / extreme tonic immobility during sexual assault", "70 / 48", "%", "298 women, Stockholm rape emergency clinic", "S68", "Abstract", NEW, "Many grabs hold her without pulling", ""),
+    ("Electrode", "Skin potential across the forearm epidermis; stretching reduces it", "≈ 15", "mV", "Skin-stretch artefact grows with stretch force (log)", "S67", "Abstract", NEW, "0.3–3 mV bump per arm jerk [E]", ""),
+    ("Transmit check", "Patient auxiliary current limit, type B/BF, normal condition (low frequency)", "100", "µA", "Sources disagree on the scaling above 1 kHz", "S69", "Via secondary sources", NEW, "0.5 V at 100 kHz drives ~7 µA", "Check the standard"),
+    ("Transmit check", "Electric field sensing modes", "Loading, transmit, shunt", "-", "Body essentially a conductor at these frequencies", "S70", "Paper", NEW, "Loading-mode current flags her own hand", ""),
+    ("Transmit check", "Multi-user touch table", "Signal couples through the user to a receiver in the chair", "-", "Earth-referenced table", "S71", "Abstract", CTX, "Why shunt mode needs an earthed system", ""),
+    ("Own hand", "Tap gesture completion time", "133 (83)", "ms", "Touchscreen, index finger", "S72", "Snippet", NEW, "Hand lands at 0.1–0.3 m/s [E]", "Authors not verified"),
 ]
 
 # --------------------------------------------------------------------------- model params

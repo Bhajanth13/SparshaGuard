@@ -13,7 +13,10 @@ This repo is a simulation study (no hardware yet). The next stage, "Gate 1", is 
   `whole_body.py` (fig10–12) and `fem/` (boundary-element 3D field solver) cover the whole-body touch study.
 - `explorer/` is the interactive page; `explorer/model.js` must stay a faithful port of `sg_model.py` (rebuild with `build_explorer.py`).
 - `sg_passive.py` (passive static channel in time + firmware contact-step detector) and `passive_stream.py` (fused rule F:
-  sweep + static + accelerometer, fig17–18); summary in `docs/whole_body_fusion.md`. The demo and explorer use rule F.
+  sweep + static + accelerometer, fig17–18); summary in `docs/whole_body_fusion.md`.
+- `sg_newch.py` (28 Oct 2026): her own hand on the glass (k change), skin-stretch noise, the 100 kHz transmit check (shunt mode
+  rejected, fig19) and skin response (EDA). Rule F2 = F + own-hand veto + an EDA path for grabs that only hold; summary in
+  `docs/new_channels.md`. The demo and explorer use rule F2.
 - `demo/` is the digital-twin demo for the hackathon: `sensor.js` (model + drift + noise), `firmware.js` (event_stream.py pipeline + PIN
   state machine), built by `build_demo.py`; `node demo/check_demo.js` checks it headless against the study's rates.
 - `docs/parameter_sources.md` lists every value and its source; `docs/SparshaGuard_paper_values.xlsx` is the paper-values workbook
@@ -32,5 +35,5 @@ This repo is a simulation study (no hardware yet). The next stage, "Gate 1", is 
   at the team's request: forearm grabs now sit at the noise floor, so only wrist grabs are visible to the active sweep.
 - Independent checks: `ltspice/spice_crosscheck.py` (circuit vs ngspice) and `fem/fastcap_crosscheck.py` (3D field vs FastCap).
 - The passive body-potential channel is now modelled (14 Oct 2026, fusion-study branch); it needs the bootstrapped input + ADS1115.
-  Still not modelled: a titanium back plate, audio, heart rate.
+  Still not modelled: a titanium back plate, audio, heart rate. EDA and the transmit check were added on 28 Oct 2026.
 - Keep explanations plain and practical; the team presents this at hackathons.

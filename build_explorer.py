@@ -3,6 +3,7 @@
 explorer/page_src.html  (layout, styles, UI script, with a /*MODEL*/ placeholder)
 explorer/model.js       (JavaScript port of sg_model.py)
 data/passive_stream_results.json  (fused-watch results shown in the Whole-body tab)
+data/transmit_results.json        (transmit / shunt circuit study, sg_newch.py)
 demo/demo_check.json              (signs-of-assault results from the digital twin's headless check)
 tools/build_sources_xlsx.py       (the numbered References list; cite a source in page_src.html as {S4})
   -> explorer/sparshaguard_explorer.html  (one self-contained page; open it in a browser)
@@ -22,15 +23,21 @@ fz = {}
 for v0 in ("1.0", "10.0", "100.0"):
     r = res[v0]
     locs = r["coverage"]["walking"].keys()
-    fz[v0] = {"loc": {l: {k: round(sum(r["coverage"][c][l][k] for c in r["coverage"]) / 3, 3) for k in ("A", "F")} for l in locs},
-              "body": {k: round(r["body_avg"][k], 3) for k in ("A", "F")},
-              "fp": {k: round(r["fp_avg_strangers_excl_friend"][k], 3) for k in ("A", "F")}}
+    R = ("A", "F", "F2")
+    fz[v0] = {"loc": {l: {k: round(sum(r["coverage"][c][l][k] for c in r["coverage"]) / 3, 3) for k in R} for l in locs},
+              "body": {k: round(r["body_avg"][k], 3) for k in R},
+              "fp": {k: round(r["fp_avg_strangers_excl_friend"][k], 3) for k in R}}
 src = src.replace("/*FUSED*/", json.dumps(fz))
 # signs of assault from her movement: digital-twin headless check (demo/check_demo.js)
 chk = json.loads((here.parent / "demo/demo_check.json").read_text())
-sig = {"struggle": chk["struggle_without_touch_caught"]["fused"], "runAlone": chk["running_alone_prompted"]["fused"],
-       "touchRun": chk["touch_while_running_caught"]["fused"]}
+hold = chk["hold_without_pull_caught"]
+sig = {"struggle": chk["struggle_without_touch_caught"]["fused2"], "runAlone": chk["running_alone_prompted"]["fused2"],
+       "touchRun": chk["touch_while_running_caught"]["fused2"], "self": chk["own_hand_prompted"]["fused2"],
+       "hold": sum(h["fused2"] for h in hold.values()) / len(hold), "holdF": sum(h["fused"] for h in hold.values()) / len(hold)}
 src = src.replace("/*SIGNS*/", json.dumps(sig))
+tx = json.loads((here.parent / "data/transmit_results.json").read_text())
+src = src.replace("/*TRANSMIT*/", json.dumps(tx))
+src = src.replace("{TXE}", f"{100 * tx['_baseline']['earth_over_body']:.0f} %").replace("{TXI}", f"{tx['_baseline']['transmit_uA']:.0f}")
 # references, IEEE style: [n] is source Sn in tools/build_sources_xlsx.py (and in the workbook)
 import html
 import importlib.util

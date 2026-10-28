@@ -42,6 +42,8 @@ from __future__ import annotations
 import numpy as np
 from scipy.signal import lfilter
 
+import sg_newch as NC
+
 FS = 500                    # passive channel, samples per second
 FS_IMU = 50
 pF, EPS0, CM2 = 1e-12, 8.854e-12, 1e-4
@@ -94,8 +96,10 @@ class Scene:
     """One stretch of her day. Events are dicts with t0, t1 (s) and a kind:
        'person' (loc, attack: bool, pull: bool, v_a), 'approach' (v_a, dmin), 'earthed', 'gesture', 'jolt'."""
 
-    def __init__(self, ctx, seconds, v0, front, rng, rh=50):
-        self.ctx, self.T, self.v0, self.front, self.rng = ctx, seconds, v0, front, rng
+    def __init__(self, ctx, seconds, v0, front, rng, rh=50, new=False):
+        """new=True adds the 28 Oct 2026 effects (sg_newch.py): her own hand on the watch changing k,
+        skin-stretch motion artefacts, and the 100 kHz transmit-check trace."""
+        self.ctx, self.T, self.v0, self.front, self.rng, self.new = ctx, seconds, v0, front, rng, new
         self.n = int(seconds * FS)
         self.cb = rng.uniform(110, 250) * pF
         self.R = np.exp(rng.uniform(np.log(R_GROUND[0]), np.log(R_GROUND[1])))
@@ -110,6 +114,15 @@ class Scene:
         self.vpeak = v0 * np.exp(rng.normal(0, 0.7)) if self.walking or ctx == "bus" else v0 * 0.1 * np.exp(rng.normal(0, 0.7))
         self.events = []
         self.heel = np.arange(rng.uniform(0, 1 / self.cadence), seconds, 1 / self.cadence) if self.walking else np.array([])
+        self.c_load0 = rng.uniform(8, 25) * pF          # 100 kHz loading capacitance seen by the back electrode [G, sg_model]
+        self.cal_err = rng.uniform(-0.2, 0.2)           # firmware calibration error of that ratio [E]
+        self.jerks = []                                 # (t, width) of arm jerks, filled by accel()
+        self.kt, self.tx = None, None
+
+    def tx_gain(self):
+        """C_load0 / (C_GE + C_GB + C_in) as the firmware calibrates it (off by cal_err)."""
+        f = FRONT[self.front]
+        return self.c_load0 / (self.cge + f["cgb"] + f["cin"]) * (1 + self.cal_err)
 
     def foot_factor(self):
         """C_B(t) / C_B on both feet while walking: 1 in double support, ONE_FOOT in single support.
@@ -202,9 +215,37 @@ class Scene:
         v = q / (self.cb * cmov) + np.where(pinned, 0.0, vind)
         return t, v, hum
 
+    def hand_traces(self):
+        """k(t) and the transmit-check trace: her hand on the glass, or a stranger's palm over the
+        face during a wrist grab, adds C_hand between her body and the watch ground (sg_newch.py)."""
+        f = FRONT[self.front]
+        ch = np.zeros(self.n)
+        for ev in self.events:
+            cover = None
+            if ev["kind"] == "self":
+                cover = ev.get("cover", False)
+            elif ev["kind"] == "person" and ev.get("loc") == "wrist" and ev.get("face"):
+                cover = True
+            if cover is None:
+                continue
+            i0, i1 = int(ev["t0"] * FS), min(self.n, int(ev["t1"] * FS))
+            if ev["kind"] == "person":                     # his palm lands as his skin touches hers
+                i0 = max(0, i0 - int(0.05 * FS))
+            if i1 > i0:
+                seg = NC.self_touch_trace(self.rng, i1 - i0, FS, cover)
+                ch[i0:i1] = np.maximum(ch[i0:i1], seg)
+        self.kt = self.cge / (self.cge + f["cgb"] + f["cin"] + ch)
+        self.tx = NC.tx_trace(ch, self.c_load0, self.rng)
+        return self.kt, self.tx
+
     def watch_signal(self, v):
         rms = FRONT[self.front]["adc"] / 4
-        return self.k * v + self.rng.normal(0, rms, v.size)
+        if not self.new:
+            return self.k * v + self.rng.normal(0, rms, v.size)
+        kt, _ = self.hand_traces()
+        swing = (self.cadence / 2, self.rng.uniform(0, 6.3)) if self.walking else None
+        art = NC.skin_stretch(self.rng, self.n, FS, self.jerks, swing)
+        return kt * v + art + self.rng.normal(0, rms, v.size)
 
     def accel(self):
         rng, n = self.rng, int(self.T * FS_IMU)
@@ -219,6 +260,7 @@ class Scene:
             if ev["kind"] == "gesture":
                 w = int(rng.uniform(0.2, 0.4) * FS_IMU)
                 acc[i0:i0 + w] += rng.uniform(1.0, 2.2) * np.hanning(w)[: len(acc[i0:i0 + w])]
+                self.jerks.append((ev["t0"], w / FS_IMU))
             if ev["kind"] == "jolt":
                 w = int(0.3 * FS_IMU)
                 acc[i0:i0 + w] += rng.uniform(0.1, 0.34) * np.hanning(w)[: len(acc[i0:i0 + w])]   # [S45]
@@ -227,6 +269,7 @@ class Scene:
                     j = i0 + int(rng.uniform(0.2, 3.0) * FS_IMU)
                     w = int(0.15 * FS_IMU)
                     acc[j:j + w] += rng.uniform(1.5, 3.0) * np.hanning(w)[: len(acc[j:j + w])]
+                    self.jerks.append((j / FS_IMU, w / FS_IMU))
         return t, acc
 
 
@@ -240,8 +283,10 @@ AGIT_G = 1.25             # agitation: |a - 1 g| above 1.25 g ...
 AGIT_N = 2                # ... in at least 2 separate jerks within 3 s of the contact step
 
 
-def contact_steps(u, rms, heel=None, hum=None, indoor=False):
-    """Sharp steps in the wrist signal u (500 Hz). Returns list of (time s, size V, kind)."""
+def contact_steps(u, rms, heel=None, hum=None, indoor=False, tx=None, gain=1.0):
+    """Sharp steps in the wrist signal u (500 Hz). Returns list of (time s, size V, kind).
+    With the transmit-check trace tx (sg_newch.py), a step that coincides with a transmit-current
+    jump and matches the k change it predicts is her own hand on the watch: kind 'self'."""
     d = np.diff(u)
     thr = STEP_K * rms * np.sqrt(2)                          # noise of a sample-to-sample difference
     cand = np.where(np.abs(d) > thr)[0]
@@ -279,6 +324,8 @@ def contact_steps(u, rms, heel=None, hum=None, indoor=False):
             h0, h1 = np.mean(hum[max(0, i - FS // 2):i + 1]), np.mean(hum[i + 1:i + 1 + FS // 2])
             if h0 > 0 and h1 < 0.3 * h0:
                 kind = "earthed"
+        if tx is not None and kind == "person" and NC.tx_says_own_hand(u, tx, i, rms, gain):
+            kind = "self"
         out.append((t, float(di), kind))
         last = t
     return out

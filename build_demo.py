@@ -25,10 +25,11 @@ chk = json.loads((root / "demo/demo_check.json").read_text())
 pct = lambda x: f"{100 * x:.0f} %"
 fp = chk["mean_unwanted_prompts_per_hour"]
 hours = 3 * len(chk["daily_life"])                 # check_demo.js simulates 3 h per place
-for key, val in {"FACT_BODY": pct(chk["body_average"]["fused"]), "FACT_BODY_A": pct(chk["body_average"]["active"]),
-                 "FACT_FP": f"{round(fp['fused'] * hours)}", "FACT_FP_A": f"{round(fp['active'] * hours)}", "FACT_HOURS": str(hours),
-                 "FACT_WRIST": pct(chk["grabs_caught"]["wrist"]["fused"]),
-                 "FACT_STRAP": pct(chk["strap_removal_caught"]["fused"])}.items():
+R = "fused2"                                       # the default watch logic (rule F2)
+for key, val in {"FACT_BODY": pct(chk["body_average"][R]), "FACT_BODY_A": pct(chk["body_average"]["active"]),
+                 "FACT_FP": f"{round(fp[R] * hours)}", "FACT_FP_A": f"{round(fp['active'] * hours)}", "FACT_HOURS": str(hours),
+                 "FACT_WRIST": pct(chk["grabs_caught"]["wrist"][R]),
+                 "FACT_STRAP": pct(chk["strap_removal_caught"][R])}.items():
     page = page.replace(f"/*{key}*/", val)
 out = '<!doctype html>\n<html lang="en">\n<meta charset="utf-8">\n' + page + "\n</html>\n"
 (root / "demo/sparshaguard_demo.html").write_text(out, encoding="utf-8")

@@ -231,6 +231,10 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <div class="top"><p class="label" style="margin:0">Static on her body (passive channel) and arm jerks</p><span class="val" id="statval"></span></div>
         <canvas id="cv-static" height="84" role="img" aria-label="Her body voltage as the watch sees it over the last 30 seconds, with contact steps and arm jerks marked"></canvas>
       </div>
+      <div class="signal">
+        <div class="top"><p class="label" style="margin:0">Skin response (EDA) and transmit check</p><span class="val" id="edaval"></span></div>
+        <canvas id="cv-eda" height="70" role="img" aria-label="Her skin conductance over the last 30 seconds, and the change in the 100 kHz transmit current"></canvas>
+      </div>
     </div>
 
     <div class="phonecol">
@@ -271,7 +275,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     <div class="card">
       <p class="label">Proof, not promises</p>
       <div class="settings">
-        <label>Watch logic <select id="rule"><option value="fused" selected>Fused: sweep + static + motion</option><option value="active">Sweep only (first design)</option></select></label>
+        <label>Watch logic <select id="rule"><option value="fused2" selected>Fused + transmit check + skin response</option><option value="fused">Fused: sweep + static + motion (14 Oct)</option><option value="active">Sweep only (first design)</option></select></label>
         <label>Static on bodies <select id="v0"><option value="1">Low (~1 V)</option><option value="10" selected>Medium (~10 V)</option><option value="100">High (~100 V)</option></select></label>
       </div>
       <div class="facts">
@@ -301,7 +305,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   const $ = (id) => document.getElementById(id);
   const FS = SGSensor.FS;
   let sensor, fw, timer, simT = 0, scn = null, scnStart = 0, runner = null, msgs = [], flash = null, callStart = 0;
-  const hist = [], shist = [], marks = [];      // sweep score, static channel, contact steps / jerks
+  const hist = [], shist = [], marks = [], ehist = [];   // sweep score, static channel, contact steps / jerks, EDA + transmit
   // real-time clock: the watch reads the device's clock, as the real watch reads its RTC chip
   const rtcTime = (sec) => new Date().toLocaleTimeString([], sec ? { hour: "2-digit", minute: "2-digit", second: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
   const rtcDate = () => new Date().toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
@@ -470,11 +474,12 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { until: () => fw.state === "alert", say: "The electrode loses her skin: alert in under a second, no PIN asked.", sub: "The watch compares each reading with its own off-the-wrist signature." },
       { wait: 3, do: endScene } ] },
     { t: "Grabbed anywhere", steps: [
-      { ready: true, aim: aimFig(138, 84), say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
-      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the lower chart." },
-      { until: promptOrRetry("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], label: "A stranger grabs her shoulder and pulls" }), say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
-      { wait: 1, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
-      { wait: 1.5, do: endScene }, { wait: 0.4 } ] },
+      { ready: true, aim: aimFig(138, 84), say: "Someone grabs her shoulder. She freezes: no pulling, no struggle.", sub: "70 % of women assaulted report freezing (Möller 2017), so a grab that only holds must still count.",
+        do: () => startScene("person:shoulder", { pull: false, fearAmp: 3, vA: otherVoltage(), label: "A stranger grabs her shoulder; she freezes" }) },
+      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the static chart." },
+      { until: promptOrRetry("person:shoulder", { pull: false, fearAmp: 3, label: "A stranger grabs her shoulder; she freezes" }), say: "2–3 seconds later her skin responds with fear sweat: the watch asks for her PIN.", sub: "Skin conductance from two pads on the steel back (lowest chart). Had he pulled her, the jerks would have decided at once." },
+      { wait: 0.8, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 1.2, do: endScene }, { wait: 0.4 } ] },
     { t: "She fights back", steps: [
       { ready: true, aim: aimFig(150, 140), say: "Someone corners her and she struggles to get free.", sub: "", do: () => startScene("struggle:null", { label: "She struggles to get free" }) },
       { wait: 0.8, say: "No touch was felt yet, but her wrist jerks irregularly and turns fast.", sub: "Accelerometer and gyroscope: a struggle looks nothing like walking, running or a wave." },
@@ -483,7 +488,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { wait: 1, do: endScene }, { wait: 0.4 } ] },
     { t: "Everyday life", steps: [
       { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
-      { wait: 1, aim: WRIST, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
+      { wait: 1, aim: WRIST, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "Her palm changes the static reading too, but the transmit current jumps at that same instant: her own hand, ignored." },
       { wait: 2.8, do: endScene },
       { wait: 1, aim: aimFig(171, 150), do: () => { sensor.setContext("bus"); startScene("object:railing_wrist"); }, say: "On the bus, her strap rests on a metal pole.", sub: "Metal pulls her body to 0 V and holds it there: not a person." },
       { wait: 2.6, do: endScene },
@@ -493,7 +498,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       { wait: 3, do: endScene },
       { wait: 0.5, aim: aimFig(30, 200), do: () => { sensor.setContext("walking"); startScene("run:null"); }, say: "She runs to catch a bus.", sub: "Running alone is not an alarm; while she runs, any touch asks for the PIN at once." },
       { wait: 3.5, do: endScene },
-      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 0–1 unwanted prompts across runs, against 24–28 for a sweep-only watch.", sub: "" } ] },
+      { wait: 1.5, say: "No PIN prompts. In /*FACT_HOURS*/ simulated hours of daily life: /*FACT_FP*/ unwanted prompts, against /*FACT_FP_A*/ for a sweep-only watch.", sub: "" } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
@@ -561,7 +566,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
   }
   $("tab-guided").addEventListener("click", () => setMode("guided"));
   $("tab-try").addEventListener("click", () => setMode("try"));
-  $("rule").addEventListener("change", () => { fw.cfg.RULE = $("rule").value; logEvent({ type: "info", text: $("rule").value === "fused" ? "Logic: fused (sweep + static + motion)" : "Logic: sweep only (first design)" }); });
+  $("rule").addEventListener("change", () => { fw.cfg.RULE = $("rule").value; logEvent({ type: "info", text: { fused2: "Logic: fused + transmit check + skin response (EDA)", fused: "Logic: fused (sweep + static + motion)", active: "Logic: sweep only (first design)" }[$("rule").value] }); });
   $("v0").addEventListener("change", () => sensor.passive.setV0(+$("v0").value));
   $("sound").addEventListener("click", () => { soundOn = !soundOn; $("sound").setAttribute("aria-pressed", String(soundOn)); $("sound").textContent = soundOn ? "Sound on" : "Sound off"; });
   $("sci").addEventListener("click", () => { const on = $("science").classList.toggle("open"); $("sci").setAttribute("aria-pressed", String(on)); $("sci").textContent = on ? "Hide the science" : "Show the science"; });
@@ -692,12 +697,29 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
       g.strokeStyle = m.kind === "person" ? css("--touch") : css("--muted"); g.lineWidth = 1.5; g.setLineDash(m.kind === "person" ? [] : [3, 3]);
       g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke(); g.setLineDash([]);
       g.fillStyle = m.kind === "person" ? css("--touch") : css("--muted");
-      const lab = { person: "another body", earthed: "metal / earth", object: "object" }[m.kind];
+      const lab = { person: "another body", earthed: "metal / earth", object: "object", self: "her own hand" }[m.kind];
       g.fillText(lab, Math.min(x + 3, W - R - g.measureText(lab).width), T + 9);
     }
     g.strokeStyle = css("--base"); g.lineWidth = 1.6; g.beginPath();
     shist.forEach((h, i) => { const x = X(h.t), y = Y(h.v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
     g.fillStyle = css("--warn"); g.fillText("▮ arm jerk", W - R - 64, H - 2);
+  }
+  function drawEda() {
+    const { g, W, H } = setup($("cv-eda")); if (!W || !ehist.length) return; g.clearRect(0, 0, W, H);
+    const L = 40, R = 40, T = 6, B = 12;
+    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
+    let lo = Infinity, hi = -Infinity; for (const h of ehist) { lo = Math.min(lo, h.eda); hi = Math.max(hi, h.eda); }
+    hi = Math.max(hi, lo + 0.6); const Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    let txMax = 5; for (const h of ehist) txMax = Math.max(txMax, h.tx);
+    const YT = (v) => T + (H - T - B) * (1 - v / txMax);
+    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+    for (const v of [lo, hi]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillText(`${v.toFixed(2)} µS`, 0, Y(v) + 4); }
+    g.fillText(`+${txMax.toFixed(0)} %`, W - R + 4, T + 8); g.fillText("0 %", W - R + 4, H - B);
+    g.strokeStyle = css("--warn"); g.lineWidth = 1.2; g.setLineDash([3, 3]); g.beginPath();
+    ehist.forEach((h, i) => { const x = X(h.t), y = YT(h.tx); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = css("--touch"); g.lineWidth = 1.6; g.beginPath();
+    ehist.forEach((h, i) => { const x = X(h.t), y = Y(h.eda); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    g.fillStyle = css("--touch"); g.fillText("— skin", L + 4, H - 1); g.fillStyle = css("--warn"); g.fillText("‐‐ transmit", L + 56, H - 1);
   }
   function drawSweep(amp) {
     if (!$("science").classList.contains("open")) return;
@@ -720,7 +742,7 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     if (e.type === "silent") addMsg("silent");
     if (e.type === "cancel") { flash = { until: simT + 2 * FS }; sOk(); }
   }
-  let lastSig = "", lastTouch = "", lastStat = "";
+  let lastSig = "", lastTouch = "", lastStat = "", lastEda = "";
   function step() {
     simT += 1;
     if (runner) runner.tick();
@@ -732,6 +754,8 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     shist.push({ t: simT, v: pas.u[pas.u.length - 1], lo, hi });
     if (pas.acc.some((a) => Math.abs(a - 1) > fw.cfg.AGIT_G) && !(marks.length && marks[marks.length - 1].kind === "jerk" && marks[marks.length - 1].f === simT - 1)) marks.push({ f: simT, kind: "jerk" });
     while (shist.length > 30 * FS) shist.shift();
+    ehist.push({ t: simT, eda: pas.eda, tx: 100 * Math.max(0, (pas.tx.reduce((a, x) => a + x, 0) / pas.tx.length) - 1) });
+    while (ehist.length > 30 * FS) ehist.shift();
     while (marks.length && marks[0].f < simT - 30 * FS) marks.shift();
     hist.push({ t: simT, score: fw.state === "off" || fw.state === "learning" ? 0.05 : 100 * fw.score, active: fw.active && fw.state !== "off" });
     while (hist.length > 30 * FS) hist.shift();
@@ -741,7 +765,9 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     if (tn !== lastTouch) { $("touchnow").innerHTML = tn; lastTouch = tn; }
     const stv = `${pas.u[pas.u.length - 1].toFixed(2)} V`;
     if (stv !== lastStat) { $("statval").textContent = stv; lastStat = stv; }
-    renderWatch(); drawScore(); drawStatic(); drawSweep(amp);
+    const ev = `${pas.eda.toFixed(2)} µS · transmit +${ehist[ehist.length - 1].tx.toFixed(0)} %`;
+    if (ev !== lastEda) { $("edaval").textContent = ev; lastEda = ev; }
+    renderWatch(); drawScore(); drawStatic(); drawEda(); drawSweep(amp);
   }
   function resetAll() {
     clearInterval(timer);

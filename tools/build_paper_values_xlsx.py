@@ -23,7 +23,8 @@ USED = {"In model v0.3": "Yes (in model)", "Pending integration": "Found, not ad
         "Benchmark only": "Accuracy benchmark", "Context only": "Background only",
         "Whole-body study": "Whole-body study (doc)",
         "Fusion study": "Fusion study (doc)",
-        "In model (Oct 2026 update)": "Yes (in model, Oct 2026)"}
+        "In model (Oct 2026 update)": "Yes (in model, Oct 2026)",
+        "In model (28 Oct 2026)": "Yes (in model, 28 Oct 2026)"}
 
 
 def ref_text(s):

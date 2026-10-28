@@ -20,6 +20,13 @@
 //   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
 //                 within 3 s): a grab that pulls or shakes her, anywhere on her body
 // Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
+// New channels, rule F2 (default since 28 Oct 2026; sg_newch.py, passive_stream.py):
+//   transmit check  a static step that lands at the same instant as a jump in the 100 kHz transmit
+//                   current, and matches the k change that jump predicts, is her own hand on the
+//                   watch, never a person
+//   EDA path        a person step with no pulling still prompts if, 0.8-4.5 s later, her skin
+//                   conductance rises by at least 0.45 uS (no faster than 1 uS/s, not during an arm
+//                   jerk): a grab that holds her while she freezes
 // Signs of assault from her own movement (accelerometer + gyroscope; thresholds are estimates [E]):
 //   running        wrist ENMO above 0.45 g for 4 s and periodic (autocorrelation above 0.5 at the
 //                  arm-swing period; running is above 600 mg [S43]); while she runs, and 10 s
@@ -39,9 +46,10 @@
   const CFG = {
     T_ENTER: 0.003, EXIT_RATIO: 0.5, SUSTAIN_S: 2, TAU_BASE_S: 60, MAX_FREEZE_S: 30, LEARN_S: 5,
     OFF_WRIST_TOL: 0.004, OFF_WRIST_FRAMES: 3, PIN_WINDOW_S: 15, PIN: "1234", DURESS_PIN: "9999",
-    RULE: "fused",            // "fused" (rule F) or "active" (today's rule A: active sweep alone)
+    RULE: "fused2",           // "fused2" (rule F2, default), "fused" (rule F of 14 Oct) or "active" (rule A: active sweep alone)
     PFS: 500, IMU_FS: 50, STEP_K: 6, SETTLE: 0.3, LOCAL_K: 8, OBJECT_FRAC: 0.12,
     PERSON_BEFORE_S: 4, AGIT_G: 1.25, AGIT_N: 2, AGIT_S: 3,
+    TX_JUMP: 0.02, EDA_TH: 0.45, EDA_LO: 0.8, EDA_HI: 4.5, EDA_MAX_RATE: 1.0,
     RUN_ENMO: 0.45, RUN_HOLD_S: 10, STRUGGLE_G: 2.0, STRUGGLE_N: 5, STRUGGLE_CV: 0.35, STRUGGLE_GYRO: 400, MOTION_S: 4, PERIODIC: 0.5,
   };
   const median = (a) => { const b = Float64Array.from(a).sort(), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
@@ -49,9 +57,19 @@
 
   // contact-step detector on a stream (port of sg_passive.contact_steps); decides 0.5 s late
   class StepDetector {
-    constructor(c) { this.c = c; this.u = []; this.hum = []; this.off = 0; this.next = 0; this.last = -10; this.indoor = false; this.rms = 5e-4; }
+    constructor(c) { this.c = c; this.u = []; this.hum = []; this.tx = []; this.off = 0; this.next = 0; this.last = -10; this.indoor = false; this.rms = 5e-4; }
+    // port of sg_newch.tx_says_own_hand: did the transmit current jump with this step, and does the
+    // step match the k change that jump predicts (her own hand, no charge moved)?
+    ownHand(g, rms, gain) {
+      const o = this.off, seg = (a, b) => median(this.tx.slice(a - o, b - o)), useg = (a, b) => median(this.u.slice(a - o, b - o));
+      if (g - 20 < o || g + 22 > o + this.tx.length) return null;
+      const jump = seg(g + 6, g + 22) / seg(g - 20, g - 4) - 1;
+      if (Math.abs(jump) < this.c.TX_JUMP) return null;
+      const u0 = useg(g - 20, g - 4), u1 = useg(g + 6, g + 22), rho = 1 / (1 + jump * gain), pred = (rho - 1) * u0;
+      return Math.abs((u1 - u0) - pred) < 0.25 * Math.abs(pred) + 6 * rms ? jump : null;
+    }
     push(p) {
-      for (let i = 0; i < p.u.length; i++) { this.u.push(p.u[i]); this.hum.push(p.hum[i]); }
+      for (let i = 0; i < p.u.length; i++) { this.u.push(p.u[i]); this.hum.push(p.hum[i]); this.tx.push(p.tx ? p.tx[i] : 1); }
       this.rms = p.rms; this.indoor = p.indoor;
       const out = [], c = this.c, FSP = c.PFS, u = this.u, rms = this.rms, thr = c.STEP_K * rms * Math.SQRT2;
       const N = this.off + u.length, at = (g) => u[g - this.off], d = (g) => at(g + 1) - at(g);
@@ -76,11 +94,13 @@
           const h = this.hum, o = this.off, h0 = mean(h, Math.max(0, i - 250 - o), i + 1 - o), h1 = mean(h, i + 1 - o, i + 251 - o);
           if (h0 > 0 && h1 < 0.3 * h0) kind = "earthed";
         }
-        out.push({ t, size: di, kind, u0 });
+        let txJump = null;
+        if (kind === "person" && p.tx && (txJump = this.ownHand(i, rms, p.txGain ?? 1)) !== null) kind = "self";
+        out.push({ t, size: di, kind, u0, txJump });
         this.last = t;
       }
       const keep = 3 * FSP;                                    // keep the last 3 s
-      if (u.length > keep) { const cut = u.length - keep; this.u = u.slice(cut); this.hum = this.hum.slice(cut); this.off += cut; }
+      if (u.length > keep) { const cut = u.length - keep; this.u = u.slice(cut); this.hum = this.hum.slice(cut); this.tx = this.tx.slice(cut); this.off += cut; }
       return out;
     }
   }
@@ -97,6 +117,7 @@
       this.silentAlert = false;
       this.steps = new StepDetector(this.cfg);
       this.imu = [];                  // [t, |a| in g, |omega| in deg/s] over the last 5 s
+      this.eda = [];                  // [t, skin conductance uS] over the last 12 s
       this.hrHist = []; this.hr = null; this.runningUntil = -1; this.motionQuiet = -1; this.mic = null;
       this.passiveSeen = false;
       this._reset();
@@ -114,7 +135,8 @@
       if (!on && this.state !== "off") { this.state = "off"; this._emit("info", "Guard Mode off"); }
     }
 
-    get fused() { return this.cfg.RULE === "fused" && this.passiveSeen; }
+    get fused() { return (this.cfg.RULE === "fused" || this.cfg.RULE === "fused2") && this.passiveSeen; }
+    get f2() { return this.cfg.RULE === "fused2"; }
 
     // the passive channel and accelerometer of this frame (optional: without them the watch runs rule A)
     _passive(p) {
@@ -123,13 +145,16 @@
       const n = p.acc.length;
       for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i], p.gyro ? p.gyro[i] : 0]);
       if (p.hr) { this.hr = p.hr; this.hrHist.push(p.hr); if (this.hrHist.length > 120 * FS) this.hrHist.shift(); }
+      if (p.eda !== undefined) { this.eda.push([now, p.eda]); while (this.eda.length && this.eda[0][0] < now - 12) this.eda.shift(); }
+      this.txNow = p.tx ? median(p.tx) : 1;
       while (this.imu.length && this.imu[0][0] < now - 5) this.imu.shift();
       const guarding = this.state === "armed";
-      for (const s of this.steps.push(p)) {
+      for (const s of this.steps.push(this.f2 ? p : Object.assign({}, p, { tx: null }))) {
         this.lastStep = s;
         if (!guarding) continue;
         const v = `${(1000 * Math.abs(s.size)).toFixed(0)} mV`;
-        if (s.kind === "earthed") this._emit("info", `Static: her body pulled to 0 V (${v} step), metal or earth: not a person`);
+        if (s.kind === "self") this._emit("info", `Static step (${v}) at the same instant the transmit current jumped ${(100 * s.txJump).toFixed(0)} %: her own hand on the watch, not a person`);
+        else if (s.kind === "earthed") this._emit("info", `Static: her body pulled to 0 V (${v} step), metal or earth: not a person`);
         else if (s.kind === "object") this._emit("info", `Static: small pull toward 0 V (${v}), a phone or bag: not a person`);
         else {
           this.personSteps.push(s.t);
@@ -137,7 +162,7 @@
           if (this.fused && now < this.runningUntil) {
             this.prompted = true; this._startPrompt("Another body touched her while she was running: ask for PIN (15 s)"); continue;
           }
-          if (this.fused && !this.watching) { this.watching = s.t; this._emit("info", "Watching her arm for 3 s: is she being pulled?"); }
+          if (this.fused && !this.watching) { this.watching = s.t; this.saidNoPull = false; this._emit("info", "Watching her arm for 3 s and her skin for 4.5 s: is she being pulled, or frozen with fear?"); }
         }
       }
       this.personSteps = this.personSteps.filter((t) => t > now - 10);
@@ -147,8 +172,13 @@
         if (guarding && this.fused && jerks >= c.AGIT_N) {
           this.watching = null; this.prompted = true;
           this._startPrompt(`Another person touched her and her arm was pulled (${jerks} jerks): ask for PIN (15 s)`);
-        } else if (now > this.watching + c.AGIT_S) {
-          this._emit("info", "No pulling within 3 s: a brush, ignored"); this.watching = null;
+        } else if (guarding && this.f2 && this.scrSince(this.watching) !== null) {
+          const a = this.scrSince(this.watching); this.watching = null; this.prompted = true;
+          this._startPrompt(`Another person touched her and her skin responded ${(a).toFixed(2)} µS (fear sweat, no pulling: she may be frozen): ask for PIN (15 s)`);
+        } else if (now > this.watching + (this.f2 ? c.EDA_HI + 3 : c.AGIT_S)) {
+          this._emit("info", this.f2 ? "No pulling and no strong skin response: a brush, ignored" : "No pulling within 3 s: a brush, ignored"); this.watching = null;
+        } else if (this.f2 && !this.saidNoPull && now > this.watching + c.AGIT_S) {
+          this.saidNoPull = true; this._emit("info", "No pulling within 3 s; watching her skin response (EDA)");
         }
       }
     }
@@ -190,6 +220,27 @@
     get hrRest() { if (this.hrHist.length < 10) return null; const s = [...this.hrHist].sort((a, b) => a - b); return s[Math.floor(s.length * 0.2)]; }
     get micOn() { return !!this.mic; }
 
+    // a skin conductance response starting 0.8-4.5 s after t0 (port of sg_newch.scr_after, on the 5 Hz
+    // frame stream): rise of at least EDA_TH uS, no faster than 1 uS/s, at least 0.5 s long, not during an
+    // arm jerk; returns its size so far, or null
+    scrSince(t0) {
+      const c = this.cfg, e = this.eda.filter(([t]) => t >= t0 + c.EDA_LO - 0.6);
+      if (e.length < 4) return null;
+      const sm = e.map((_, i) => { let s = 0, n = 0; for (let j = Math.max(0, i - 1); j <= Math.min(e.length - 1, i + 1); j++) { s += e[j][1]; n++; } return s / n; });
+      let i = 1;
+      while (i < sm.length) {
+        const d = (sm[i] - sm[i - 1]) * FS;
+        if (d > 0.02 && e[i - 1][0] <= t0 + c.EDA_HI && e[i - 1][0] >= t0 + c.EDA_LO - 0.2) {
+          let j = i, rate = d;
+          while (j + 1 < sm.length && sm[j + 1] > sm[j]) { j++; rate = Math.max(rate, (sm[j] - sm[j - 1]) * FS); }
+          const amp = sm[j] - sm[i - 1], ta = e[i - 1][0], tb = e[j][0];
+          const jerk = this.imu.some(([t, a]) => t >= ta - 0.5 && t <= tb + 0.5 && Math.abs(a - 1) > c.AGIT_G);   // an arm jerk, not her arm swing
+          if (amp >= c.EDA_TH && rate < c.EDA_MAX_RATE && tb - ta >= 0.5 && !jerk) return amp;
+          i = j + 1;
+        } else i++;
+      }
+      return null;
+    }
     jerksSince(t0) {                  // rising edges of |a - 1 g| > 1.25 g in [t0, t0 + 3 s]
       let n = 0, prev = null;
       for (const [t, a] of this.imu) {

@@ -234,6 +234,10 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
         <div class="top"><p class="label" style="margin:0">Static on her body (passive channel) and arm jerks</p><span class="val" id="statval"></span></div>
         <canvas id="cv-static" height="84" role="img" aria-label="Her body voltage as the watch sees it over the last 30 seconds, with contact steps and arm jerks marked"></canvas>
       </div>
+      <div class="signal">
+        <div class="top"><p class="label" style="margin:0">Skin response (EDA) and transmit check</p><span class="val" id="edaval"></span></div>
+        <canvas id="cv-eda" height="70" role="img" aria-label="Her skin conductance over the last 30 seconds, and the change in the 100 kHz transmit current"></canvas>
+      </div>
     </div>
 
     <div class="phonecol">
@@ -274,13 +278,13 @@ footer { margin-top: 12px; font-size: 12px; color: var(--muted); text-align: cen
     <div class="card">
       <p class="label">Proof, not promises</p>
       <div class="settings">
-        <label>Watch logic <select id="rule"><option value="fused" selected>Fused: sweep + static + motion</option><option value="active">Sweep only (first design)</option></select></label>
+        <label>Watch logic <select id="rule"><option value="fused2" selected>Fused + transmit check + skin response</option><option value="fused">Fused: sweep + static + motion (14 Oct)</option><option value="active">Sweep only (first design)</option></select></label>
         <label>Static on bodies <select id="v0"><option value="1">Low (~1 V)</option><option value="10" selected>Medium (~10 V)</option><option value="100">High (~100 V)</option></select></label>
       </div>
       <div class="facts">
-        <div class="fact"><div class="v" id="f-body">70 %</div><div class="k">of grabs caught over 7 body places (sweep only: 13 %)</div></div>
-        <div class="fact"><div class="v" id="f-fp">0</div><div class="k">unwanted PIN prompts in 9 h of simulated daily life (sweep only: 28)</div></div>
-        <div class="fact"><div class="v">99 %</div><div class="k">of wrist grabs caught (signal ~16 %, noise ~0.1 %)</div></div>
+        <div class="fact"><div class="v" id="f-body">88 %</div><div class="k">of grabs caught over 7 body places (sweep only: 13 %)</div></div>
+        <div class="fact"><div class="v" id="f-fp">2</div><div class="k">unwanted PIN prompts in 9 h of simulated daily life (sweep only: 46)</div></div>
+        <div class="fact"><div class="v">88 %</div><div class="k">of wrist grabs caught (signal ~16 %, noise ~0.1 %)</div></div>
         <div class="fact"><div class="v">100 %</div><div class="k">of strap removals caught, no false alarms</div></div>
       </div>
       <div class="legend"><span style="--c: var(--base)">her baseline sweep</span><span style="--c: var(--touch)">sweep now</span></div>
@@ -498,6 +502,17 @@ const SG = (() => {
 //   gestures 150-350, pulls 200-500, struggling 400-900. Heart rate [E]: resting 65-85 bpm,
 //   +15 walking, +55 running, +30 under stress (a pull or a struggle), rising with a ~20 s and
 //   falling with a ~60 s time constant.
+// New channels (28 Oct 2026, port of sg_newch.py; values and sources listed there):
+//   her own hand on the watch adds C_hand between her body and the watch ground through the glass
+//   (palm 4-12 cm^2, stack 1.5-3 mm, er 3-7 [G/E]), landing at 0.1-0.3 m/s [E, S72], so k falls in
+//   ~10-100 ms with no charge moving; a stranger's palm covers her watch face in 30 % of wrist grabs [E]
+//   transmit check: 0.5 V at 100 kHz from the steel back; its current is 1 + C_hand / C_load0
+//   (C_load0 8-25 pF [G]) with 0.3 % noise [E]; the firmware knows C_load0 / (C_GE+C_GB+C_in) to 20 % [E]
+//   skin-stretch artefacts: a 0.3-3 mV bump per arm jerk, 0.05-0.5 mV of arm-swing ripple [S67/E]
+//   EDA (skin conductance, uS, once per frame): responses start 1-3 s after the stimulus, rise 1-3 s,
+//   half-recover in 2-10 s [S61]; spontaneous ones 1-5 per minute [S62]; a grab -> response with
+//   probability 0.9, median 1.56 uS at the palm [S63]; a brush 0.3 / 0.3 uS, a friend 0.2 [E];
+//   the wrist gives 0.2-0.6 of the palm [S64, S65, E]; pressure blips of 0.05-0.5 uS on arm jerks [E].
 // The firmware never sees which scenario is playing, only these numbers.
 (function (root) {
   const FS = 5;                  // frames per second; each frame = 16 averaged sweeps
@@ -548,6 +563,15 @@ const SG = (() => {
   const ACTIVITY = new Set(["run", "struggle"]);       // her own movements, not touches
   const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
+  const NC = { TX_NOISE: 0.003, P_STRANGER_FACE: 0.3 };
+  // her (or his) hand settling on the watch glass: C = C_contact d_eff / (g + d_eff) as the gap closes
+  function handOnGlass(R, cover) {
+    const area = cover ? R.uni(4, 12) : R.uni(0.5, 1.5), er = R.uni(3, 7), d = R.uni(1.5e-3, 3e-3);
+    const cc = 8.854e-12 * er * area * 1e-4 / d + R.uni(0.3, 1.5) * pF, deff = d / er;
+    const n = Math.max(2, Math.round(10e-3 / R.uni(0.1, 0.3) * PFS)), ramp = new Float64Array(n);
+    for (let i = 0; i < n; i++) { const g = 10e-3 * (1 - i / (n - 1)); ramp[i] = cc * deff / (g + deff); }
+    return { cc, ramp, i: 0, lifting: false };
+  }
   const share = (va, vb, ca, cb, cc) => cc ? vb + (va - vb) / (cb * (1 / ca + 1 / cb + 1 / cc)) : (va * ca + vb * cb) / (ca + cb);
 
   class PassiveTwin {
@@ -571,6 +595,19 @@ const SG = (() => {
       this.running = false; this.struggling = false; this.stress = 0;
       this.runCad = R.uni(2.5, 3.0); this.runEnmo = R.uni(0.6, 1.0);
       this.swing = R.uni(100, 200); this.hrRest = R.uni(65, 85); this.hr = this.hrRest + 10;
+      // new channels
+      this.cload0 = R.uni(8, 25) * pF; this.calErr = R.uni(-0.2, 0.2); this.hand = null; this.chand = 0;
+      this.arts = []; this.swingArt = R.uni(0.05e-3, 0.5e-3);
+      this.eda = { wrist: R.uni(0.2, 0.6), scl: R.uni(0.5, 5.0), drift: 0, resp: [], art: [], t: 0,
+                   ns: R.uni(1, 5) / 60 * (ctxName === "walking" ? 1.5 : 1) };
+    }
+    // the transmit-check gain the firmware calibrated at start-up: C_load0 / (C_GE + C_GB + C_in), off by up to 20 %
+    get txGain() { return this.cload0 / (this.cge + this.f.cgb + this.f.cin) * (1 + this.calErr); }
+    _edaRespond(kind, amp) {
+      const R = this.R, [p, med, sd] = { attack: [0.9, 1.56, 0.25], brush: [0.3, 0.3, 0.6], friend: [0.2, 0.3, 0.6] }[kind];
+      if (amp === undefined && !R.p(p)) return;
+      const a = (amp ?? med * Math.exp(sd * R.n())) * this.eda.wrist;
+      this.eda.resp.push({ t0: this.eda.t + R.uni(1, 3), a, tr: R.uni(1, 3), th: R.uni(2, 10) });
     }
     setContext(name, first) {
       this.ctxName = name; this.walking = name === "walking"; this.indoor = name === "desk";
@@ -587,6 +624,9 @@ const SG = (() => {
       const R = this.R, vb = this.q / this.cb;
       this.contact = ev;
       if (ev.kind === "person") {
+        const mood = ev.brush ? "brush" : /friend/i.test(ev.label || "") ? "friend" : "attack";
+        this._edaRespond(mood, ev.fearAmp);
+        if (ev.detail === "wrist" && (ev.face ?? R.p(NC.P_STRANGER_FACE))) this.hand = handOnGlass(R, true);   // his palm over her watch
         const va = ev.vA ?? this.strangerVoltage();
         const cc = ev.bare ? null : 8.854e-12 * R.uni(1.2, 5.1) * R.uni(40, 80) * 1e-4 / (R.uni(0.16e-3, 0.58e-3) * R.uni(1, 2));
         this.q = share(va, vb, R.uni(110, 250) * pF, this.cb, cc) * this.cb;
@@ -596,6 +636,8 @@ const SG = (() => {
           for (const tj of times) this.pulses.push({ at: this.ni + Math.round(tj * IMU_FS), w: Math.round(0.15 * IMU_FS), g: R.uni(1.5, 3.0), gy: R.uni(200, 500) });
           this.stress = 30;
         }
+      } else if (ev.kind === "self") {
+        this.hand = handOnGlass(R, true);                                        // her palm settles on the watch
       } else if (ev.kind === "run") {
         this.running = true;
       } else if (ev.kind === "struggle") {
@@ -612,6 +654,7 @@ const SG = (() => {
       if (this.pinned) { this.pinned = false; this.q = -this._vind() * this.cb * this._cm; }   // keeps the charge that cancelled vind
       if (this.app) { this.app.leaving = true; this.app.s = 0; }
       this.hum = 1; this.contact = null; this.running = false; this.struggling = false;
+      if (this.hand) this.hand.lifting = true;
     }
     _vind() {
       const A = this.app; if (!A) return 0;
@@ -622,7 +665,7 @@ const SG = (() => {
     }
     // one firmware frame (0.2 s): 100 passive samples, 10 accelerometer samples
     frame(nP = PFS / FS) {
-      const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), rms = this.f.adc / 4;
+      const R = this.R, u = new Float64Array(nP), hum = new Float64Array(nP), tx = new Float64Array(nP), rms = this.f.adc / 4;
       const dq = this.sign * this.vpeak / (this.Rg * this.cadence), stride = 2 / this.cadence;
       for (let i = 0; i < nP; i++, this.n++) {
         const t = this.n / PFS;
@@ -640,7 +683,16 @@ const SG = (() => {
         this._cm = (1 + this.posture * this.m2 * this.mnorm) * (1 - (1 - ONE_FOOT) * lift);   // [S40, S42]
         if (this.app) { this.app.s++; if (this.app.leaving && this.app.s >= PFS) this.app = null; }
         const v = this.pinned ? 0 : this.q / (this.cb * this._cm) + this._vind();
-        u[i] = this.k * v + rms * R.n();
+        const H = this.hand;                                                    // a hand settling on / lifting off the glass
+        if (H) {
+          if (!H.lifting) this.chand = H.i < H.ramp.length ? H.ramp[H.i++] : H.cc;
+          else { H.i = Math.min(H.i, H.ramp.length) - 1; this.chand = H.i >= 0 ? H.ramp[H.i] : 0; if (H.i < 0) { this.hand = null; this.chand = 0; } }
+        }
+        const k = this.cge / (this.cge + this.f.cgb + this.f.cin + this.chand);
+        let art = this.walking ? this.swingArt * Math.sin(Math.PI * this.cadence * t + this.phase) : 0;   // arm-swing ripple [E]
+        for (const b of this.arts) { const j = this.n - b.at; if (j >= 0 && j < b.w) art += b.a * 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, b.w - 1))); }
+        u[i] = k * v + art + rms * R.n();
+        tx[i] = 1 + this.chand / this.cload0 + NC.TX_NOISE * R.n();
         hum[i] = this.indoor ? this.hum : 0;
       }
       const nI = IMU_FS / FS, acc = new Float64Array(nI), gyro = new Float64Array(nI);
@@ -656,15 +708,30 @@ const SG = (() => {
         if (this.ctxName === "bus" && R.u() < 12 / 3600 / IMU_FS) this.pulses.push({ at: this.ni, w: 15, g: R.uni(0.1, 0.34), gy: 20 });   // starting/braking [S45], 12/h [E]
         if (this.struggling && R.u() < 2.5 / IMU_FS) this.pulses.push({ at: this.ni, w: Math.round(R.uni(0.08, 0.2) * IMU_FS), g: R.uni(2, 4), gy: R.uni(400, 900) });   // [E]
         for (const p of this.pulses) { const j = this.ni - p.at; if (j >= 0 && j < p.w) { const k = 0.5 * (1 - Math.cos(2 * Math.PI * j / Math.max(1, p.w - 1))); a += p.g * k; w = Math.max(w, (p.gy || 0) * k); } }
+        for (const p of this.pulses) if (!p.art && p.g >= 1.0) {                 // skin stretch [S67/E] and pad pressure [E]
+          p.art = true;
+          this.arts.push({ at: p.at * (PFS / IMU_FS), w: Math.max(4, p.w * (PFS / IMU_FS)), a: R.uni(0.3e-3, 3e-3) * (R.p(0.5) ? 1 : -1) });
+          this.eda.art.push({ t0: p.at / IMU_FS, a: R.uni(0.05, 0.5) * (R.p(0.5) ? 1 : -1) });
+        }
         this.pulses = this.pulses.filter((p) => this.ni - p.at < p.w);
         acc[i] = a; gyro[i] = w;
       }
+      this.arts = this.arts.filter((b) => this.n - b.at < b.w);
+      // skin conductance, once per frame [S61-S65 / E]
+      const E = this.eda, te = (E.t = this.n / PFS);
+      if (R.u() < E.ns / FS) E.resp.push({ t0: te, a: -Math.log(1 - R.u()) * 0.1 * E.wrist, tr: R.uni(1, 3), th: R.uni(2, 10) });
+      E.drift += 0.002 * R.n();
+      let sc = E.scl + E.drift;
+      for (const r of E.resp) { const dt = te - r.t0; if (dt >= 0) sc += dt < r.tr ? r.a * 0.5 * (1 - Math.cos(Math.PI * dt / r.tr)) : r.a * Math.pow(2, -(dt - r.tr) / r.th); }
+      for (const b of E.art) { const dt = te - b.t0; if (dt >= 0 && dt < 2) sc += b.a * (dt < 0.2 ? dt / 0.2 : Math.exp(-(dt - 0.2) / 0.6)); }
+      E.resp = E.resp.filter((r) => te - r.t0 < r.tr + 8 * r.th); E.art = E.art.filter((b) => te - b.t0 < 2);
+      const eda = Math.max(0.01, sc + 0.005 * R.n());
       // heart rate, once per frame [E]
       const target = this.hrRest + (this.running ? 55 : this.walking ? 15 : 0) + this.stress;
       this.hr += (target - this.hr) * (1 / FS) / (target > this.hr ? 20 : 60);
       this.stress *= Math.exp(-1 / (FS * 120));
       if (this.struggling) this.stress = 30;
-      return { u, hum, acc, gyro, hr: this.hr, rms, indoor: this.indoor };
+      return { u, hum, acc, gyro, hr: this.hr, rms, indoor: this.indoor, tx, eda, txGain: this.txGain, handPF: this.chand / pF };
     }
   }
 
@@ -749,6 +816,13 @@ const SG = (() => {
 //   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
 //                 within 3 s): a grab that pulls or shakes her, anywhere on her body
 // Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
+// New channels, rule F2 (default since 28 Oct 2026; sg_newch.py, passive_stream.py):
+//   transmit check  a static step that lands at the same instant as a jump in the 100 kHz transmit
+//                   current, and matches the k change that jump predicts, is her own hand on the
+//                   watch, never a person
+//   EDA path        a person step with no pulling still prompts if, 0.8-4.5 s later, her skin
+//                   conductance rises by at least 0.45 uS (no faster than 1 uS/s, not during an arm
+//                   jerk): a grab that holds her while she freezes
 // Signs of assault from her own movement (accelerometer + gyroscope; thresholds are estimates [E]):
 //   running        wrist ENMO above 0.45 g for 4 s and periodic (autocorrelation above 0.5 at the
 //                  arm-swing period; running is above 600 mg [S43]); while she runs, and 10 s
@@ -768,9 +842,10 @@ const SG = (() => {
   const CFG = {
     T_ENTER: 0.003, EXIT_RATIO: 0.5, SUSTAIN_S: 2, TAU_BASE_S: 60, MAX_FREEZE_S: 30, LEARN_S: 5,
     OFF_WRIST_TOL: 0.004, OFF_WRIST_FRAMES: 3, PIN_WINDOW_S: 15, PIN: "1234", DURESS_PIN: "9999",
-    RULE: "fused",            // "fused" (rule F) or "active" (today's rule A: active sweep alone)
+    RULE: "fused2",           // "fused2" (rule F2, default), "fused" (rule F of 14 Oct) or "active" (rule A: active sweep alone)
     PFS: 500, IMU_FS: 50, STEP_K: 6, SETTLE: 0.3, LOCAL_K: 8, OBJECT_FRAC: 0.12,
     PERSON_BEFORE_S: 4, AGIT_G: 1.25, AGIT_N: 2, AGIT_S: 3,
+    TX_JUMP: 0.02, EDA_TH: 0.45, EDA_LO: 0.8, EDA_HI: 4.5, EDA_MAX_RATE: 1.0,
     RUN_ENMO: 0.45, RUN_HOLD_S: 10, STRUGGLE_G: 2.0, STRUGGLE_N: 5, STRUGGLE_CV: 0.35, STRUGGLE_GYRO: 400, MOTION_S: 4, PERIODIC: 0.5,
   };
   const median = (a) => { const b = Float64Array.from(a).sort(), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
@@ -778,9 +853,19 @@ const SG = (() => {
 
   // contact-step detector on a stream (port of sg_passive.contact_steps); decides 0.5 s late
   class StepDetector {
-    constructor(c) { this.c = c; this.u = []; this.hum = []; this.off = 0; this.next = 0; this.last = -10; this.indoor = false; this.rms = 5e-4; }
+    constructor(c) { this.c = c; this.u = []; this.hum = []; this.tx = []; this.off = 0; this.next = 0; this.last = -10; this.indoor = false; this.rms = 5e-4; }
+    // port of sg_newch.tx_says_own_hand: did the transmit current jump with this step, and does the
+    // step match the k change that jump predicts (her own hand, no charge moved)?
+    ownHand(g, rms, gain) {
+      const o = this.off, seg = (a, b) => median(this.tx.slice(a - o, b - o)), useg = (a, b) => median(this.u.slice(a - o, b - o));
+      if (g - 20 < o || g + 22 > o + this.tx.length) return null;
+      const jump = seg(g + 6, g + 22) / seg(g - 20, g - 4) - 1;
+      if (Math.abs(jump) < this.c.TX_JUMP) return null;
+      const u0 = useg(g - 20, g - 4), u1 = useg(g + 6, g + 22), rho = 1 / (1 + jump * gain), pred = (rho - 1) * u0;
+      return Math.abs((u1 - u0) - pred) < 0.25 * Math.abs(pred) + 6 * rms ? jump : null;
+    }
     push(p) {
-      for (let i = 0; i < p.u.length; i++) { this.u.push(p.u[i]); this.hum.push(p.hum[i]); }
+      for (let i = 0; i < p.u.length; i++) { this.u.push(p.u[i]); this.hum.push(p.hum[i]); this.tx.push(p.tx ? p.tx[i] : 1); }
       this.rms = p.rms; this.indoor = p.indoor;
       const out = [], c = this.c, FSP = c.PFS, u = this.u, rms = this.rms, thr = c.STEP_K * rms * Math.SQRT2;
       const N = this.off + u.length, at = (g) => u[g - this.off], d = (g) => at(g + 1) - at(g);
@@ -805,11 +890,13 @@ const SG = (() => {
           const h = this.hum, o = this.off, h0 = mean(h, Math.max(0, i - 250 - o), i + 1 - o), h1 = mean(h, i + 1 - o, i + 251 - o);
           if (h0 > 0 && h1 < 0.3 * h0) kind = "earthed";
         }
-        out.push({ t, size: di, kind, u0 });
+        let txJump = null;
+        if (kind === "person" && p.tx && (txJump = this.ownHand(i, rms, p.txGain ?? 1)) !== null) kind = "self";
+        out.push({ t, size: di, kind, u0, txJump });
         this.last = t;
       }
       const keep = 3 * FSP;                                    // keep the last 3 s
-      if (u.length > keep) { const cut = u.length - keep; this.u = u.slice(cut); this.hum = this.hum.slice(cut); this.off += cut; }
+      if (u.length > keep) { const cut = u.length - keep; this.u = u.slice(cut); this.hum = this.hum.slice(cut); this.tx = this.tx.slice(cut); this.off += cut; }
       return out;
     }
   }
@@ -826,6 +913,7 @@ const SG = (() => {
       this.silentAlert = false;
       this.steps = new StepDetector(this.cfg);
       this.imu = [];                  // [t, |a| in g, |omega| in deg/s] over the last 5 s
+      this.eda = [];                  // [t, skin conductance uS] over the last 12 s
       this.hrHist = []; this.hr = null; this.runningUntil = -1; this.motionQuiet = -1; this.mic = null;
       this.passiveSeen = false;
       this._reset();
@@ -843,7 +931,8 @@ const SG = (() => {
       if (!on && this.state !== "off") { this.state = "off"; this._emit("info", "Guard Mode off"); }
     }
 
-    get fused() { return this.cfg.RULE === "fused" && this.passiveSeen; }
+    get fused() { return (this.cfg.RULE === "fused" || this.cfg.RULE === "fused2") && this.passiveSeen; }
+    get f2() { return this.cfg.RULE === "fused2"; }
 
     // the passive channel and accelerometer of this frame (optional: without them the watch runs rule A)
     _passive(p) {
@@ -852,13 +941,16 @@ const SG = (() => {
       const n = p.acc.length;
       for (let i = 0; i < n; i++) this.imu.push([now - (n - 1 - i) / c.IMU_FS, p.acc[i], p.gyro ? p.gyro[i] : 0]);
       if (p.hr) { this.hr = p.hr; this.hrHist.push(p.hr); if (this.hrHist.length > 120 * FS) this.hrHist.shift(); }
+      if (p.eda !== undefined) { this.eda.push([now, p.eda]); while (this.eda.length && this.eda[0][0] < now - 12) this.eda.shift(); }
+      this.txNow = p.tx ? median(p.tx) : 1;
       while (this.imu.length && this.imu[0][0] < now - 5) this.imu.shift();
       const guarding = this.state === "armed";
-      for (const s of this.steps.push(p)) {
+      for (const s of this.steps.push(this.f2 ? p : Object.assign({}, p, { tx: null }))) {
         this.lastStep = s;
         if (!guarding) continue;
         const v = `${(1000 * Math.abs(s.size)).toFixed(0)} mV`;
-        if (s.kind === "earthed") this._emit("info", `Static: her body pulled to 0 V (${v} step), metal or earth: not a person`);
+        if (s.kind === "self") this._emit("info", `Static step (${v}) at the same instant the transmit current jumped ${(100 * s.txJump).toFixed(0)} %: her own hand on the watch, not a person`);
+        else if (s.kind === "earthed") this._emit("info", `Static: her body pulled to 0 V (${v} step), metal or earth: not a person`);
         else if (s.kind === "object") this._emit("info", `Static: small pull toward 0 V (${v}), a phone or bag: not a person`);
         else {
           this.personSteps.push(s.t);
@@ -866,7 +958,7 @@ const SG = (() => {
           if (this.fused && now < this.runningUntil) {
             this.prompted = true; this._startPrompt("Another body touched her while she was running: ask for PIN (15 s)"); continue;
           }
-          if (this.fused && !this.watching) { this.watching = s.t; this._emit("info", "Watching her arm for 3 s: is she being pulled?"); }
+          if (this.fused && !this.watching) { this.watching = s.t; this.saidNoPull = false; this._emit("info", "Watching her arm for 3 s and her skin for 4.5 s: is she being pulled, or frozen with fear?"); }
         }
       }
       this.personSteps = this.personSteps.filter((t) => t > now - 10);
@@ -876,8 +968,13 @@ const SG = (() => {
         if (guarding && this.fused && jerks >= c.AGIT_N) {
           this.watching = null; this.prompted = true;
           this._startPrompt(`Another person touched her and her arm was pulled (${jerks} jerks): ask for PIN (15 s)`);
-        } else if (now > this.watching + c.AGIT_S) {
-          this._emit("info", "No pulling within 3 s: a brush, ignored"); this.watching = null;
+        } else if (guarding && this.f2 && this.scrSince(this.watching) !== null) {
+          const a = this.scrSince(this.watching); this.watching = null; this.prompted = true;
+          this._startPrompt(`Another person touched her and her skin responded ${(a).toFixed(2)} µS (fear sweat, no pulling: she may be frozen): ask for PIN (15 s)`);
+        } else if (now > this.watching + (this.f2 ? c.EDA_HI + 3 : c.AGIT_S)) {
+          this._emit("info", this.f2 ? "No pulling and no strong skin response: a brush, ignored" : "No pulling within 3 s: a brush, ignored"); this.watching = null;
+        } else if (this.f2 && !this.saidNoPull && now > this.watching + c.AGIT_S) {
+          this.saidNoPull = true; this._emit("info", "No pulling within 3 s; watching her skin response (EDA)");
         }
       }
     }
@@ -919,6 +1016,27 @@ const SG = (() => {
     get hrRest() { if (this.hrHist.length < 10) return null; const s = [...this.hrHist].sort((a, b) => a - b); return s[Math.floor(s.length * 0.2)]; }
     get micOn() { return !!this.mic; }
 
+    // a skin conductance response starting 0.8-4.5 s after t0 (port of sg_newch.scr_after, on the 5 Hz
+    // frame stream): rise of at least EDA_TH uS, no faster than 1 uS/s, at least 0.5 s long, not during an
+    // arm jerk; returns its size so far, or null
+    scrSince(t0) {
+      const c = this.cfg, e = this.eda.filter(([t]) => t >= t0 + c.EDA_LO - 0.6);
+      if (e.length < 4) return null;
+      const sm = e.map((_, i) => { let s = 0, n = 0; for (let j = Math.max(0, i - 1); j <= Math.min(e.length - 1, i + 1); j++) { s += e[j][1]; n++; } return s / n; });
+      let i = 1;
+      while (i < sm.length) {
+        const d = (sm[i] - sm[i - 1]) * FS;
+        if (d > 0.02 && e[i - 1][0] <= t0 + c.EDA_HI && e[i - 1][0] >= t0 + c.EDA_LO - 0.2) {
+          let j = i, rate = d;
+          while (j + 1 < sm.length && sm[j + 1] > sm[j]) { j++; rate = Math.max(rate, (sm[j] - sm[j - 1]) * FS); }
+          const amp = sm[j] - sm[i - 1], ta = e[i - 1][0], tb = e[j][0];
+          const jerk = this.imu.some(([t, a]) => t >= ta - 0.5 && t <= tb + 0.5 && Math.abs(a - 1) > c.AGIT_G);   // an arm jerk, not her arm swing
+          if (amp >= c.EDA_TH && rate < c.EDA_MAX_RATE && tb - ta >= 0.5 && !jerk) return amp;
+          i = j + 1;
+        } else i++;
+      }
+      return null;
+    }
     jerksSince(t0) {                  // rising edges of |a - 1 g| > 1.25 g in [t0, t0 + 3 s]
       let n = 0, prev = null;
       for (const [t, a] of this.imu) {
@@ -1032,7 +1150,7 @@ const SG = (() => {
   const $ = (id) => document.getElementById(id);
   const FS = SGSensor.FS;
   let sensor, fw, timer, simT = 0, scn = null, scnStart = 0, runner = null, msgs = [], flash = null, callStart = 0;
-  const hist = [], shist = [], marks = [];      // sweep score, static channel, contact steps / jerks
+  const hist = [], shist = [], marks = [], ehist = [];   // sweep score, static channel, contact steps / jerks, EDA + transmit
   // real-time clock: the watch reads the device's clock, as the real watch reads its RTC chip
   const rtcTime = (sec) => new Date().toLocaleTimeString([], sec ? { hour: "2-digit", minute: "2-digit", second: "2-digit" } : { hour: "2-digit", minute: "2-digit" });
   const rtcDate = () => new Date().toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
@@ -1201,11 +1319,12 @@ const SG = (() => {
       { until: () => fw.state === "alert", say: "The electrode loses her skin: alert in under a second, no PIN asked.", sub: "The watch compares each reading with its own off-the-wrist signature." },
       { wait: 3, do: endScene } ] },
     { t: "Grabbed anywhere", steps: [
-      { ready: true, aim: aimFig(138, 84), say: "Someone grabs her shoulder and pulls her.", sub: "", do: () => startScene("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], vA: otherVoltage(), label: "A stranger grabs her shoulder and pulls" }) },
-      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the lower chart." },
-      { until: promptOrRetry("person:shoulder", { pull: true, pullTimes: [0.5, 1.2, 1.9], label: "A stranger grabs her shoulder and pulls" }), say: "Another body, then her arm jerked: the watch asks for her PIN.", sub: "A touch alone is not enough; a touch followed by pulling is." },
-      { wait: 1, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
-      { wait: 1.5, do: endScene }, { wait: 0.4 } ] },
+      { ready: true, aim: aimFig(138, 84), say: "Someone grabs her shoulder. She freezes: no pulling, no struggle.", sub: "70 % of women assaulted report freezing (Möller 2017), so a grab that only holds must still count.",
+        do: () => startScene("person:shoulder", { pull: false, fearAmp: 3, vA: otherVoltage(), label: "A stranger grabs her shoulder; she freezes" }) },
+      { wait: 0.8, say: "The sweep can't feel her shoulder, but her body's static jumped the moment he touched her.", sub: "Two bodies share charge in under a millisecond, wherever they touch: see the static chart." },
+      { until: promptOrRetry("person:shoulder", { pull: false, fearAmp: 3, label: "A stranger grabs her shoulder; she freezes" }), say: "2–3 seconds later her skin responds with fear sweat: the watch asks for her PIN.", sub: "Skin conductance from two pads on the steel back (lowest chart). Had he pulled her, the jerks would have decided at once." },
+      { wait: 0.8, say: "Here she cancels with 1234 so the story can go on.", sub: "" }, ...typePin("1234"),
+      { wait: 1.2, do: endScene }, { wait: 0.4 } ] },
     { t: "She fights back", steps: [
       { ready: true, aim: aimFig(150, 140), say: "Someone corners her and she struggles to get free.", sub: "", do: () => startScene("struggle:null", { label: "She struggles to get free" }) },
       { wait: 0.8, say: "No touch was felt yet, but her wrist jerks irregularly and turns fast.", sub: "Accelerometer and gyroscope: a struggle looks nothing like walking, running or a wave." },
@@ -1214,7 +1333,7 @@ const SG = (() => {
       { wait: 1, do: endScene }, { wait: 0.4 } ] },
     { t: "Everyday life", steps: [
       { ready: true, say: "Everyday life shouldn't set it off.", sub: "", do: () => {} },
-      { wait: 1, aim: WRIST, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "The sweep sees a touch, but no other body touched her: ignored." },
+      { wait: 1, aim: WRIST, do: () => startScene("self:null"), say: "She holds her own watch for a few seconds.", sub: "Her palm changes the static reading too, but the transmit current jumps at that same instant: her own hand, ignored." },
       { wait: 2.8, do: endScene },
       { wait: 1, aim: aimFig(171, 150), do: () => { sensor.setContext("bus"); startScene("object:railing_wrist"); }, say: "On the bus, her strap rests on a metal pole.", sub: "Metal pulls her body to 0 V and holds it there: not a person." },
       { wait: 2.6, do: endScene },
@@ -1224,7 +1343,7 @@ const SG = (() => {
       { wait: 3, do: endScene },
       { wait: 0.5, aim: aimFig(30, 200), do: () => { sensor.setContext("walking"); startScene("run:null"); }, say: "She runs to catch a bus.", sub: "Running alone is not an alarm; while she runs, any touch asks for the PIN at once." },
       { wait: 3.5, do: endScene },
-      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 0–1 unwanted prompts across runs, against 24–28 for a sweep-only watch.", sub: "" } ] },
+      { wait: 1.5, say: "No PIN prompts. In 9 simulated hours of daily life: 2 unwanted prompts, against 46 for a sweep-only watch.", sub: "" } ] },
   ];
   let chapter = 0, playAll = false;
   function renderChapters() {
@@ -1292,7 +1411,7 @@ const SG = (() => {
   }
   $("tab-guided").addEventListener("click", () => setMode("guided"));
   $("tab-try").addEventListener("click", () => setMode("try"));
-  $("rule").addEventListener("change", () => { fw.cfg.RULE = $("rule").value; logEvent({ type: "info", text: $("rule").value === "fused" ? "Logic: fused (sweep + static + motion)" : "Logic: sweep only (first design)" }); });
+  $("rule").addEventListener("change", () => { fw.cfg.RULE = $("rule").value; logEvent({ type: "info", text: { fused2: "Logic: fused + transmit check + skin response (EDA)", fused: "Logic: fused (sweep + static + motion)", active: "Logic: sweep only (first design)" }[$("rule").value] }); });
   $("v0").addEventListener("change", () => sensor.passive.setV0(+$("v0").value));
   $("sound").addEventListener("click", () => { soundOn = !soundOn; $("sound").setAttribute("aria-pressed", String(soundOn)); $("sound").textContent = soundOn ? "Sound on" : "Sound off"; });
   $("sci").addEventListener("click", () => { const on = $("science").classList.toggle("open"); $("sci").setAttribute("aria-pressed", String(on)); $("sci").textContent = on ? "Hide the science" : "Show the science"; });
@@ -1423,12 +1542,29 @@ const SG = (() => {
       g.strokeStyle = m.kind === "person" ? css("--touch") : css("--muted"); g.lineWidth = 1.5; g.setLineDash(m.kind === "person" ? [] : [3, 3]);
       g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke(); g.setLineDash([]);
       g.fillStyle = m.kind === "person" ? css("--touch") : css("--muted");
-      const lab = { person: "another body", earthed: "metal / earth", object: "object" }[m.kind];
+      const lab = { person: "another body", earthed: "metal / earth", object: "object", self: "her own hand" }[m.kind];
       g.fillText(lab, Math.min(x + 3, W - R - g.measureText(lab).width), T + 9);
     }
     g.strokeStyle = css("--base"); g.lineWidth = 1.6; g.beginPath();
     shist.forEach((h, i) => { const x = X(h.t), y = Y(h.v); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
     g.fillStyle = css("--warn"); g.fillText("▮ arm jerk", W - R - 64, H - 2);
+  }
+  function drawEda() {
+    const { g, W, H } = setup($("cv-eda")); if (!W || !ehist.length) return; g.clearRect(0, 0, W, H);
+    const L = 40, R = 40, T = 6, B = 12;
+    const X = (t) => L + (W - L - R) * (1 - (simT - t) / (30 * FS));
+    let lo = Infinity, hi = -Infinity; for (const h of ehist) { lo = Math.min(lo, h.eda); hi = Math.max(hi, h.eda); }
+    hi = Math.max(hi, lo + 0.6); const Y = (v) => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+    let txMax = 5; for (const h of ehist) txMax = Math.max(txMax, h.tx);
+    const YT = (v) => T + (H - T - B) * (1 - v / txMax);
+    g.font = `10.5px ${css("--f-mono")}`; g.fillStyle = css("--muted"); g.strokeStyle = css("--grid"); g.lineWidth = 1;
+    for (const v of [lo, hi]) { g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillText(`${v.toFixed(2)} µS`, 0, Y(v) + 4); }
+    g.fillText(`+${txMax.toFixed(0)} %`, W - R + 4, T + 8); g.fillText("0 %", W - R + 4, H - B);
+    g.strokeStyle = css("--warn"); g.lineWidth = 1.2; g.setLineDash([3, 3]); g.beginPath();
+    ehist.forEach((h, i) => { const x = X(h.t), y = YT(h.tx); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = css("--touch"); g.lineWidth = 1.6; g.beginPath();
+    ehist.forEach((h, i) => { const x = X(h.t), y = Y(h.eda); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.stroke();
+    g.fillStyle = css("--touch"); g.fillText("— skin", L + 4, H - 1); g.fillStyle = css("--warn"); g.fillText("‐‐ transmit", L + 56, H - 1);
   }
   function drawSweep(amp) {
     if (!$("science").classList.contains("open")) return;
@@ -1451,7 +1587,7 @@ const SG = (() => {
     if (e.type === "silent") addMsg("silent");
     if (e.type === "cancel") { flash = { until: simT + 2 * FS }; sOk(); }
   }
-  let lastSig = "", lastTouch = "", lastStat = "";
+  let lastSig = "", lastTouch = "", lastStat = "", lastEda = "";
   function step() {
     simT += 1;
     if (runner) runner.tick();
@@ -1463,6 +1599,8 @@ const SG = (() => {
     shist.push({ t: simT, v: pas.u[pas.u.length - 1], lo, hi });
     if (pas.acc.some((a) => Math.abs(a - 1) > fw.cfg.AGIT_G) && !(marks.length && marks[marks.length - 1].kind === "jerk" && marks[marks.length - 1].f === simT - 1)) marks.push({ f: simT, kind: "jerk" });
     while (shist.length > 30 * FS) shist.shift();
+    ehist.push({ t: simT, eda: pas.eda, tx: 100 * Math.max(0, (pas.tx.reduce((a, x) => a + x, 0) / pas.tx.length) - 1) });
+    while (ehist.length > 30 * FS) ehist.shift();
     while (marks.length && marks[0].f < simT - 30 * FS) marks.shift();
     hist.push({ t: simT, score: fw.state === "off" || fw.state === "learning" ? 0.05 : 100 * fw.score, active: fw.active && fw.state !== "off" });
     while (hist.length > 30 * FS) hist.shift();
@@ -1472,7 +1610,9 @@ const SG = (() => {
     if (tn !== lastTouch) { $("touchnow").innerHTML = tn; lastTouch = tn; }
     const stv = `${pas.u[pas.u.length - 1].toFixed(2)} V`;
     if (stv !== lastStat) { $("statval").textContent = stv; lastStat = stv; }
-    renderWatch(); drawScore(); drawStatic(); drawSweep(amp);
+    const ev = `${pas.eda.toFixed(2)} µS · transmit +${ehist[ehist.length - 1].tx.toFixed(0)} %`;
+    if (ev !== lastEda) { $("edaval").textContent = ev; lastEda = ev; }
+    renderWatch(); drawScore(); drawStatic(); drawEda(); drawSweep(amp);
   }
   function resetAll() {
     clearInterval(timer);

@@ -135,3 +135,14 @@ brings back about 2.5 prompts per hour, so it is not recommended.
 how often a grab pulls her arm, her reaction, and real arm-movement statistics are all estimates
 until measured; the digital-twin check (`node demo/check_demo.js`) reproduces the Python rates
 with the same physics in JavaScript.
+
+## Rule F2: own-hand veto and skin response (28 October 2026)
+
+Rule F missed a grab that only holds her away from the wrist, and a step from her own hand on the
+glass could look like another person. Both are now handled; details in `docs/new_channels.md`.
+F2 adds (1) a 100 kHz transmit check on the steel back whose current jumps only when her own hand
+covers the watch, so those steps are vetoed, and (2) a skin-response (EDA) path: a person step
+followed 0.8–4.5 s later by a rise in skin conductance of 0.45 µS or more prompts the PIN even
+with no pulling (70 % of women report freezing during assault [S68]). Shunt mode was checked and
+rejected: on a floating watch a stranger's hand raises the signal just as hers does.
+The digital twin and the explorer now use F2.

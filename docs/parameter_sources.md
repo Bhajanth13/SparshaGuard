@@ -198,6 +198,32 @@ long she holds a pole or rests her wrist on a table; capacitance of his hand clo
 phone's capacitance to ground; clothing layers and which body parts are bare; how quickly sweat
 changes the skin under the watch. These are what Gate 1 recordings should measure.
 
+## New channels: own hand, transmit check, skin response (28 October 2026)
+
+Added at the team's request; details and results in `docs/new_channels.md`, code in `sg_newch.py`.
+Fourteen new values from S61–S72 are in `docs/SparshaGuard_paper_values.xlsx` (status
+"In model (28 Oct 2026)").
+
+| Value | Used | Tag |
+|---|---|---|
+| Her fingertip / palm area on the glass | 0.5–1.5 cm² / 4–12 cm² | [E] / [G] |
+| Display stack thickness, effective εr | 1.5–3 mm, 3–7 | [G/E] |
+| Rest of her hand hovering | 0.3–1.5 pF | [G/E] (as `fem/`) |
+| Tap completion time → landing speed | 133 ms → 0.1–0.3 m/s | [S72] + [E] |
+| Touch sessions covering the face with the palm | 30 % | [E] |
+| Wrist grabs where his palm covers the face | 30 % | [E] |
+| Skin-stretch artefact per arm jerk / walking ripple | 0.3–3 mV / 0.05–0.5 mV | [S67] + [E] |
+| Transmit check | 100 kHz, 0.5 V; current noise 0.3 % per sample | [S70] + [E] |
+| Transmit load without her hand | 8–25 pF; calibration error ±20 % | [E] |
+| Transmit current, safety limit | ~7.4 µA used; 100 µA allowed | [S69] |
+| Skin response onset / rise / half-recovery | 1–3 s / 1–3 s / 2–10 s | [S61] |
+| Spontaneous responses | 1–5 per minute (×1.5 walking) | [S62] |
+| Fear response size at the finger | 1.56 µS median | [S63] |
+| Wrist versus finger | 0.2–0.6 × | [S64, S65] + [E] |
+| Fear response after a grab / brush / friend | probability 0.9 / 0.3 / 0.2 | [E] |
+| Women freezing during assault | 70 % | [S68] |
+| Firmware: skin response threshold, window, max rise rate | 0.45 µS, 0.8–4.5 s, 1 µS/s | [E] (rules as [S66]) |
+
 ## What Gate 1 should measure
 
 These are the estimates that matter most for the results, in order:
@@ -211,6 +237,8 @@ These are the estimates that matter most for the results, in order:
 5. **Strap-gap drift** while walking and moving the arm.
 6. **Nuisance events**: wrist on a table, strap on a metal pole, own hand on the strap.
 7. **Body capacitance in sandals and on a car seat** (no published measurement found).
+8. **Skin response at the wrist** during a startle and after a brush in a crowd (sets the EDA path).
+9. **Transmit current with her own hand on the glass**, and its ratio to the static step (one-off calibration).
 
 ## Sources
 
@@ -287,3 +315,20 @@ Added 14 October 2026:
 - **S56** O. Aziz, et al. *Validation of accuracy of SVM-based fall detection system using real-world fall and non-fall datasets.* PLoS ONE 12(7):e0180318, 2017. https://doi.org/10.1371/journal.pone.0180318
 - **S57** M. Indraganti, et al. *Thermal insulation of Indian clothing ensembles (sari, salwar-kurti).* Windsor Conference, 2014. https://architexturez.net/node/175314
 - **S58** B. B. Majumdar, et al. (BITS Pilani Hyderabad). *Harassment of women in public transport, Hyderabad.* Transportation Research Record, n.d. https://journals.sagepub.com/home/trr (numbers via press coverage, secondary)
+
+Added 28 October 2026 (S59–S60 were already cited in `ltspice/` and `fem/`):
+
+- **S59** K. Nabors, J. White. *FastCap: A Multipole Accelerated 3-D Capacitance Extraction Program.* IEEE Trans. Computer-Aided Design 10(11):1447-1459, 1991. https://doi.org/10.1109/43.97624 (Reference solver used to check the 3D field calculation)
+- **S60** H. Vogt, G. Atkinson, P. Nenzi. *Ngspice User's Manual.* ngspice project, n.d.. https://ngspice.sourceforge.io/docs.html (Circuit simulator used to check the Python solver)
+- **S61** M. E. Dawson, A. M. Schell, D. L. Filion. *The electrodermal system.* Handbook of Psychophysiology, 3rd ed., Cambridge University Press, 2007. https://doi.org/10.1017/CBO9780511546396.007 (SCR timing via secondary summaries (iWorx lab handout, Movisens docs); check the chapter)
+- **S62** W. Boucsein, D. C. Fowles, S. Grimnes, G. Ben-Shakhar, W. T. Roth, M. E. Dawson, D. L. Filion. *Publication recommendations for electrodermal measurements.* Psychophysiology 49(8):1017-1034, 2012. https://doi.org/10.1111/j.1469-8986.2012.01384.x (Spontaneous-response rates via EDA analysis guides citing Boucsein 2012 (secondary))
+- **S63** F. R. Walker, A. Thomson, K. Pfingst, E. Vlemincx, E. Aidman, E. Nalivaiko. *Habituation of the electrodermal response - A biological correlate of resilience?.* PLOS ONE 14(1):e0210078, 2019. https://doi.org/10.1371/journal.pone.0210078 (First-response values from a search snippet; check the paper)
+- **S64** M.-Z. Poh, N. C. Swenson, R. W. Picard. *A wearable sensor for unobtrusive, long-term assessment of electrodermal activity.* IEEE Trans. Biomed. Eng. 57(5):1243-1252, 2010. https://doi.org/10.1109/TBME.2009.2038487 (Abstract)
+- **S65** B. van Dooren, J. J. G. de Vries, J. H. Janssen. *Emotional sweating across the body: comparing 16 different skin conductance measurement locations.* Physiology & Behavior 106(2):298-304, 2012. https://doi.org/10.1016/j.physbeh.2012.01.020 (Wrist results via later papers citing it (secondary))
+- **S66** I. R. Kleckner, R. M. Jones, O. Wilder-Smith, et al.. *Simple, transparent, and flexible automated quality assessment procedures for ambulatory electrodermal activity data.* IEEE Trans. Biomed. Eng. 65(7):1460-1467, 2018. https://doi.org/10.1109/TBME.2017.2758643 (Rule structure only; thresholds not verified here)
+- **S67** H. de Talhouet, J. G. Webster. *The origin of skin-stretch-caused motion artifacts under electrodes.* Physiological Measurement 17(2):81-93, 1996. https://doi.org/10.1088/0967-3334/17/2/003 (Abstract)
+- **S68** A. Möller, H. P. Söndergaard, L. Helström. *Tonic immobility during sexual assault - a common reaction predicting post-traumatic stress disorder and severe depression.* Acta Obstet. Gynecol. Scand. 96(8):932-938, 2017. https://doi.org/10.1111/aogs.13174
+- **S69** IEC. *IEC 60601-1: Medical electrical equipment - General requirements for basic safety and essential performance.* International standard, 2005. https://webstore.iec.ch/publication/2606 (Patient auxiliary current limits via secondary sources; check the standard's table)
+- **S70** T. G. Zimmerman, J. R. Smith, J. A. Paradiso, D. Allport, N. Gershenfeld. *Applying electric field sensing to human-computer interfaces.* Proc. CHI '95, 1995. https://doi.org/10.1145/223904.223940 (Loading, transmit and shunt modes)
+- **S71** P. Dietz, D. Leigh. *DiamondTouch: a multi-user touch technology.* Proc. UIST 2001, pp. 219-226, 2001. https://doi.org/10.1145/502348.502389
+- **S72** (authors not verified). *Fingertip forces and completion time for index finger and thumb touchscreen gestures.* J. Electromyography and Kinesiology, 2017. https://www.sciencedirect.com/science/article/abs/pii/S1050641116301225 (Snippet: tap completion time)
