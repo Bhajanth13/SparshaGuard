@@ -1,4 +1,11 @@
-// SparshaGuard watch firmware logic (what would run on the ESP32), fed one sensor frame at a time.
+// SparshaGuard Guard Mode logic, fed one sensor frame at a time.
+//
+// Target (flagship architecture, ANVAYA 2k26 design): this is the code of the SAFETY CORE, an
+// nRF5340 running Zephyr ("SparshaOS"), which owns the sensing front end (AD9833 sweep, bootstrapped
+// input + ADS1115 static channel, BMI270 IMU, EDA, PPG) and the 4G VoLTE + GNSS modem. The app
+// processor (STM32U5G9, display and apps) only draws the PIN screen and forwards key presses, so a
+// frozen app can never block an alert. The same file runs unchanged in the digital twin and in
+// the headless check (demo/check_demo.js).
 //
 // Detection is the pipeline of event_stream.py (run_pipeline, no classifier gate, the
 // recommended setting from fig 9):
@@ -41,6 +48,13 @@
 //                  (and kept secretly after a duress PIN)
 // Then the product's state machine: 15 s PIN window; correct PIN cancels, wrong PIN or no PIN
 // alerts, the duress PIN shows "Cancelled" but alerts silently.
+// Who can switch Guard Mode off: only someone who knows her PIN (setGuard(false, pin)). While a PIN
+// prompt is running it cannot be switched off at all; a wrong PIN on the off screen starts the 15 s
+// PIN prompt; the duress PIN shows "Guard Mode off" but alerts silently and keeps guarding. After a
+// duress alert the watch keeps recording silently and does not prompt again (that would show the
+// attacker a second prompt). An alert ends only with her real PIN; contacts are told she is safe.
+// Strap removal is checked from the moment Guard Mode is on, including the 5 s of learning.
+// PINs are set by her (setPins), 4 digits, the duress PIN different from the real one.
 (function (root) {
   const FS = 5;
   const CFG = {
@@ -120,19 +134,60 @@
       this.eda = [];                  // [t, skin conductance uS] over the last 12 s
       this.hrHist = []; this.hr = null; this.runningUntil = -1; this.motionQuiet = -1; this.mic = null;
       this.passiveSeen = false;
+      this.pin = this.cfg.PIN; this.duressPin = this.cfg.DURESS_PIN;
+      this.screen = null;             // what the watch face shows when it differs from the state (duress)
       this._reset();
     }
     _reset() {
       this.base = null; this.learn = []; this.active = false; this.count = 0; this.frozen = 0;
-      this.prompted = false; this.offCount = 0; this.score = 0; this.offDist = 1;
+      this.prompted = false; this.offCount = 0; this.score = 0; this.offDist = 1; this.pendingPrompt = null;
       this.personSteps = []; this.lastStep = null; this.watching = null; this.holdStart = 0; this.vetoed = false;
     }
     _emit(type, text) { const e = { t: this.t / FS, type, text }; this.log.push(e); this.onEvent && this.onEvent(e); }
 
-    setGuard(on) {
-      if (on && this.state === "off") { this._reset(); this.state = "learning"; this.silentAlert = false;
-        this._emit("info", "Guard Mode on: learning her baseline for 5 s"); }
-      if (!on && this.state !== "off") { this.state = "off"; this._emit("info", "Guard Mode off"); }
+    // her own PINs; returns false (and changes nothing) if they are not two different 4-digit codes
+    setPins(pin, duress) {
+      const ok = (p) => /^[0-9]{4}$/.test(p);
+      if (!ok(pin) || !ok(duress) || pin === duress) return false;
+      this.pin = pin; this.duressPin = duress; return true;
+    }
+
+    // switching on needs nothing; switching off needs her PIN (see the header)
+    setGuard(on, pin) {
+      if (on) {
+        if (this.state !== "off") { if (this.screen === "off") this.screen = null; return true; }
+        this._reset(); this.state = "learning"; this.silentAlert = false; this.screen = null; this.offCount = 0;
+        this._emit("info", "Guard Mode on: learning her baseline for 5 s");
+        return true;
+      }
+      if (this.state === "off") return true;
+      if (this.state === "prompt") { this._emit("info", "Guard Mode cannot be switched off during a PIN prompt: answer the prompt"); return false; }
+      if (pin === this.pin) {
+        if (this.state === "alert") this._emit("cancel", "Alert ended with her PIN: contacts told she is safe; recording kept");
+        this.state = "off"; this.silentAlert = false; this.screen = null; this.mic = null;
+        this._emit("info", "Guard Mode off (her PIN)");
+        return true;
+      }
+      if (pin === this.duressPin) {
+        this.screen = "off";
+        if (this.state !== "alert" && !this.silentAlert) {
+          this.silentAlert = true; this.mic = this.mic || { start: this.t / FS };
+          this._emit("silent", `Duress PIN on the off screen: screen shows "Guard Mode off"; SMS + GPS + voice recording sent and 112 called silently${this._hrText()}`);
+        }
+        return false;
+      }
+      if (this.state === "alert") { this._emit("info", "Wrong PIN: the alert continues"); return false; }
+      this._emit("touch", "Wrong PIN on the off screen");
+      const why = "Wrong PIN to switch Guard Mode off: ask for her PIN (15 s)";
+      if (this.state === "learning") this.pendingPrompt = why;    // prompts as soon as the baseline is learnt
+      else this._startPrompt(why);
+      return false;
+    }
+    _learnedBase() {
+      if (!this.learn.length) return null;
+      const b = new Float64Array(this.learn[0].length);
+      for (const a of this.learn) for (let i = 0; i < a.length; i++) b[i] += a[i] / this.learn.length;
+      return b;
     }
 
     get fused() { return (this.cfg.RULE === "fused" || this.cfg.RULE === "fused2") && this.passiveSeen; }
@@ -259,19 +314,19 @@
       this.offDist = rmsDiff(amp, this.offRef);
       if (this.state === "off" || this.state === "alert") { this.score = this.base ? rmsDiff(amp, this.base) : 0; this._tickPrompt(); return; }
 
+      // strap removal check (independent of the baseline, so it also runs while learning)
+      this.offCount = this.offDist < c.OFF_WRIST_TOL ? this.offCount + 1 : 0;
+      if (this.offCount >= c.OFF_WRIST_FRAMES) { this._alert("Strap removed: electrode lost skin contact"); return; }
+
       if (this.state === "learning") {
         this.learn.push(amp);
         if (this.learn.length >= c.LEARN_S * FS) {
-          this.base = new Float64Array(amp.length);
-          for (const a of this.learn) for (let i = 0; i < a.length; i++) this.base[i] += a[i] / this.learn.length;
+          this.base = this._learnedBase();
           this.state = "armed"; this._emit("info", "Armed: watching for a sustained touch");
+          if (this.pendingPrompt) { const w = this.pendingPrompt; this.pendingPrompt = null; this._startPrompt(w); }
         }
         return;
       }
-
-      // strap removal check (independent of the baseline)
-      this.offCount = this.offDist < c.OFF_WRIST_TOL ? this.offCount + 1 : 0;
-      if (this.offCount >= c.OFF_WRIST_FRAMES) { this._alert("Strap removed: electrode lost skin contact"); return; }
 
       // touch detection, exactly as run_pipeline in event_stream.py
       const sc = rmsDiff(amp, this.base);
@@ -303,6 +358,10 @@
 
     _startPrompt(why) {
       if (this.state !== "armed") return;
+      if (this.silentAlert) {                    // already alerting silently after a duress PIN
+        this._emit("silent", `${why ? why.replace(/: ask for PIN.*$/, "") : "Touch held 2 s"}: no new prompt (it would show him a second prompt); added to the silent alert`);
+        return;
+      }
       this.state = "prompt"; this.pinLeft = this.cfg.PIN_WINDOW_S * FS; this.entry = ""; this.watching = null;
       this._emit("prompt", why || "Touch held 2 s: vibrate, ask for PIN (15 s)");
       this.mic = { start: this.t / FS }; this.motionQuiet = this.t / FS + 10;
@@ -326,9 +385,9 @@
     }
     submitPin(pin) {
       if (this.state !== "prompt") return;
-      if (pin === this.cfg.PIN) { this.state = "armed"; this.mic = null; this._emit("cancel", "Correct PIN: cancelled, still guarding; recording deleted"); }
-      else if (pin === this.cfg.DURESS_PIN) {
-        this.state = "armed"; this.silentAlert = true;
+      if (pin === this.pin) { this.state = "armed"; this.mic = null; this._emit("cancel", "Correct PIN: cancelled, still guarding; recording deleted"); }
+      else if (pin === this.duressPin) {
+        this.state = "armed"; this.silentAlert = true; this.screen = "cancelled";
         this._emit("cancel", "Screen shows \"Cancelled\"");
         this._emit("silent", `Duress PIN: SMS + GPS + voice recording sent and 112 called silently${this._hrText()}`);
       } else this._alert("Wrong PIN");
@@ -337,7 +396,7 @@
     }
     _alert(why) {
       if (this.state === "alert") return;
-      this.state = "alert";
+      this.state = "alert"; this.screen = null;
       this._emit("alert", `${why}: SMS + GPS + voice recording (from the PIN prompt) to contacts, calling 112${this._hrText()}`);
     }
     _hrText() {

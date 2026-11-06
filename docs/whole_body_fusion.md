@@ -11,8 +11,9 @@ in `docs/SparshaGuard_paper_values.xlsx`, tagged "Fusion study (doc)" or "Accura
 A **passive static-charge channel** on the same wrist electrode. People carry static charge, so
 two bodies are almost never at the same voltage. When another person touches her anywhere, the
 two bodies share charge and her whole body's voltage jumps in under a millisecond; the floating
-watch sees a fixed part of that jump (6 % with today's input, about 30 % with a bootstrapped
-input and good shield).
+watch sees a fixed part of that jump (6 % with today's input, about 10 % with a bootstrapped
+input and the best measured shield, 23 % of the coupling left [S14]; the 30 % quoted before
+6 Nov 2026 assumed a 2 pF residual that no source supports).
 
 Physics used, with sources: body capacitance 110–250 pF (Jonassen [S4]); fabric as a series
 capacitor (Ng & Reaz [S7], hand area [S13]); walking charge V = R·n·Δq and decay through about
@@ -30,11 +31,12 @@ Three alarm rules were compared:
 ## What it shows
 
 1. **The physics works with very small charges.** With the improved input and an ADS1115, a
-   difference of about **0.4 V between the two people** is enough to catch 90 % of shoulder
-   grabs; with today's input and the ESP32 ADC it takes about **25 V**. Measured walking voltages
-   on vinyl are 250 V and up, so the margin can be large.
+   difference of about **1.6 V between the two people** is enough to catch 90 % of shoulder
+   grabs (0.4 V before the sourced shield value of 6 Nov 2026); with today's input and the
+   ESP32 ADC it takes about **25 V**. Measured walking voltages on vinyl are 250 V and up, so
+   the margin can be large.
 2. **Coverage jumps from the wrist to the whole body.** Averaged over seven body locations, rule A
-   catches 13 % of grabs (wrist only). Rule B catches about 94–96 %, rule C about 70 % (fig 15,
+   catches 13 % of grabs (wrist only). Rule B catches about 92–96 %, rule C about 70 % (fig 15,
    16). Clothing barely matters: fabric is a large capacitor compared with the body.
 3. **But rule B triples the unwanted prompts:** about 18 per hour instead of 5.5, because every
    harmless brush on a bus and every grab of a metal pole also makes a step.

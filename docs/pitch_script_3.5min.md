@@ -35,7 +35,7 @@ About 490 spoken words in total, at a calm 140 words a minute. **[Next]** marks 
 > First, capacitance: the watch sends tiny signals through her skin, and another person's hand changes them sharply.
 > Second, static electricity: every body carries charge, and when two bodies touch, it evens out in a microsecond,
 > so her voltage jumps. Her own hand or a metal pole can't do that.
-> Every value comes from 60 published papers, and we cross-checked the physics with two independent solvers.
+> Every value comes from 72 published sources, and we cross-checked the physics with two independent solvers.
 > Sukruth will show you it working. **[Next]**
 
 ---

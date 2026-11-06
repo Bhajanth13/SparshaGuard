@@ -72,16 +72,18 @@ jumps by about half the difference between them.
 
 **Why the wrist can see it.** This is a voltage step of her whole body, not a small capacitance
 change. The floating watch sees a fixed fraction of it: C_GE / (C_GE + C_GB + C_input), about 6%
-for the current design and about 30% with a bootstrapped input and a good shield. Fig 11:
+for the current design and about 10% with a bootstrapped input and the best measured shield
+(TI's ring + underside layout leaves 23% of the coupling [S14]; until 6 Nov 2026 this read "about
+30% with a good shield", a 2 pF residual no source supports). Fig 11:
 
 | Voltage difference between the two people | Step at wrist, current design | Step at wrist, improved input |
 |---|---|---|
-| 0.1 V | 3 mV | 15 mV |
-| 1 V | 30 mV | 153 mV |
-| 10 V | 300 mV | 1.5 V |
-| 100 V | 3 V | 15 V |
+| 0.1 V | 3 mV | 6 mV |
+| 1 V | 30 mV | 56 mV |
+| 10 V | 300 mV | 565 mV |
+| 100 V | 3 V | 5.6 V |
 
-With a quiet ADC (ADS1115, ~2 mV), a difference of about 0.1–0.5 V is enough. The ESP32's
+With a quiet ADC (ADS1115, ~2 mV), a difference of about 0.2–1 V is enough. The ESP32's
 built-in ADC (~22 mV) needs about 1 V.
 
 **Published support.** Bian et al. (PerCom 2019) built a wrist-worn passive electric-field

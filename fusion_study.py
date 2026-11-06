@@ -14,7 +14,8 @@ Physics of the passive step (tags as in sg_model.py):
       her jump  dV_B = (V_A - V_B) / (C_B (1/C_A + 1/C_B + 1/C_c))        (charge conservation)
   the floating watch sees  k = C_GE / (C_GE + C_GB + C_in)  of it (whole_body.py, fig 11):
       current front end  C_GE 0.6-2 pF [S5/S11], C_GB 12.4 pF (model), C_in 5 pF   -> k ~ 6 %
-      improved front end C_GB 2 pF, C_in 0.5 pF (bootstrapped input, good shield)   -> k ~ 30 %
+      improved front end C_GB 8.1 pF (best measured shield, 23 % left [S14]), C_in 0.5 pF
+                         (bootstrapped input)                                         -> k ~ 10 %
   body voltage from walking scales with humidity: on vinyl ~250 V at 65-90 % RH and ~12 kV at
   10-20 % RH [S17]; log-interpolated in between [E]. Other floors (road, bus, tiles) 0.1-1 x vinyl
   [E]. At the moment of contact each body sits at a random point of its charging cycle, 0.1-1 x
@@ -56,8 +57,9 @@ BARE = {"wrist": 0.9, "forearm": 0.6, "upper_arm": 0.3, "other_arm": 0.5,      #
 ACTIVE_CATCH = {"wrist": 0.925, "forearm": 0.0, "upper_arm": 0.0, "other_arm": 0.0,   # event_stream.py
                 "shoulder": 0.0, "waist": 0.0, "face_hair": 0.0}
 RH_CASES = [("Dry: 37 % RH", 37), ("Typical: 50 % RH", 50), ("Humid: 89 % RH", 89)]
-FRONT = {"current": dict(cgb=12.4 * pF, cin=5 * pF, noise=21.8e-3, label="Current front end, ESP32 ADC"),
-         "improved": dict(cgb=2.0 * pF, cin=0.5 * pF, noise=2e-3, label="Improved input + ADS1115")}
+from sg_passive import CGB_UNSHIELDED, SHIELD_MID, SHIELD_BEST   # one sourced definition of C_GB [S14]
+FRONT = {"current": dict(cgb=CGB_UNSHIELDED * SHIELD_MID, cin=5 * pF, noise=21.8e-3, label="Current front end, ESP32 ADC"),
+         "improved": dict(cgb=CGB_UNSHIELDED * SHIELD_BEST, cin=0.5 * pF, noise=2e-3, label="Improved input + ADS1115")}
 CONTEXTS = {   # floor factor range vs vinyl [E], walking?, indoors?, motion false-confirm rate [E]
     "walking": dict(label="Walking alone at night", floor=(0.1, 0.5), walking=True, indoor=False, imu_fp=0.10),
     "bus": dict(label="Bus / metro commute", floor=(0.3, 1.0), walking=False, indoor=False, imu_fp=0.20),

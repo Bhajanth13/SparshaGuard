@@ -84,7 +84,7 @@ function dailyLife(ctx, hours, seed) {
           causes[r][name] = (causes[r][name] || 0) + 1 / hours;
           fw.submitPin("1234");
         }
-        if (fw.state === "alert") { falseStrap++; fw.setGuard(false); fw.setGuard(true); }
+        if (fw.state === "alert") { falseStrap++; fw.setGuard(false, "1234"); fw.setGuard(true); }
       });
     }
   }

@@ -181,12 +181,13 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
    prompt for the PIN on any hand at the watch and let the PIN decide, not rely on the classifier
    to tell hers from his. The strap pressed on a metal pole is the main object that looks like a
    hand.
-6. **Pipeline result (fig 9):** with a 0.3%-of-full-scale threshold and 2 s sustain, it caught
-   ~88–93% of wrist grabs and none of the forearm or shoulder grabs, with ~4–5.5 unwanted PIN prompts
-   per hour (1.5 walking, 7.5 commuting, 7.5 at a desk). The main causes are the strap pressed on
-   a metal pole, her hand on the watch, the phone and the wrist on a table; 1.5 per hour at the
-   desk were a friend holding her wrist, which is real contact. Adding the classifier as a gate
-   cuts prompts to ~2 per hour but also drops wrist detection to ~49%, so it is not recommended.
+6. **Pipeline result (fig 9, sweep only):** with a 0.3%-of-full-scale threshold and 2 s sustain,
+   it caught 88% of wrist grabs and none of the forearm or shoulder grabs, with about 4 unwanted
+   PIN prompts per hour (2 walking, 6 commuting, 4.5 at a desk; `data/event_stream_results.json`).
+   The main causes are the wrist on a table, the phone, the strap pressed on a metal pole and her
+   hand on the watch. Adding the classifier as a gate cuts prompts to about 2.7 per hour but also
+   drops wrist detection to 57%, so it is not recommended. (The fused watch below removes most of
+   these prompts.)
 7. **Accuracy is in line with Touché's own on-body result.** Random forest: 77% across four
    classes and 97% for "some hand is at the watch", measured on the events the sensor can see
    (wrist grabs, her hand, objects, no touch); grabs elsewhere are counted separately as missed. Touché measured 84% for on-body gestures with

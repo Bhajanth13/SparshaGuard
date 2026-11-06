@@ -33,12 +33,12 @@
    "10 V": 297.297,
    "100 V": 2972.973
   },
-  "Bootstrapped input + good shield (2 pF left, 0.5 pF input)": {
-   "0.1 V": 15.278,
-   "0.5 V": 76.389,
-   "1 V": 152.778,
-   "10 V": 1527.778,
-   "100 V": 15277.778
+  "Bootstrapped input + best measured shield (23% left, 0.5 pF input)": {
+   "0.1 V": 5.646,
+   "0.5 V": 28.228,
+   "1 V": 56.457,
+   "10 V": 564.566,
+   "100 V": 5645.658
   }
  }
 }

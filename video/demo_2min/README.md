@@ -1,5 +1,11 @@
 # SparshaGuard: 2-minute explainer video
 
+> **Numbers as of 15 October 2026.** The video and its build files (`cards4.html`, `session4.js`)
+> show the twin of that day: 70 % of grabs over 7 body places, 99 % of struggles, 0–1 unwanted
+> prompts in 9 hours, 60 sources. Current figures are in `data/headline_numbers.json` (built by
+> `python tools/check_consistency.py`) and `docs/video_script_2min.md`; re-record before showing
+> the video again. The story and the physics are unchanged.
+
 `SparshaGuard_demo_2min.mp4` (1:59, 1920×1080, captions only, no voice) introduces SparshaGuard to someone who has never seen it:
 the problem (NCRB numbers), the idea, who made it, then the digital twin operated with a cursor in a Chrome window, the two pieces
 of physics (capacitance, static electricity), where the numbers come from, the physics explorer, and where to try it.

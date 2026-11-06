@@ -17,7 +17,7 @@
 //   a series capacitor [S7, S13]); a charged person nearby induces V_A C_AB/(C_B + C_AB), with
 //   C_AB = 21 pF at 1 m [S12]; earthed metal holds her at 0 V and removes the 50 Hz hum indoors
 //   [S22]; a phone or bag (4-12 pF) takes a few % of her voltage; the watch sees k = C_GE /
-//   (C_GE + C_GB + C_in) of it (bootstrapped input, C_GB 2 pF, C_in 0.5 pF) plus ADS1115 noise
+//   (C_GE + C_GB + C_in) of it (bootstrapped input, C_GB 8.1 pF = best measured shield [S14], C_in 0.5 pF) plus ADS1115 noise
 //   (2 mV, rms 0.5 mV) [S15]. The typical body voltage v0 is not yet measured on Indian floors [E].
 //   Accelerometer: arm swing at half the step rate [S44], wrist ENMO 140-350 mg [S43]; bus
 //   starting/braking 0.1-0.34 g [S45]; gestures and grab jerks are estimates [E].
@@ -86,7 +86,8 @@
   // ------------------------------------------------------------------ passive channel
   const PFS = 500, IMU_FS = 50, ONE_FOOT = 100 / 160;
   const ACTIVITY = new Set(["run", "struggle"]);       // her own movements, not touches
-  const FRONT = { improved: { cgb: 2.0 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 12.4 * pF, cin: 5 * pF, adc: 21.8e-3 } };
+  // C_GB = 35.4 pF unshielded x shield residual: best measured layout 23 %, mid 35 % [S14] (as sg_passive.py)
+  const FRONT = { improved: { cgb: 35.4 * 0.23 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 35.4 * 0.35 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
   const NC = { TX_NOISE: 0.003, P_STRANGER_FACE: 0.3 };
   // her (or his) hand settling on the watch glass: C = C_contact d_eff / (g + d_eff) as the gap closes

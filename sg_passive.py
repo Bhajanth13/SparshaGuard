@@ -51,8 +51,17 @@ R_GROUND = (2e10, 1e11)     # body-to-ground resistance range, log-uniform [S18,
 CADENCE = (1.6, 2.3)        # steps per second, women [S41]
 ONE_FOOT = 100 / 160        # C_B on one foot / on both feet [S40]
 POSTURE = (0.02, 0.07)      # her own movement: relative change of C_B [S42 bound]
-FRONT = {"current": dict(cgb=12.4 * pF, cin=5 * pF, adc=21.8e-3, label="Current input, ESP32 ADC"),
-         "improved": dict(cgb=2.0 * pF, cin=0.5 * pF, adc=2e-3, label="Bootstrapped input + ADS1115")}
+# Watch ground to her body, unshielded: case-back ground plane (er 2, 10 cm^2, 3 mm) + outer strap
+# electrode (er 3, 25 cm^2, 2.25 mm) = 35.4 pF at the mid geometry of sg_model.sample_base [G].
+# A driven shield leaves 20-50 % of it; TI measured ~23 % for a ring + underside shield larger than
+# the electrode, its best flat-shield layout [S14]. The current design uses the mid residual (35 %);
+# the improved design uses that best measured layout. (Until 6 Nov 2026 the improved design assumed
+# 2 pF, i.e. a 6 % residual that no source supports.)
+CGB_UNSHIELDED = 35.4 * pF
+SHIELD_MID, SHIELD_BEST = 0.35, 0.23                                          # [S14]
+FRONT = {"current": dict(cgb=CGB_UNSHIELDED * SHIELD_MID, cin=5 * pF, adc=21.8e-3, label="Current input, ESP32 ADC"),
+         "improved": dict(cgb=CGB_UNSHIELDED * SHIELD_BEST, cin=0.5 * pF, adc=2e-3,
+                          label="Bootstrapped input + best measured shield + ADS1115")}
 BARE_PROB = {"wrist": 0.9, "forearm": 0.6, "upper_arm": 0.3, "other_arm": 0.5,
              "shoulder": 0.1, "waist": 0.05, "face_hair": 0.8}            # as sg_model.py [E]
 

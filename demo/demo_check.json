@@ -4,44 +4,44 @@
  "grabs_caught": {
   "wrist": {
    "active": 0.925,
-   "fused": 0.8833333333333333,
-   "fused2": 0.8833333333333333
+   "fused": 0.9666666666666667,
+   "fused2": 0.9666666666666667
   },
   "forearm": {
    "active": 0,
    "fused": 0.6916666666666667,
-   "fused2": 0.8833333333333333
+   "fused2": 0.9083333333333333
   },
   "upper_arm": {
    "active": 0,
    "fused": 0.675,
-   "fused2": 0.8833333333333333
+   "fused2": 0.8916666666666667
   },
   "other_arm": {
    "active": 0,
    "fused": 0.6583333333333333,
-   "fused2": 0.8833333333333333
+   "fused2": 0.8916666666666667
   },
   "shoulder": {
    "active": 0,
    "fused": 0.6666666666666666,
-   "fused2": 0.875
+   "fused2": 0.8833333333333333
   },
   "waist": {
    "active": 0,
    "fused": 0.6666666666666666,
-   "fused2": 0.875
+   "fused2": 0.8833333333333333
   },
   "face_hair": {
    "active": 0,
    "fused": 0.6583333333333333,
-   "fused2": 0.8833333333333333
+   "fused2": 0.8916666666666667
   }
  },
  "body_average": {
   "active": 0.13214285714285715,
-  "fused": 0.7,
-  "fused2": 0.8809523809523808
+  "fused": 0.7119047619047618,
+  "fused2": 0.9023809523809522
  },
  "strap_removal_caught": {
   "active": 1,
@@ -62,22 +62,22 @@
   "shoulder": {
    "active": 0,
    "fused": 0,
-   "fused2": 0.65
+   "fused2": 0.6666666666666666
   },
   "forearm": {
    "active": 0,
    "fused": 0,
-   "fused2": 0.6166666666666667
+   "fused2": 0.65
   },
   "waist": {
    "active": 0,
    "fused": 0,
-   "fused2": 0.65
+   "fused2": 0.6666666666666666
   }
  },
  "own_hand_prompted": {
   "active": 1,
-  "fused": 0.025,
+  "fused": 0,
   "fused2": 0
  },
  "touch_while_running_caught": {

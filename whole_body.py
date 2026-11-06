@@ -93,7 +93,7 @@ def wrist_step(dv_bodies, c_ge, c_gb, c_in, c_her=140e-12, c_his=140e-12):
 def fig11():
     dv = np.logspace(-2, 3, 200)
     designs = [("Current watch (shield leaves 35%, 5 pF amplifier input)", 1.1e-12, 12.4e-12, 5e-12, ps.SERIES[0]),
-               ("Bootstrapped input + good shield (2 pF left, 0.5 pF input)", 1.1e-12, 2e-12, 0.5e-12, ps.SERIES[2])]
+               ("Bootstrapped input + best measured shield (23% left, 0.5 pF input)", 1.1e-12, 35.4e-12 * 0.23, 0.5e-12, ps.SERIES[2])]
     fig, ax = plt.subplots(figsize=(11, 5.4))
     for lab, cge, cgb, cin, col in designs:
         ax.plot(dv, 1e3 * wrist_step(dv, cge, cgb, cin), color=col, label=lab)

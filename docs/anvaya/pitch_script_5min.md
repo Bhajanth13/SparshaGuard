@@ -41,7 +41,7 @@ About 591 spoken words, at a calm pace with pauses for the slide changes. The sa
 
 **Slide 8: Business model** (3:32–4:10)
 
-> We offer two products: the SparshaGuard Band, the safety system alone, at eleven thousand nine hundred ninety-nine rupees, and the full SparshaGuard Watch at twenty-four thousand nine hundred ninety-nine, half the price of a cellular Apple Watch. Families can add Guard Plus, a live-map app, for ninety-nine rupees a month, and colleges and employers subscribe per user, per year. Calling for help stays free for life.
+> We offer two products: the SparshaGuard Band, the safety system alone, at eleven thousand nine hundred ninety-nine rupees, and the full SparshaGuard Watch at twenty-four thousand nine hundred ninety-nine, seventeen thousand rupees less than a cellular Apple Watch. Families can add Guard Plus, a live-map app, for ninety-nine rupees a month, and colleges and employers subscribe per user, per year. Calling for help stays free for life.
 
 **Slide 9: Go-to-market and roadmap** (4:10–4:45)
 
