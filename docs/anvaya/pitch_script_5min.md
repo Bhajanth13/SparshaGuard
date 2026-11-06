@@ -33,7 +33,7 @@ About 591 spoken words, at a calm pace with pauses for the slide changes. The sa
 
 **Slide 6: Proof** (2:25–3:00)
 
-> Thank you. Before building hardware, we built a digital twin: the watch's real software running on a simulated body, live on our website. When a stranger grabs her, both signals jump and the watch asks for her PIN. When she touches it herself, the static stays flat, and it stays quiet. Across seven places on her body, it catches seventy percent of grabs and ninety-nine percent of struggles, with at most one unwanted prompt in nine hours.
+> Thank you. Before building hardware, we built a digital twin: the watch's real software running on a simulated body, live on our website. When a stranger grabs her, both signals jump and the watch asks for her PIN. When she touches it herself, the static stays flat, and it stays quiet. Across seven places on her body, it catches ninety percent of grabs and every struggle, with two unwanted prompts in nine hours.
 
 **Slide 7: Market and competition** (3:00–3:32)
 

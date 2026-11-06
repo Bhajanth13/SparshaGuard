@@ -428,7 +428,7 @@ a.cite:hover { text-decoration: underline; }
           <div class="label" id="lbl-inp">Amplifier input</div>
           <div class="seg row2" role="radiogroup" aria-labelledby="lbl-inp">
             <label><input type="radio" name="inp" value="cur" checked><span><span class="t">Current design</span><span class="d">Shield leaves 35%, 5 pF input</span></span></label>
-            <label><input type="radio" name="inp" value="imp"><span><span class="t">Improved</span><span class="d">Bootstrapped, 2 pF left, 0.5 pF input</span></span></label>
+            <label><input type="radio" name="inp" value="imp"><span><span class="t">Improved</span><span class="d">Bootstrapped, best measured shield (8.1 pF left), 0.5 pF input</span></span></label>
           </div>
         </div>
         <div class="readout" aria-live="polite">
@@ -981,9 +981,9 @@ const SG = (() => {
   // ------------------------------------------------------------- fused watch (sg_passive.py physics)
   // Contact shares charge: dV_B = dV * C_A / (C_A + C_B) bare, or with fabric in series
   // (C_A = C_B = 180 pF [S4]; fabric eps 3.15 over 60 cm^2 of hand [S7, S13]). The watch sees
-  // k = C_GE / (C_GE + C_GB + C_in) = 1.1 / (1.1 + 2 + 0.5) with the bootstrapped input, and a step must
+  // k = C_GE / (C_GE + C_GB + C_in) = 1.1 / (1.1 + 8.1 + 0.5) with the bootstrapped input and the best measured shield (23 % left), and a step must
   // beat 6x the ADS1115 noise in one sample (6 x 0.5 mV x sqrt 2 = 4.2 mV).
-  const F_K = 1.1 / (1.1 + 2 + 0.5), F_THR = 6 * 0.5 * Math.SQRT2, CBODY = 180e-12;
+  const F_K = 1.1 / (1.1 + 8.1 + 0.5), F_THR = 6 * 0.5 * Math.SQRT2, CBODY = 180e-12;
   function staticStep(st, dv) {
     if (st.touch !== "person") return 0;
     const cc = st.bare ? null : 8.854e-12 * 3.15 * 60e-4 / (st.clothMm * 1e-3);
@@ -1103,7 +1103,7 @@ const SG = (() => {
   const $ = (id) => document.getElementById(id);
   const NS = "http://www.w3.org/2000/svg";
   const el = (n, a, p, t) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; if (p) p.appendChild(e); return e; };
-  const DES = { cur: { cge: 1.1, cgb: 12.4, cin: 5 }, imp: { cge: 1.1, cgb: 2, cin: 0.5 } };
+  const DES = { cur: { cge: 1.1, cgb: 12.4, cin: 5 }, imp: { cge: 1.1, cgb: 8.1, cin: 0.5 } };
   const ADC = [{ n: "ESP32 ADC", mv: 21.8 }, { n: "ADS1115", mv: 2.0 }];
   const frac = (d) => 0.5 * d.cge / (d.cge + d.cgb + d.cin);      // equal 140 pF bodies share half the difference
   const fmtV = (v) => v >= 100 ? Math.round(v).toLocaleString("en-IN") + " V" : v >= 1 ? v.toFixed(v < 10 ? 1 : 0) + " V" : v.toFixed(v < 0.1 ? 3 : 2) + " V";
@@ -1162,8 +1162,8 @@ const SG = (() => {
       marks: [[g, cd, "var(--touch)"]] });
   }
 
-  const FZ = {"1.0": {"loc": {"wrist": {"A": 0.858, "F": 0.683, "F2": 0.625}, "forearm": {"A": 0.0, "F": 0.583, "F2": 0.775}, "upper_arm": {"A": 0.0, "F": 0.658, "F2": 0.792}, "other_arm": {"A": 0.0, "F": 0.575, "F2": 0.733}, "shoulder": {"A": 0.0, "F": 0.592, "F2": 0.775}, "waist": {"A": 0.0, "F": 0.558, "F2": 0.708}, "face_hair": {"A": 0.0, "F": 0.567, "F2": 0.733}}, "body": {"A": 0.123, "F": 0.602, "F2": 0.735}, "fp": {"A": 4.761, "F": 0.278, "F2": 0.278}}, "10.0": {"loc": {"wrist": {"A": 0.933, "F": 0.675, "F2": 0.675}, "forearm": {"A": 0.0, "F": 0.592, "F2": 0.742}, "upper_arm": {"A": 0.0, "F": 0.6, "F2": 0.758}, "other_arm": {"A": 0.0, "F": 0.592, "F2": 0.758}, "shoulder": {"A": 0.0, "F": 0.592, "F2": 0.75}, "waist": {"A": 0.0, "F": 0.65, "F2": 0.792}, "face_hair": {"A": 0.0, "F": 0.633, "F2": 0.8}}, "body": {"A": 0.133, "F": 0.619, "F2": 0.754}, "fp": {"A": 4.317, "F": 0.111, "F2": 0.111}}, "100.0": {"loc": {"wrist": {"A": 0.875, "F": 0.725, "F2": 0.725}, "forearm": {"A": 0.0, "F": 0.558, "F2": 0.775}, "upper_arm": {"A": 0.0, "F": 0.567, "F2": 0.75}, "other_arm": {"A": 0.0, "F": 0.575, "F2": 0.775}, "shoulder": {"A": 0.0, "F": 0.533, "F2": 0.75}, "waist": {"A": 0.0, "F": 0.558, "F2": 0.733}, "face_hair": {"A": 0.0, "F": 0.683, "F2": 0.833}}, "body": {"A": 0.125, "F": 0.6, "F2": 0.763}, "fp": {"A": 3.983, "F": 0.056, "F2": 0.111}}};
-  const SIG = {"struggle": 1, "runAlone": 0, "touchRun": 1, "self": 0, "selfF": 0.025, "hold": 0.638888888888889, "holdF": 0.0};
+  const FZ = {"1.0": {"loc": {"wrist": {"A": 0.858, "F": 0.683, "F2": 0.675}, "forearm": {"A": 0.0, "F": 0.542, "F2": 0.717}, "upper_arm": {"A": 0.0, "F": 0.625, "F2": 0.733}, "other_arm": {"A": 0.0, "F": 0.55, "F2": 0.7}, "shoulder": {"A": 0.0, "F": 0.55, "F2": 0.725}, "waist": {"A": 0.0, "F": 0.533, "F2": 0.667}, "face_hair": {"A": 0.0, "F": 0.55, "F2": 0.717}}, "body": {"A": 0.123, "F": 0.576, "F2": 0.705}, "fp": {"A": 4.761, "F": 0.278, "F2": 0.167}}, "10.0": {"loc": {"wrist": {"A": 0.933, "F": 0.675, "F2": 0.683}, "forearm": {"A": 0.0, "F": 0.592, "F2": 0.742}, "upper_arm": {"A": 0.0, "F": 0.6, "F2": 0.758}, "other_arm": {"A": 0.0, "F": 0.592, "F2": 0.758}, "shoulder": {"A": 0.0, "F": 0.592, "F2": 0.75}, "waist": {"A": 0.0, "F": 0.642, "F2": 0.783}, "face_hair": {"A": 0.0, "F": 0.633, "F2": 0.8}}, "body": {"A": 0.133, "F": 0.618, "F2": 0.754}, "fp": {"A": 4.317, "F": 0.056, "F2": 0.056}}, "100.0": {"loc": {"wrist": {"A": 0.875, "F": 0.742, "F2": 0.742}, "forearm": {"A": 0.0, "F": 0.558, "F2": 0.775}, "upper_arm": {"A": 0.0, "F": 0.567, "F2": 0.75}, "other_arm": {"A": 0.0, "F": 0.575, "F2": 0.775}, "shoulder": {"A": 0.0, "F": 0.533, "F2": 0.75}, "waist": {"A": 0.0, "F": 0.558, "F2": 0.733}, "face_hair": {"A": 0.0, "F": 0.692, "F2": 0.842}}, "body": {"A": 0.125, "F": 0.604, "F2": 0.767}, "fp": {"A": 3.983, "F": 0.056, "F2": 0.111}}};
+  const SIG = {"struggle": 1, "runAlone": 0, "touchRun": 1, "self": 0, "selfF": 0, "hold": 0.6611111111111111, "holdF": 0.0};
   const pc = (x) => `${Math.round(100 * x)} %`;
   $("sig-struggle").textContent = `${pc(SIG.struggle)} of struggles caught without any touch`;
   $("sig-run").textContent = `${pc(SIG.touchRun)} of touches while running caught; ${pc(SIG.runAlone)} of runs alone prompted`;

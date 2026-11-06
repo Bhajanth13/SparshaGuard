@@ -1,0 +1,46 @@
+{
+ "note": "Built by tools/check_consistency.py; quote these, not older decks.",
+ "sources_logged": 72,
+ "demo_F2_10V": {
+  "wrist_grabs_caught_pct": 97,
+  "body_average_7_places_pct": 90,
+  "hold_without_pull_caught_pct": [
+   65,
+   67
+  ],
+  "struggle_without_touch_caught_pct": 100,
+  "own_hand_prompted_pct": 0,
+  "strap_removal_caught_pct": 100,
+  "simulated_hours": 9,
+  "unwanted_prompts_in_hours": 2,
+  "unwanted_prompts_per_hour": 0.22
+ },
+ "demo_first_design": {
+  "body_average_7_places_pct": 13,
+  "wrist_grabs_caught_pct": 92,
+  "unwanted_prompts_in_hours": 46,
+  "unwanted_prompts_per_hour": 5.1
+ },
+ "study_F2_1_to_100V": {
+  "wrist_grabs_caught_pct": [
+   68,
+   74
+  ],
+  "body_average_7_places_pct": [
+   70,
+   77
+  ],
+  "unwanted_prompts_per_hour_strangers": [
+   0.06,
+   0.17
+  ]
+ },
+ "study_sweep_only": {
+  "wrist_grabs_caught_pct": 88,
+  "prompts_per_hour": {
+   "walking": 2.0,
+   "bus": 6.0,
+   "desk": 4.5
+  }
+ }
+}

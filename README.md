@@ -30,11 +30,17 @@ below; nothing is scripted to succeed.
 | | Result | How we know |
 |---|---|---|
 | Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 72 published sources logged in total |
-| Wrist grabs caught | 88 % (demo), 62–72 % (study, incl. his palm over her watch face) | 120 random trials; hours of simulated daily life |
-| Grabs anywhere on her body | 74–76 % averaged over 7 places (study), 88 % (demo); first design 13 %, wrist only | `passive_stream.py`, demo check |
-| A grab that only holds her (she freezes) | 62–65 % caught through her skin response (fused rule of 14 Oct: 0 %) | demo check |
+| Wrist grabs caught | 97 % (demo), 68–74 % (study, incl. his palm over her watch face) | 120 random trials; hours of simulated daily life |
+| Grabs anywhere on her body | 70–77 % averaged over 7 places (study, bodies at 1–100 V), 90 % (demo, ~10 V); first design 13 %, wrist only | `passive_stream.py`, demo check |
+| A grab that only holds her (she freezes) | 65–67 % caught through her skin response (fused rule of 14 Oct: 0 %) | demo check |
 | Watch pulled off | 100 % caught, no false alarms | demo headless check |
-| Unwanted PIN prompts | 2 in 9 simulated hours (demo); 0.1–0.3 per hour (study). First design: ~4–5 per hour | same simulations |
+| Unwanted PIN prompts | 2 in 9 simulated hours (demo); 0.06–0.17 per hour from strangers (study). First design: ~4–5 per hour | same simulations |
+| Guard Mode rules (PIN to switch off, duress, "I'm safe") | 14 of 14 tests pass | `node demo/test_firmware.js` |
+
+All headline numbers are generated into `data/headline_numbers.json` by
+`python tools/check_consistency.py`, which also fails if any file still quotes an older number.
+The demo and study differ because the demo draws fewer, typical grabs at ~10 V while the study
+sweeps body voltage, context and grab type; quote the study range when in doubt.
 | Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `ltspice/`, `fem/` |
 
 **How the fused watch decides.** A PIN prompt needs *another body*. When another person touches
@@ -46,7 +52,8 @@ prompts when (wrist) the sweep sees a hand held 2 s *and* another body touched h
 another body touched her *and* either the accelerometer feels her arm being pulled or her skin
 conductance rises 1–4 s later, the fear response that still comes when she freezes. Two
 things are still estimates until Gate 1: how charged people are on Indian floors (results hold
-from about 1 V to 100 V with the bootstrapped input and an ADS1115) how often a grab pulls her
+from about 1 V to 100 V with the bootstrapped input, the best measured shield and an ADS1115),
+how often a grab pulls her
 arm (70 % assumed), and how strongly her wrist skin responds to fear. See
 `docs/whole_body_fusion.md` and `docs/new_channels.md`.
 
@@ -85,7 +92,7 @@ pip install -r requirements.txt
 python make_figures.py      # physics figures, fig0-fig4               (~40 s)
 python make_dataset.py      # synthetic dataset, 18,000 events         (~15 s)
 python train_classifier.py  # classifiers, fig5-fig7                   (~40 s)
-python event_stream.py      # pipeline over simulated hours, fig8-fig9  (~30 min on 2 cores)
+python event_stream.py      # pipeline over simulated hours, fig8-fig9  (~3 min on 2 cores)
 python event_stream.py --figs-only   # redraw fig8-fig9 from saved results
 python build_explorer.py    # rebuild the interactive page after editing its sources
 python rebuild_csv.py       # write the CSV from the .npz (numpy + pandas only)
@@ -95,8 +102,11 @@ python ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fi
 FASTCAP=/path/to/fastcap python fem/fastcap_crosscheck.py  # check the 3D result against FastCap, fig14 (~2 min)
 python fusion_study.py      # static channel on paper: rules vs body voltage, fig15-fig16 (~10 s)
 python passive_stream.py    # time-domain static channel + fused alarm rules, fig17-fig18 (~2.5 min)
-node demo/check_demo.js     # check the demo's sensor + firmware headless (~6 min)
+node demo/check_demo.js     # check the demo's sensor + firmware headless (~4 min)
+node demo/test_firmware.js  # Guard Mode state-machine tests (~1 s)
 python build_demo.py        # rebuild the digital-twin demo page (quotes demo/demo_check.json)
+python tools/check_consistency.py   # headline numbers + stale-claim scan (run last)
+python tools/update_bih_deck.py     # write the headline numbers into the BIH deck
 ```
 
 Open `explorer/sparshaguard_explorer.html` in any browser for the interactive explorer, and
@@ -124,6 +134,10 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `explorer/sparshaguard_explorer.html` | Interactive explorer page (built from `page_src.html` + `model.js`) |
 | `demo/sparshaguard_demo.html` | Digital-twin demo: the watch firmware running on a simulated sensor (built by `build_demo.py` from `demo/page_src.html`, `demo/sensor.js`, `demo/firmware.js` and `explorer/model.js`) |
 | `demo/check_demo.js`, `demo/demo_check.json` | Headless check of the demo's sensor and firmware against the study's rates |
+| `demo/test_firmware.js` | Tests of the Guard Mode state machine: PIN, duress, switching off, "I'm safe", strap removal |
+| `tools/check_consistency.py`, `data/headline_numbers.json` | One source of truth for every quoted number, plus a scan for stale claims |
+| `tools/update_bih_deck.py` | Writes the headline numbers into the BIH 2026 deck |
+| `docs/consistency_pass_2026-11-06.md` | What the 6 Nov 2026 consistency pass changed, and why |
 | `build_explorer.py`, `rebuild_csv.py` | Rebuild the explorer page; rebuild the CSV from the `.npz` |
 | `docs/design_notes.md` | Hardware changes, sensing physics, false-trigger strategy, Gate 1 test rules |
 | `whole_body.py`, `docs/whole_body_detection.md` | Can it detect a touch anywhere on her body? Active-sweep limit, passive body-potential channel, proposed design (fig10–fig12) |
@@ -263,14 +277,14 @@ for the hackathon demonstration. It is split the way the real device is:
   up, earthed metal, a phone, her arm movement, her own hand on the glass, skin-stretch noise,
   ADS1115 noise), a wrist accelerometer at 50 Hz, the transmit-check current and her skin
   conductance (EDA) at 5 Hz.
-- **Firmware** (`demo/firmware.js`): the detection pipeline of `event_stream.py` (0.3% threshold,
+- **Firmware** (`demo/firmware.js`, the logic of the flagship's nRF5340 safety core): the detection pipeline of `event_stream.py` (0.3% threshold,
   2 s hold, frozen baseline, no classifier gate), the static contact-step detector of
   `sg_passive.py` (sharp, settled, standing out from the signal around it; classed as another
   person, earthed metal or a small object; her own hand on the glass is vetoed by a 100 kHz
   transmit check), the fused rule F2 (F plus a skin-response path for grabs that only hold her),
   a strap-removal check against the
   watch's own off-the-wrist signature, and the PIN state machine (15 s window, correct / wrong /
-  duress PIN). It never sees which scenario is playing. "Show the science" can switch it back to
+  duress PIN; her PIN to switch Guard Mode off or end an alert). It never sees which scenario is playing. "Show the science" can switch it back to
   the first design (sweep only) and change how charged people are.
 - **Page**: a story bar on top (chapter caption and controls, or the touch tiles in *Try it
   yourself*), then one stage: where she is touched, her watch with a hold/countdown ring, **what
@@ -291,15 +305,21 @@ the rest only hold her):
 
 | | First design (sweep only) | Fused F (14 Oct) | Fused F2 (now) |
 |---|---|---|---|
-| Wrist grabs caught | 93 % | 88 % | 88 % |
-| Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 66–69 % | 88 % |
-| Average over 7 places | 13 % | 70 % | 88 % |
-| A grab that only holds her (shoulder, forearm, waist) | 0 % | 0 % | 62–65 % |
-| Her own hand on the watch prompted | 100 % | 2.5 % | 0 % |
+| Wrist grabs caught | 92 % | 97 % | 97 % |
+| Grabs elsewhere (forearm, upper arm, other arm, shoulder, waist, face/hair) | 0 % | 66–69 % | 88–91 % |
+| Average over 7 places | 13 % | 71 % | 90 % |
+| A grab that only holds her (shoulder, forearm, waist) | 0 % | 0 % | 65–67 % |
+| Her own hand on the watch prompted | 100 % | 0 % | 0 % |
 | Unwanted PIN prompts per hour (walking, bus, desk, incl. runs) | 5.1 | 0.22 | 0.22 |
 | Struggle to get free, no touch felt | 0 % | 100 % | 100 % |
 | Touch while she runs / running alone | 0 % / 0 % | 100 % / 0 % | 100 % / 0 % |
 | Strap removals caught | 100 % | 100 % | 100 % |
+
+Re-run on 6 Nov 2026 with the sourced shield value (C_GB 8.1 pF, see `docs/consistency_pass_2026-11-06.md`).
+With it, his hand on the strap changes the watch's pickup less at the moment of contact, so the
+static step at a wrist grab is cleaner: wrist grabs rose from 88 % to 97 % in the twin, while the
+Python study shows the smaller pickup needs more charge (90 % of shoulder grabs at 1.6 V instead
+of 0.4 V). Both are model results for Gate 1 to check.
 
 No false strap alarms: normal wearing never comes closer than 2.0% to the off-wrist signature
 (the alarm needs 0.4%). This matches `event_stream.py` and `passive_stream.py` within the
@@ -321,7 +341,9 @@ training and for any accuracy you report.
 - The passive static channel is simulated in time (`sg_passive.py`), but body voltages on Indian
   floors, her arm-movement statistics and how often a grab pulls her are estimates, not measured.
   With today's input and the ESP32 ADC it needs bodies at 10 V or more; the fused watch needs the
-  bootstrapped input and an ADS1115.
+  bootstrapped input, the best measured shield layout (23 % of the coupling left, TI) and an ADS1115.
+- Only the Guard Mode logic exists as code (`demo/firmware.js`, the safety core's logic). There is
+  no hardware, power budget, embedded firmware, phone app, backend or SMS/112 integration yet.
 - Event rates and durations in `event_stream.py` are guesses, not measured behaviour.
 - Cause attribution in the prompt counts is approximate when long events overlap.
 - The accelerometer is simulated from estimates (no published wrist data for grabs); no heart-rate

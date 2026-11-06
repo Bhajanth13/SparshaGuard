@@ -52,8 +52,8 @@ About 490 spoken words in total, at a calm 140 words a minute. **[Next]** marks 
 
 **Slide 6: Feasibility & Risk** (2:20–2:52)
 
-> Does it work? In simulation it catches 70 % of grabs anywhere on her body and 99 % of struggles,
-> with at most one false alarm in nine hours. It runs on battery, decides on the watch itself, and alerts over 4G.
+> Does it work? In simulation it catches 90 % of grabs anywhere on her body and every struggle,
+> with two false alarms in nine hours. It runs on battery, decides on the watch itself, and alerts over 4G.
 > Our main risk is simple: it's simulated, not yet measured. So our next step, a battery-powered prototype,
 > will measure real body voltages and real struggles. **[Next]**
 
@@ -63,8 +63,8 @@ About 490 spoken words in total, at a calm 140 words a minute. **[Next]** marks 
 > location and audio to act on.
 > We'll sell the watch to individuals, offer bulk plans to colleges, hostels and employers,
 > and run an alert subscription.
-> For the prototype we set clear goals: 90 % of wrist grabs and 60 % anywhere. The simulation already
-> beats both. **[Next]**
+> For the prototype we set clear goals: 90 % of wrist grabs, 60 % anywhere and under one false alarm
+> a day. The simulation beats the first two; false alarms are the number to bring down. **[Next]**
 
 **Slide 8: Team** (3:16–3:22)
 

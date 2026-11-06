@@ -85,7 +85,7 @@ STALE = [
 ]
 # History kept on purpose (each says so in its own README or header), and this file.
 SKIP = ("archive/", "video/SparshaGuard_Explained", "video/narration_script.md", "video/demo_2min/",
-        "docs/anvaya/SparshaGuard_ANVAYA_2k26.pptx", "docs/consistency_pass_", "tools/check_consistency.py",
+        "docs/anvaya/SparshaGuard_ANVAYA_2k26.pptx", "docs/consistency_pass_", "tools/check_consistency.py", "tools/update_bih_deck.py",
         "tools/build_sources_xlsx.py", "docs/parameter_sources.md", "docs/findings_integrated_v0_3.md",
         "data/", ".git/")
 TEXT = (".md", ".py", ".js", ".html", ".mmd", ".svg", ".txt")
