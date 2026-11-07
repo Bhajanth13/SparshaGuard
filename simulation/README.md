@@ -6,7 +6,7 @@ any script from anywhere; everything it produces goes to `results/` (see `paths.
 | Kind | Files |
 |---|---|
 | The model | `sg_model.py` (electrical model, every parameter sourced), `sg_passive.py` (static channel + motion), `sg_newch.py` (own-hand check, transmit check, skin response) |
-| Studies | `make_figures.py` → `make_dataset.py` → `train_classifier.py` → `event_stream.py`, then `whole_body.py`, `fusion_study.py`, `passive_stream.py` |
+| Studies | `make_figures.py` → `make_dataset.py` → `train_classifier.py` → `event_stream.py`, then `whole_body.py`, `second_ground.py`, `fusion_study.py`, `passive_stream.py` |
 | Helpers | `sg_features.py`, `plotstyle.py`, `paths.py`, `rebuild_csv.py` |
 | Independent checks | `fem/` (3D field solver, and FastCap), `ltspice/` (SPICE netlists, and ngspice) |
 

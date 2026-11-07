@@ -80,6 +80,13 @@ how often a grab pulls her
 arm (70 % assumed), and how strongly her wrist skin responds to fear. See
 `docs/technical/whole_body_fusion.md` and `docs/technical/new_channels.md`.
 
+**Second ground (7 Nov 2026, simulated):** a second receiver with its own battery and floating ground
+(in the strap clasp, a pendant or an anklet) sees a touch anywhere whatever the static charge: 0.9 %
+in the clasp, 7 % on a pendant, 25 % on an anklet, against 0.16 % for the watch alone. But the two
+grounds must barely couple (under ~0.01 pF for a clean signal), so the clasp version is marginal and
+lost while she moves; and holding a railing or sitting down change it as much as a person does. It is
+an extra clue, not a clear sign on its own. See `docs/technical/second_ground.md` (fig20–fig21).
+
 **Signs of assault from her own movement** (digital twin; thresholds are estimates, because no
 published wrist data for assaults was found):
 - *Struggling to get free* (accelerometer + gyroscope): 5 or more irregular jerks over 2 g in 4 s
@@ -121,6 +128,7 @@ python tools/build_explorer.py    # rebuild the interactive page after editing i
 python simulation/rebuild_csv.py       # write the CSV from the .npz (numpy + pandas only)
 python simulation/fem/hand_near_strap.py   # 3D field calculation: his hand near the strap (~2 min)
 python simulation/whole_body.py        # whole-body touch study, fig10-fig12      (~5 s)
+python simulation/second_ground.py     # second, separately grounded node, fig20-fig21 (~1 min)
 python simulation/ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fig13 (~5 s, needs ngspice)
 FASTCAP=/path/to/fastcap python simulation/fem/fastcap_crosscheck.py  # check the 3D result against FastCap, fig14 (~2 min)
 python simulation/fusion_study.py      # static channel on paper: rules vs body voltage, fig15-fig16 (~10 s)
@@ -150,6 +158,7 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | `train_classifier.py` | SVM and random-forest classifiers, evaluation (fig5–fig7) |
 | `event_stream.py` | Time-domain pipeline: baseline tracking, hysteresis, sustain rule, prompts per hour (fig8–fig9) |
 | `whole_body.py` | Can it detect a touch anywhere on her body? Active-sweep limit, passive channel (fig10–fig12) |
+| `second_ground.py` | A second receiver with its own ground (clasp, pendant, anklet): touches anywhere vs look-alikes (fig20–fig21) |
 | `fusion_study.py`, `passive_stream.py` | Fused alarm rules (sweep + static + motion) over body places and body voltages (fig15–fig18) |
 | `fem/` | Boundary-element 3D solver, the hand-near-strap calculation, and the FastCap cross-check (fig14) |
 | `ltspice/` | The circuit as SPICE netlists and the ngspice cross-check (fig13) |
@@ -160,7 +169,7 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 |---|---|
 | `data/*.json` | Numeric results behind every figure; `headline_numbers.json` is the one to quote |
 | `data/sparshaguard_synthetic_v0_3.npz` | The dataset; `..._phase.npz` and `..._baseline.npz` add phase and baseline amplitude. The CSV copy (40 MB) is not stored: run `python simulation/rebuild_csv.py` |
-| `figures/` | All figures, fig0–fig19, 200 dpi PNG |
+| `figures/` | All figures, fig0–fig21, 200 dpi PNG |
 | `classifier/svm_dual_shield.joblib` | Trained SVM for the recommended hardware design |
 
 **`demo/` and `explorer/`** (the website)
@@ -178,7 +187,7 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 | File | What it is |
 |---|---|
 | `technical/design_notes.md` | Hardware (flagship architecture), sensing physics, false-trigger strategy, Gate 1 test rules |
-| `technical/whole_body_detection.md`, `whole_body_fusion.md`, `new_channels.md` | Write-ups of the whole-body, fusion and new-channel studies |
+| `technical/whole_body_detection.md`, `whole_body_fusion.md`, `new_channels.md`, `second_ground.md` | Write-ups of the whole-body, fusion, new-channel and second-ground studies |
 | `technical/findings_integrated_v0_3.md` | What changed from v0.2 to v0.3 and why |
 | `technical/consistency_pass_2026-11-06.md` | What the 6 Nov 2026 consistency pass changed, and why |
 | `technical/project_map.svg` (`.mmd`) | One-page map of the whole project |

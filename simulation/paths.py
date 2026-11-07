@@ -3,7 +3,7 @@
     from paths import DATA, FIGURES, CLASSIFIER, FEM
 
 DATA        results/data        numbers and datasets (JSON, NPZ, CSV)
-FIGURES     results/figures     every figure in the study (fig0-fig19)
+FIGURES     results/figures     every figure in the study (fig0-fig21)
 CLASSIFIER  results/classifier  the trained SVM (svm_dual_shield.joblib)
 FEM         simulation/fem      3D field-solver code and its own results
 """

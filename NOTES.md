@@ -22,6 +22,9 @@ Folders (since 7 Nov 2026): `simulation/` all Python, writing to `results/` (`da
 - `simulation/sg_newch.py` (28 Oct 2026): her own hand on the glass (k change), skin-stretch noise, the 100 kHz transmit check (shunt mode
   rejected, fig19) and skin response (EDA). Rule F2 = F + own-hand veto + an EDA path for grabs that only hold; summary in
   `docs/technical/new_channels.md`. The demo and explorer use rule F2.
+- `simulation/second_ground.py` (7 Nov 2026): a second receiver with its own floating ground (clasp, pendant, anklet) sees touches
+  anywhere whatever the charge, but needs C_K0 (ground-to-ground coupling) below ~0.01 pF and responds to railings and sitting
+  as much as to a person (fig20–21, `docs/technical/second_ground.md`, explorer question 6). A clue for fusion, not in rule F2 yet.
 - `demo/` is the digital-twin demo for the hackathon: `sensor.js` (model + drift + noise), `firmware.js` (`simulation/event_stream.py` pipeline + PIN
   state machine; it is the logic of the flagship's nRF5340 safety core), built by `tools/build_demo.py`; `node demo/check_demo.js` checks it
   headless against the study's rates and `node demo/test_firmware.js` tests the Guard Mode rules.

@@ -326,6 +326,21 @@ a.cite:hover { text-decoration: underline; }
     </div>
   </section>
 
+  <section class="step" id="second" aria-labelledby="second-h">
+    <div class="shead"><span class="num">6</span><div><h2 id="second-h">Could a second ground catch a touch anywhere?</h2><p>The watch alone floats with her body, so a stranger at her shoulder barely changes what it sees. A second receiver with its own battery and floating ground (in the strap clasp, a pendant or an anklet) measures her body against a reference the watch does not share. Another person touching her anywhere changes that reading, whatever the static charge on either of them. Simulated, not yet measured (fig 20–21).</p></div></div>
+    <div class="card s3">
+      <div>
+        <div class="seg3" role="radiogroup" aria-label="Where the second receiver sits"><label><input type="radio" name="sgp" value="shared"><span>Watch only</span></label><label><input type="radio" name="sgp" value="clasp" checked><span>In the clasp</span></label><label><input type="radio" name="sgp" value="pendant"><span>Pendant</span></label><label><input type="radio" name="sgp" value="anklet"><span>Anklet</span></label></div>
+        <div class="label" style="margin-top:12px">Typical change in its reading (log scale, 0.01–100 %)</div>
+        <div class="hbars" id="sg-bars"></div>
+      </div>
+      <div>
+        <div class="kv" id="sg-kv"></div>
+        <p class="note">The catch is the direct coupling between the two grounds (C_K0). The watch drives her body hard against its own ground, so even 0.1 pF between the grounds adds a large steady signal that dilutes the touch, and any wobble in it looks like a touch. In the clasp the grounds are a few centimetres apart: the touch is about 1 %, and lost as soon as she moves. A pendant or anklet is far enough away, but sitting down or holding an earthed railing changes the reading as much as a person does. A second ground is a strong extra clue, not a clear sign on its own. C_K0 and the node's return path are estimates until Gate 1 measures them.</p>
+      </div>
+    </div>
+  </section>
+
   <details class="engsec" id="eng">
     <summary><span class="h">For engineers</span><span class="hint">Circuit view, static channel physics, 3D field result, other sensors, references</span></summary>
     <div class="enggrid">
@@ -938,6 +953,22 @@ a.cite:hover { text-decoration: underline; }
     return `<span>${n}</span><div class="hb"><i style="width:${Math.max(0.6, 100 * lg(v))}%;background:var(--${c})"></i></div><b>${pctv < 5 ? "no change" : v < 2 ? "+" + pctv.toFixed(0) + " %" : "×" + v.toFixed(1)}</b>`; }).join("");
   $("tx-kv").innerHTML = `<div><b>${pc(SIG.self)}</b>of her palms on the watch asked for the PIN (14 Oct rule: ${(100 * SIG.selfF).toFixed(1)} %)</div>` +
     `<div class="minor">A static step <i>and</i> a current jump at the same moment = her own hand. A grab at the wrist also jumps the current, but its static step is much larger than her hand could make, so it still counts.</div>`;
+  // second-ground study (simulation/second_ground.py, fig 20-21)
+  const SG = /*SECOND*/;
+  const SGROWS = [["shoulder", "Stranger touches her shoulder", "touch"], ["hair", "Stranger touches her hair", "touch"], ["other_arm", "Stranger holds her other arm", "touch"],
+    ["railing", "She holds an earthed railing", "warn"], ["sit", "She sits down", "warn"], ["bystander", "Someone 30 cm away, no touch", "base"], ["wall", "She walks past a wall or car", "base"], ["flex", "Strap flex / arm swing", "base"]];
+  const lgp = (x) => Math.max(0, Math.min(1, (Math.log10(Math.max(x, 0.01)) + 2) / 4));
+  const fmtp = (x) => x < 0.1 ? x.toFixed(2) + " %" : x < 10 ? x.toFixed(1) + " %" : x.toFixed(0) + " %";
+  function renderSG() {
+    const pl = document.querySelector('input[name="sgp"]:checked').value, d = SG.places[pl];
+    $("sg-bars").innerHTML = SGROWS.map(([k, n, c]) => { const v = d.events[k].median_abs_pct;
+      return `<span>${n}</span><div class="hb"><i style="width:${Math.max(0.6, 100 * lgp(v))}%;background:var(--${c})"></i></div><b>${fmtp(v)}</b>`; }).join("");
+    const st = d.detect.still.share, mv = d.detect.moving.share, far = (o) => (o.shoulder + o.waist + o.hair + o.other_arm) / 4;
+    $("sg-kv").innerHTML = `<div><b>${pc(far(st))}</b>of touches away from the wrist stand out while she is still</div>` +
+      `<div><b>${pc(far(mv))}</b>while she is moving</div>` +
+      `<div class="minor">Look-alikes that stand out too, while still: railing ${pc(st.railing)}, sitting down ${pc(st.sit)}. A grab at the wrist itself stands out ${pc(st.wrist)} of the time.</div>`;
+  }
+  document.querySelectorAll('input[name="sgp"]').forEach((r) => r.addEventListener("change", renderSG)); renderSG();
   // skin response card: the shape of a typical response at the wrist [S61, S63; E for the wrist factor]
   function renderEDA() {
     const kind = document.querySelector('input[name="edas"]:checked').value, wrist = 0.4, svgW = $("eda-plot").clientWidth || 520, H = 190;

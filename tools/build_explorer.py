@@ -4,6 +4,7 @@ explorer/page_src.html  (layout, styles, UI script, with a /*MODEL*/ placeholder
 explorer/model.js       (JavaScript port of simulation/sg_model.py)
 results/data/passive_stream_results.json  (fused-watch results shown in the Whole-body tab)
 results/data/transmit_results.json        (transmit / shunt circuit study, simulation/sg_newch.py)
+results/data/second_ground_results.json   (second-ground study, simulation/second_ground.py)
 demo/demo_check.json              (signs-of-assault results from the digital twin's headless check)
 tools/build_sources_xlsx.py       (the numbered References list; cite a source in page_src.html as {S4})
   -> explorer/sparshaguard_explorer.html  (one self-contained page; open it in a browser)
@@ -37,6 +38,9 @@ sig = {"struggle": chk["struggle_without_touch_caught"]["fused2"], "runAlone": c
 src = src.replace("/*SIGNS*/", json.dumps(sig))
 tx = json.loads((here.parent / "results/data/transmit_results.json").read_text())
 src = src.replace("/*TRANSMIT*/", json.dumps(tx))
+# second-ground study (simulation/second_ground.py)
+sg = json.loads((here.parent / "results/data/second_ground_results.json").read_text())
+src = src.replace("/*SECOND*/", json.dumps({"places": sg["places"]}))
 src = src.replace("{TXE}", f"{100 * tx['_baseline']['earth_over_body']:.0f} %").replace("{TXI}", f"{tx['_baseline']['transmit_uA']:.0f}")
 # references, IEEE style: [n] is source Sn in tools/build_sources_xlsx.py (and in the workbook)
 import html

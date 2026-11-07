@@ -1,0 +1,891 @@
+{
+ "tone_Hz": 200000.0,
+ "places": {
+  "shared": {
+   "label": "Receiver on the watch's own ground",
+   "events": {
+    "shoulder": {
+     "median_pct": -0.162,
+     "median_abs_pct": 0.162,
+     "p10_abs_pct": 0.059,
+     "p90_abs_pct": 0.32
+    },
+    "waist": {
+     "median_pct": -0.165,
+     "median_abs_pct": 0.165,
+     "p10_abs_pct": 0.059,
+     "p90_abs_pct": 0.325
+    },
+    "hair": {
+     "median_pct": -0.168,
+     "median_abs_pct": 0.168,
+     "p10_abs_pct": 0.061,
+     "p90_abs_pct": 0.324
+    },
+    "other_arm": {
+     "median_pct": -0.166,
+     "median_abs_pct": 0.166,
+     "p10_abs_pct": 0.06,
+     "p90_abs_pct": 0.32
+    },
+    "wrist": {
+     "median_pct": -88.335,
+     "median_abs_pct": 88.335,
+     "p10_abs_pct": 2.932,
+     "p90_abs_pct": 94.378
+    },
+    "railing": {
+     "median_pct": -0.013,
+     "median_abs_pct": 0.013,
+     "p10_abs_pct": 0.005,
+     "p90_abs_pct": 0.029
+    },
+    "sit": {
+     "median_pct": -0.004,
+     "median_abs_pct": 0.004,
+     "p10_abs_pct": 0.002,
+     "p90_abs_pct": 0.01
+    },
+    "phone": {
+     "median_pct": -0.001,
+     "median_abs_pct": 0.001,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.001
+    },
+    "bystander": {
+     "median_pct": -0.082,
+     "median_abs_pct": 0.082,
+     "p10_abs_pct": 0.029,
+     "p90_abs_pct": 0.158
+    },
+    "wall": {
+     "median_pct": -0.151,
+     "median_abs_pct": 0.151,
+     "p10_abs_pct": 0.1,
+     "p90_abs_pct": 0.216
+    },
+    "flex": {
+     "median_pct": -0.002,
+     "median_abs_pct": 0.145,
+     "p10_abs_pct": 0.03,
+     "p90_abs_pct": 0.299
+    }
+   },
+   "watch_alone": {
+    "shoulder": {
+     "median_pct": -0.145,
+     "median_abs_pct": 0.145,
+     "p10_abs_pct": 0.052,
+     "p90_abs_pct": 0.286
+    },
+    "waist": {
+     "median_pct": -0.146,
+     "median_abs_pct": 0.146,
+     "p10_abs_pct": 0.052,
+     "p90_abs_pct": 0.288
+    },
+    "hair": {
+     "median_pct": -0.149,
+     "median_abs_pct": 0.149,
+     "p10_abs_pct": 0.055,
+     "p90_abs_pct": 0.289
+    },
+    "other_arm": {
+     "median_pct": -0.146,
+     "median_abs_pct": 0.146,
+     "p10_abs_pct": 0.053,
+     "p90_abs_pct": 0.285
+    },
+    "wrist": {
+     "median_pct": -75.476,
+     "median_abs_pct": 75.476,
+     "p10_abs_pct": 2.577,
+     "p90_abs_pct": 83.422
+    },
+    "railing": {
+     "median_pct": -0.012,
+     "median_abs_pct": 0.012,
+     "p10_abs_pct": 0.005,
+     "p90_abs_pct": 0.025
+    },
+    "sit": {
+     "median_pct": -0.004,
+     "median_abs_pct": 0.004,
+     "p10_abs_pct": 0.001,
+     "p90_abs_pct": 0.009
+    },
+    "phone": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.0,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.001
+    },
+    "bystander": {
+     "median_pct": -0.073,
+     "median_abs_pct": 0.073,
+     "p10_abs_pct": 0.026,
+     "p90_abs_pct": 0.141
+    },
+    "wall": {
+     "median_pct": -0.134,
+     "median_abs_pct": 0.134,
+     "p10_abs_pct": 0.088,
+     "p90_abs_pct": 0.192
+    },
+    "flex": {
+     "median_pct": -0.002,
+     "median_abs_pct": 0.13,
+     "p10_abs_pct": 0.027,
+     "p90_abs_pct": 0.265
+    }
+   },
+   "detect": {
+    "still": {
+     "threshold_pct": 0.437,
+     "share": {
+      "shoulder": 0.013,
+      "waist": 0.015,
+      "hair": 0.017,
+      "other_arm": 0.014,
+      "wrist": 1.0,
+      "railing": 0.0,
+      "sit": 0.0,
+      "phone": 0.0
+     }
+    },
+    "moving": {
+     "threshold_pct": 0.541,
+     "share": {
+      "shoulder": 0.0,
+      "waist": 0.001,
+      "hair": 0.001,
+      "other_arm": 0.0,
+      "wrist": 1.0,
+      "railing": 0.0,
+      "sit": 0.0,
+      "phone": 0.0
+     }
+    }
+   }
+  },
+  "clasp": {
+   "label": "Clasp, E2 kept 15 mm clear",
+   "events": {
+    "shoulder": {
+     "median_pct": -0.891,
+     "median_abs_pct": 0.891,
+     "p10_abs_pct": 0.379,
+     "p90_abs_pct": 2.011
+    },
+    "waist": {
+     "median_pct": -0.871,
+     "median_abs_pct": 0.871,
+     "p10_abs_pct": 0.388,
+     "p90_abs_pct": 2.055
+    },
+    "hair": {
+     "median_pct": -1.049,
+     "median_abs_pct": 1.049,
+     "p10_abs_pct": 0.447,
+     "p90_abs_pct": 2.568
+    },
+    "other_arm": {
+     "median_pct": -0.959,
+     "median_abs_pct": 0.959,
+     "p10_abs_pct": 0.411,
+     "p90_abs_pct": 2.381
+    },
+    "wrist": {
+     "median_pct": -97.584,
+     "median_abs_pct": 97.957,
+     "p10_abs_pct": 7.785,
+     "p90_abs_pct": 99.467
+    },
+    "railing": {
+     "median_pct": -1.35,
+     "median_abs_pct": 1.35,
+     "p10_abs_pct": 0.4,
+     "p90_abs_pct": 4.507
+    },
+    "sit": {
+     "median_pct": -0.427,
+     "median_abs_pct": 0.427,
+     "p10_abs_pct": 0.13,
+     "p90_abs_pct": 1.496
+    },
+    "phone": {
+     "median_pct": -0.059,
+     "median_abs_pct": 0.059,
+     "p10_abs_pct": 0.015,
+     "p90_abs_pct": 0.207
+    },
+    "bystander": {
+     "median_pct": -0.282,
+     "median_abs_pct": 0.282,
+     "p10_abs_pct": 0.141,
+     "p90_abs_pct": 0.571
+    },
+    "wall": {
+     "median_pct": -0.147,
+     "median_abs_pct": 0.193,
+     "p10_abs_pct": 0.046,
+     "p90_abs_pct": 0.399
+    },
+    "flex": {
+     "median_pct": 0.006,
+     "median_abs_pct": 1.543,
+     "p10_abs_pct": 0.294,
+     "p90_abs_pct": 3.592
+    }
+   },
+   "watch_alone": {
+    "shoulder": {
+     "median_pct": -0.12,
+     "median_abs_pct": 0.12,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.257
+    },
+    "waist": {
+     "median_pct": -0.12,
+     "median_abs_pct": 0.12,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.26
+    },
+    "hair": {
+     "median_pct": -0.123,
+     "median_abs_pct": 0.123,
+     "p10_abs_pct": 0.045,
+     "p90_abs_pct": 0.261
+    },
+    "other_arm": {
+     "median_pct": -0.123,
+     "median_abs_pct": 0.123,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.258
+    },
+    "wrist": {
+     "median_pct": -76.025,
+     "median_abs_pct": 76.025,
+     "p10_abs_pct": 2.235,
+     "p90_abs_pct": 83.731
+    },
+    "railing": {
+     "median_pct": -0.007,
+     "median_abs_pct": 0.007,
+     "p10_abs_pct": 0.003,
+     "p90_abs_pct": 0.019
+    },
+    "sit": {
+     "median_pct": -0.002,
+     "median_abs_pct": 0.002,
+     "p10_abs_pct": 0.001,
+     "p90_abs_pct": 0.006
+    },
+    "phone": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.0,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.001
+    },
+    "bystander": {
+     "median_pct": -0.061,
+     "median_abs_pct": 0.061,
+     "p10_abs_pct": 0.021,
+     "p90_abs_pct": 0.127
+    },
+    "wall": {
+     "median_pct": -0.112,
+     "median_abs_pct": 0.112,
+     "p10_abs_pct": 0.07,
+     "p90_abs_pct": 0.181
+    },
+    "flex": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.002,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.007
+    }
+   },
+   "detect": {
+    "still": {
+     "threshold_pct": 1.269,
+     "share": {
+      "shoulder": 0.294,
+      "waist": 0.287,
+      "hair": 0.39,
+      "other_arm": 0.343,
+      "wrist": 0.999,
+      "railing": 0.527,
+      "sit": 0.137,
+      "phone": 0.0
+     }
+    },
+    "moving": {
+     "threshold_pct": 6.414,
+     "share": {
+      "shoulder": 0.001,
+      "waist": 0.001,
+      "hair": 0.003,
+      "other_arm": 0.004,
+      "wrist": 0.922,
+      "railing": 0.038,
+      "sit": 0.0,
+      "phone": 0.0
+     }
+    }
+   }
+  },
+  "clasp_e2": {
+   "label": "Clasp, E2 runs up to it",
+   "events": {
+    "shoulder": {
+     "median_pct": -0.465,
+     "median_abs_pct": 0.465,
+     "p10_abs_pct": 0.186,
+     "p90_abs_pct": 0.93
+    },
+    "waist": {
+     "median_pct": -0.466,
+     "median_abs_pct": 0.466,
+     "p10_abs_pct": 0.188,
+     "p90_abs_pct": 0.948
+    },
+    "hair": {
+     "median_pct": -0.496,
+     "median_abs_pct": 0.496,
+     "p10_abs_pct": 0.201,
+     "p90_abs_pct": 1.006
+    },
+    "other_arm": {
+     "median_pct": -0.475,
+     "median_abs_pct": 0.475,
+     "p10_abs_pct": 0.197,
+     "p90_abs_pct": 0.964
+    },
+    "wrist": {
+     "median_pct": -98.71,
+     "median_abs_pct": 98.85,
+     "p10_abs_pct": 6.593,
+     "p90_abs_pct": 99.672
+    },
+    "railing": {
+     "median_pct": -0.194,
+     "median_abs_pct": 0.194,
+     "p10_abs_pct": 0.066,
+     "p90_abs_pct": 0.554
+    },
+    "sit": {
+     "median_pct": -0.061,
+     "median_abs_pct": 0.061,
+     "p10_abs_pct": 0.021,
+     "p90_abs_pct": 0.187
+    },
+    "phone": {
+     "median_pct": -0.008,
+     "median_abs_pct": 0.008,
+     "p10_abs_pct": 0.002,
+     "p90_abs_pct": 0.026
+    },
+    "bystander": {
+     "median_pct": -0.212,
+     "median_abs_pct": 0.212,
+     "p10_abs_pct": 0.086,
+     "p90_abs_pct": 0.417
+    },
+    "wall": {
+     "median_pct": -0.335,
+     "median_abs_pct": 0.335,
+     "p10_abs_pct": 0.221,
+     "p90_abs_pct": 0.511
+    },
+    "flex": {
+     "median_pct": 0.079,
+     "median_abs_pct": 2.245,
+     "p10_abs_pct": 0.464,
+     "p90_abs_pct": 4.673
+    }
+   },
+   "watch_alone": {
+    "shoulder": {
+     "median_pct": -0.119,
+     "median_abs_pct": 0.119,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.255
+    },
+    "waist": {
+     "median_pct": -0.119,
+     "median_abs_pct": 0.119,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.258
+    },
+    "hair": {
+     "median_pct": -0.122,
+     "median_abs_pct": 0.122,
+     "p10_abs_pct": 0.045,
+     "p90_abs_pct": 0.259
+    },
+    "other_arm": {
+     "median_pct": -0.122,
+     "median_abs_pct": 0.122,
+     "p10_abs_pct": 0.042,
+     "p90_abs_pct": 0.256
+    },
+    "wrist": {
+     "median_pct": -75.792,
+     "median_abs_pct": 75.792,
+     "p10_abs_pct": 2.214,
+     "p90_abs_pct": 83.529
+    },
+    "railing": {
+     "median_pct": -0.007,
+     "median_abs_pct": 0.007,
+     "p10_abs_pct": 0.003,
+     "p90_abs_pct": 0.019
+    },
+    "sit": {
+     "median_pct": -0.002,
+     "median_abs_pct": 0.002,
+     "p10_abs_pct": 0.001,
+     "p90_abs_pct": 0.007
+    },
+    "phone": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.0,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.001
+    },
+    "bystander": {
+     "median_pct": -0.06,
+     "median_abs_pct": 0.06,
+     "p10_abs_pct": 0.021,
+     "p90_abs_pct": 0.126
+    },
+    "wall": {
+     "median_pct": -0.111,
+     "median_abs_pct": 0.111,
+     "p10_abs_pct": 0.069,
+     "p90_abs_pct": 0.179
+    },
+    "flex": {
+     "median_pct": -0.001,
+     "median_abs_pct": 0.024,
+     "p10_abs_pct": 0.005,
+     "p90_abs_pct": 0.06
+    }
+   },
+   "detect": {
+    "still": {
+     "threshold_pct": 1.065,
+     "share": {
+      "shoulder": 0.051,
+      "waist": 0.056,
+      "hair": 0.081,
+      "other_arm": 0.064,
+      "wrist": 0.999,
+      "railing": 0.014,
+      "sit": 0.0,
+      "phone": 0.0
+     }
+    },
+    "moving": {
+     "threshold_pct": 8.443,
+     "share": {
+      "shoulder": 0.0,
+      "waist": 0.0,
+      "hair": 0.0,
+      "other_arm": 0.0,
+      "wrist": 0.878,
+      "railing": 0.0,
+      "sit": 0.0,
+      "phone": 0.0
+     }
+    }
+   }
+  },
+  "pendant": {
+   "label": "Pendant at the collarbone",
+   "events": {
+    "shoulder": {
+     "median_pct": -6.807,
+     "median_abs_pct": 6.807,
+     "p10_abs_pct": 2.392,
+     "p90_abs_pct": 16.343
+    },
+    "waist": {
+     "median_pct": -6.689,
+     "median_abs_pct": 6.689,
+     "p10_abs_pct": 2.402,
+     "p90_abs_pct": 16.388
+    },
+    "hair": {
+     "median_pct": -9.373,
+     "median_abs_pct": 9.373,
+     "p10_abs_pct": 3.379,
+     "p90_abs_pct": 21.371
+    },
+    "other_arm": {
+     "median_pct": -8.1,
+     "median_abs_pct": 8.1,
+     "p10_abs_pct": 2.835,
+     "p90_abs_pct": 19.564
+    },
+    "wrist": {
+     "median_pct": -89.967,
+     "median_abs_pct": 91.877,
+     "p10_abs_pct": 23.075,
+     "p90_abs_pct": 97.804
+    },
+    "railing": {
+     "median_pct": -20.641,
+     "median_abs_pct": 20.641,
+     "p10_abs_pct": 7.115,
+     "p90_abs_pct": 46.792
+    },
+    "sit": {
+     "median_pct": -6.482,
+     "median_abs_pct": 6.482,
+     "p10_abs_pct": 2.274,
+     "p90_abs_pct": 15.93
+    },
+    "phone": {
+     "median_pct": -0.892,
+     "median_abs_pct": 0.892,
+     "p10_abs_pct": 0.269,
+     "p90_abs_pct": 2.294
+    },
+    "bystander": {
+     "median_pct": -1.044,
+     "median_abs_pct": 1.112,
+     "p10_abs_pct": 0.241,
+     "p90_abs_pct": 3.786
+    },
+    "wall": {
+     "median_pct": 2.974,
+     "median_abs_pct": 2.974,
+     "p10_abs_pct": 0.752,
+     "p90_abs_pct": 7.269
+    },
+    "flex": {
+     "median_pct": 0.64,
+     "median_abs_pct": 17.914,
+     "p10_abs_pct": 3.606,
+     "p90_abs_pct": 35.715
+    }
+   },
+   "watch_alone": {
+    "shoulder": {
+     "median_pct": -0.12,
+     "median_abs_pct": 0.12,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.257
+    },
+    "waist": {
+     "median_pct": -0.12,
+     "median_abs_pct": 0.12,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.26
+    },
+    "hair": {
+     "median_pct": -0.123,
+     "median_abs_pct": 0.123,
+     "p10_abs_pct": 0.045,
+     "p90_abs_pct": 0.262
+    },
+    "other_arm": {
+     "median_pct": -0.123,
+     "median_abs_pct": 0.123,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.258
+    },
+    "wrist": {
+     "median_pct": -76.073,
+     "median_abs_pct": 76.073,
+     "p10_abs_pct": 2.239,
+     "p90_abs_pct": 83.776
+    },
+    "railing": {
+     "median_pct": -0.007,
+     "median_abs_pct": 0.007,
+     "p10_abs_pct": 0.003,
+     "p90_abs_pct": 0.019
+    },
+    "sit": {
+     "median_pct": -0.002,
+     "median_abs_pct": 0.002,
+     "p10_abs_pct": 0.001,
+     "p90_abs_pct": 0.006
+    },
+    "phone": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.0,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.001
+    },
+    "bystander": {
+     "median_pct": -0.061,
+     "median_abs_pct": 0.061,
+     "p10_abs_pct": 0.021,
+     "p90_abs_pct": 0.128
+    },
+    "wall": {
+     "median_pct": -0.112,
+     "median_abs_pct": 0.112,
+     "p10_abs_pct": 0.07,
+     "p90_abs_pct": 0.181
+    },
+    "flex": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.004,
+     "p10_abs_pct": 0.001,
+     "p90_abs_pct": 0.012
+    }
+   },
+   "detect": {
+    "still": {
+     "threshold_pct": 14.933,
+     "share": {
+      "shoulder": 0.133,
+      "waist": 0.132,
+      "hair": 0.254,
+      "other_arm": 0.203,
+      "wrist": 0.945,
+      "railing": 0.658,
+      "sit": 0.121,
+      "phone": 0.0
+     }
+    },
+    "moving": {
+     "threshold_pct": 66.009,
+     "share": {
+      "shoulder": 0.0,
+      "waist": 0.0,
+      "hair": 0.0,
+      "other_arm": 0.0,
+      "wrist": 0.85,
+      "railing": 0.01,
+      "sit": 0.0,
+      "phone": 0.0
+     }
+    }
+   }
+  },
+  "anklet": {
+   "label": "Anklet",
+   "events": {
+    "shoulder": {
+     "median_pct": -25.086,
+     "median_abs_pct": 25.086,
+     "p10_abs_pct": 13.818,
+     "p90_abs_pct": 37.535
+    },
+    "waist": {
+     "median_pct": -24.977,
+     "median_abs_pct": 24.977,
+     "p10_abs_pct": 13.307,
+     "p90_abs_pct": 36.889
+    },
+    "hair": {
+     "median_pct": -34.429,
+     "median_abs_pct": 34.429,
+     "p10_abs_pct": 20.888,
+     "p90_abs_pct": 45.878
+    },
+    "other_arm": {
+     "median_pct": -30.106,
+     "median_abs_pct": 30.106,
+     "p10_abs_pct": 16.77,
+     "p90_abs_pct": 43.511
+    },
+    "wrist": {
+     "median_pct": -87.693,
+     "median_abs_pct": 89.805,
+     "p10_abs_pct": 53.943,
+     "p90_abs_pct": 97.357
+    },
+    "railing": {
+     "median_pct": -79.781,
+     "median_abs_pct": 79.781,
+     "p10_abs_pct": 55.156,
+     "p90_abs_pct": 91.855
+    },
+    "sit": {
+     "median_pct": -25.057,
+     "median_abs_pct": 25.057,
+     "p10_abs_pct": 14.869,
+     "p90_abs_pct": 35.774
+    },
+    "phone": {
+     "median_pct": -3.321,
+     "median_abs_pct": 3.321,
+     "p10_abs_pct": 1.781,
+     "p90_abs_pct": 5.569
+    },
+    "bystander": {
+     "median_pct": -4.109,
+     "median_abs_pct": 4.225,
+     "p10_abs_pct": 0.806,
+     "p90_abs_pct": 9.723
+    },
+    "wall": {
+     "median_pct": 12.153,
+     "median_abs_pct": 12.153,
+     "p10_abs_pct": 8.343,
+     "p90_abs_pct": 13.955
+    },
+    "flex": {
+     "median_pct": 0.096,
+     "median_abs_pct": 4.016,
+     "p10_abs_pct": 0.72,
+     "p90_abs_pct": 12.795
+    }
+   },
+   "watch_alone": {
+    "shoulder": {
+     "median_pct": -0.12,
+     "median_abs_pct": 0.12,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.257
+    },
+    "waist": {
+     "median_pct": -0.12,
+     "median_abs_pct": 0.12,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.26
+    },
+    "hair": {
+     "median_pct": -0.123,
+     "median_abs_pct": 0.123,
+     "p10_abs_pct": 0.045,
+     "p90_abs_pct": 0.261
+    },
+    "other_arm": {
+     "median_pct": -0.123,
+     "median_abs_pct": 0.123,
+     "p10_abs_pct": 0.043,
+     "p90_abs_pct": 0.258
+    },
+    "wrist": {
+     "median_pct": -76.076,
+     "median_abs_pct": 76.076,
+     "p10_abs_pct": 2.239,
+     "p90_abs_pct": 83.779
+    },
+    "railing": {
+     "median_pct": -0.007,
+     "median_abs_pct": 0.007,
+     "p10_abs_pct": 0.003,
+     "p90_abs_pct": 0.019
+    },
+    "sit": {
+     "median_pct": -0.002,
+     "median_abs_pct": 0.002,
+     "p10_abs_pct": 0.001,
+     "p90_abs_pct": 0.006
+    },
+    "phone": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.0,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.001
+    },
+    "bystander": {
+     "median_pct": -0.061,
+     "median_abs_pct": 0.061,
+     "p10_abs_pct": 0.021,
+     "p90_abs_pct": 0.128
+    },
+    "wall": {
+     "median_pct": -0.113,
+     "median_abs_pct": 0.113,
+     "p10_abs_pct": 0.07,
+     "p90_abs_pct": 0.182
+    },
+    "flex": {
+     "median_pct": -0.0,
+     "median_abs_pct": 0.001,
+     "p10_abs_pct": 0.0,
+     "p90_abs_pct": 0.002
+    }
+   },
+   "detect": {
+    "still": {
+     "threshold_pct": 27.996,
+     "share": {
+      "shoulder": 0.388,
+      "waist": 0.363,
+      "hair": 0.731,
+      "other_arm": 0.573,
+      "wrist": 0.991,
+      "railing": 0.999,
+      "sit": 0.376,
+      "phone": 0.0
+     }
+    },
+    "moving": {
+     "threshold_pct": 28.306,
+     "share": {
+      "shoulder": 0.373,
+      "waist": 0.353,
+      "hair": 0.721,
+      "other_arm": 0.561,
+      "wrist": 0.991,
+      "railing": 0.999,
+      "sit": 0.364,
+      "phone": 0.0
+     }
+    }
+   }
+  }
+ },
+ "coupling_curve": {
+  "ck0_pF": [
+   0.0005,
+   0.0012,
+   0.0031,
+   0.0076,
+   0.0188,
+   0.0464,
+   0.1147,
+   0.2838,
+   0.7018,
+   1.7358
+  ],
+  "touch_pct": [
+   30.393,
+   24.753,
+   17.027,
+   9.726,
+   4.883,
+   2.377,
+   1.244,
+   0.76,
+   0.554,
+   0.454
+  ],
+  "flex3_pct": [
+   0.4721,
+   0.9477,
+   1.5991,
+   2.2139,
+   2.6195,
+   2.8235,
+   2.9007,
+   2.897,
+   2.8097,
+   2.5883
+  ],
+  "flex50_pct": [
+   7.8678,
+   15.7948,
+   26.6485,
+   36.8873,
+   43.6247,
+   46.9686,
+   48.1199,
+   47.738,
+   45.5867,
+   40.6193
+  ],
+  "max_ck0_touch_3x_rigid_wobble_pF": 0.011
+ }
+}
