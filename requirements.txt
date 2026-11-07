@@ -1,5 +1,5 @@
-# Versions the results in data/ were produced with (6 Nov 2026).
-# scikit-learn must match exactly: models/svm_dual_shield.joblib was saved with 1.9.1.
+# Versions the results in results/data/ were produced with (6 Nov 2026).
+# scikit-learn must match exactly: results/classifier/svm_dual_shield.joblib was saved with 1.9.1.
 numpy==2.5.3
 scipy==1.18.1
 scikit-learn==1.9.1

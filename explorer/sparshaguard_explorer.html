@@ -483,8 +483,8 @@ a.cite:hover { text-decoration: underline; }
         </section>
     </div>
     <footer>
-      <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché [<a class="cite" href="#ref-S1">1</a>, <a class="cite" href="#ref-S3">3</a>], amplitude only. Body capacitance from Jonassen's footwear measurements [<a class="cite" href="#ref-S4">4</a>], skin under a dry steel electrode from Goyal et al. [<a class="cite" href="#ref-S10">10</a>], fabric from Ng &amp; Reaz [<a class="cite" href="#ref-S7">7</a>] with the hand area of Agarwal &amp; Sahu [<a class="cite" href="#ref-S13">13</a>], the watch's return path from Datta et al. [<a class="cite" href="#ref-S11">11</a>] and Maity et al. [<a class="cite" href="#ref-S5">5</a>], body-to-body coupling from Nath et al. [<a class="cite" href="#ref-S12">12</a>], shield performance from TI [<a class="cite" href="#ref-S14">14</a>], ADC noise from an ESP32 measurement [<a class="cite" href="#ref-S15">15</a>, <a class="cite" href="#ref-S16">16</a>], sense-node parasitics from [<a class="cite" href="#ref-S8">8</a>, <a class="cite" href="#ref-S35">35</a>, <a class="cite" href="#ref-S36">36</a>]. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/parameter_sources.md.</p>
-    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (above), checked with FastCap [<a class="cite" href="#ref-S59">59</a>]; the forearm case uses it with his hand 3 cm from the strap. The circuit solver is checked against ngspice [<a class="cite" href="#ref-S60">60</a>]. The passive static channel and the fused logic are simulated in time (sg_passive.py, passive_stream.py) with values from [<a class="cite" href="#ref-S17">17</a>, <a class="cite" href="#ref-S18">18</a>, <a class="cite" href="#ref-S22">22</a>, <a class="cite" href="#ref-S32">32</a>, <a class="cite" href="#ref-S40">40</a>–<a class="cite" href="#ref-S46">46</a>, <a class="cite" href="#ref-S54">54</a>], not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
+      <p>Lumped-element model of the open-source Arduino Touché circuit: swept sine through 10 kΩ and 10 mH into a 100 pF tank, 200 steps from 1 kHz to 3.5 MHz as in Touché [<a class="cite" href="#ref-S1">1</a>, <a class="cite" href="#ref-S3">3</a>], amplitude only. Body capacitance from Jonassen's footwear measurements [<a class="cite" href="#ref-S4">4</a>], skin under a dry steel electrode from Goyal et al. [<a class="cite" href="#ref-S10">10</a>], fabric from Ng &amp; Reaz [<a class="cite" href="#ref-S7">7</a>] with the hand area of Agarwal &amp; Sahu [<a class="cite" href="#ref-S13">13</a>], the watch's return path from Datta et al. [<a class="cite" href="#ref-S11">11</a>] and Maity et al. [<a class="cite" href="#ref-S5">5</a>], body-to-body coupling from Nath et al. [<a class="cite" href="#ref-S12">12</a>], shield performance from TI [<a class="cite" href="#ref-S14">14</a>], ADC noise from an ESP32 measurement [<a class="cite" href="#ref-S15">15</a>, <a class="cite" href="#ref-S16">16</a>], sense-node parasitics from [<a class="cite" href="#ref-S8">8</a>, <a class="cite" href="#ref-S35">35</a>, <a class="cite" href="#ref-S36">36</a>]. The watch ground floats on its battery. Each value is the midpoint of the sourced range; see docs/sources/parameter_sources.md.</p>
+    <p>Nine couplings are still estimates; six of them don't change any result and are marked settled. His hand near the strap comes from a 3D calculation (above), checked with FastCap [<a class="cite" href="#ref-S59">59</a>]; the forearm case uses it with his hand 3 cm from the strap. The circuit solver is checked against ngspice [<a class="cite" href="#ref-S60">60</a>]. The passive static channel and the fused logic are simulated in time (simulation/sg_passive.py, simulation/passive_stream.py) with values from [<a class="cite" href="#ref-S17">17</a>, <a class="cite" href="#ref-S18">18</a>, <a class="cite" href="#ref-S22">22</a>, <a class="cite" href="#ref-S32">32</a>, <a class="cite" href="#ref-S40">40</a>–<a class="cite" href="#ref-S46">46</a>, <a class="cite" href="#ref-S54">54</a>], not yet measured. The Gate 1 battery-powered experiment should check all of these.</p>
     </footer>
     <section class="refsec" id="references" aria-labelledby="refs-h">
       <h2 class="sec" id="refs-h">References</h2>
@@ -567,8 +567,8 @@ a.cite:hover { text-decoration: underline; }
 </div>
 
 <script>
-// SparshaGuard circuit model v0.3, JavaScript port of sg_model.py ("typical" values).
-// Sources: see docs/parameter_sources.md
+// SparshaGuard circuit model v0.3, JavaScript port of simulation/sg_model.py ("typical" values).
+// Sources: see docs/sources/parameter_sources.md
 const SG = (() => {
   const EPS0 = 8.854e-12, pF = 1e-12, CM2 = 1e-4, TAU = 2 * Math.PI;
   const c = (re, im = 0) => ({ re, im });
@@ -600,7 +600,7 @@ const SG = (() => {
   }
   const HIS = { hyd: 0.5, alpha: 0.9 };
 
-  // from data/summary_stats.json (no-touch drift, % of full scale, p50 and p90)
+  // from results/data/summary_stats.json (no-touch drift, % of full scale, p50 and p90)
   const DRIFT = { single: [0.112, 0.119], dual: [0.118, 0.145], dual_shield: [0.113, 0.123] };
   const TRIGGER = 0.3;      // % of full scale; chosen from the event-stream trade-off (fig 9)
   const NOISE = 0.112;      // % of full scale, per sweep point after averaging (ESP32 ADC)
@@ -626,7 +626,7 @@ const SG = (() => {
     };
   }
 
-  // his hand near the strap: 3D boundary-element result (fem/), checked with FastCap; log-log interpolation
+  // his hand near the strap: 3D boundary-element result (simulation/fem/), checked with FastCap; log-log interpolation
   const FEM_GAP = [1, 2, 3, 5, 10];
   const FEM_HAND = { dual: [1.4364, 0.4363, 0.2395, 0.1180, 0.0487], single: [0.3494, 0.1106, 0.0612, 0.0312, 0.0134] };
   function handNearStrapPF(gapCm, design) {
@@ -978,7 +978,7 @@ const SG = (() => {
     }
   }
 
-  // ------------------------------------------------------------- fused watch (sg_passive.py physics)
+  // ------------------------------------------------------------- fused watch (simulation/sg_passive.py physics)
   // Contact shares charge: dV_B = dV * C_A / (C_A + C_B) bare, or with fabric in series
   // (C_A = C_B = 180 pF [S4]; fabric eps 3.15 over 60 cm^2 of hand [S7, S13]). The watch sees
   // k = C_GE / (C_GE + C_GB + C_in) = 1.1 / (1.1 + 8.1 + 0.5) with the bootstrapped input and the best measured shield (23 % left), and a step must
@@ -1169,7 +1169,7 @@ const SG = (() => {
   $("sig-run").textContent = `${pc(SIG.touchRun)} of touches while running caught; ${pc(SIG.runAlone)} of runs alone prompted`;
   $("sig-hold").textContent = `${pc(SIG.hold)} of grabs that only hold her caught (rule F: ${pc(SIG.holdF)})`;
   $("sig-self").textContent = `${pc(SIG.self)} of her own palm on the watch prompted`;
-  // transmit / shunt study (sg_newch.py, fig 19)
+  // transmit / shunt study (simulation/sg_newch.py, fig 19)
   const TX = {"_baseline": {"transmit_uA": 7.442200449723197, "receive_uA": 3.116755184647899, "earth_over_body": 0.9922388006379137}, "her hand on the glass": {"transmit": [1.2577206249975463, 1.6023372303872696, 2.3242876721390244], "receive": [0.9712375611088906, 0.98869545072523, 0.9957792822217885]}, "her hand on the strap": {"transmit": [9.314650832855778, 15.794377643564792, 28.972497619636716], "receive": [18.506938083760065, 37.05857709291538, 78.86027473146977]}, "stranger: hand on the strap only": {"transmit": [2.636779513476542, 3.441092380176852, 4.762074088172422], "receive": [4.3068214324129945, 7.013585829714698, 12.29683353763742]}, "stranger: grabs wrist skin + strap": {"transmit": [9.637292930918335, 16.525357380870446, 31.333848142094322], "receive": [19.212151973701896, 38.947188960615364, 87.18395447323267]}, "stranger: grabs forearm": {"transmit": [1.0046194488956495, 1.0100805046937196, 1.0447105087991653], "receive": [1.0093417497922181, 1.024778936228535, 1.1155468342716826]}, "stranger: grabs shoulder": {"transmit": [1.0000518098736433, 1.000170911168947, 1.0005649552734273], "receive": [0.9999877844680473, 0.9999968765397667, 0.9999991494569902]}, "metal pole on the strap": {"transmit": [2.822592419380003, 4.203810320462427, 6.360165605325945], "receive": [4.874570354676483, 8.80937558924867, 16.761038815943536]}};
   const cap = (k) => k[0].toUpperCase() + k.slice(1);
   document.querySelector("#tx-tbl tbody").innerHTML = Object.keys(TX).filter((k) => k[0] !== "_").map((k) =>

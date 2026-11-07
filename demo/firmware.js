@@ -7,7 +7,7 @@
 // frozen app can never block an alert. The same file runs unchanged in the digital twin and in
 // the headless check (demo/check_demo.js).
 //
-// Detection is the pipeline of event_stream.py (run_pipeline, no classifier gate, the
+// Detection is the pipeline of simulation/event_stream.py (run_pipeline, no classifier gate, the
 // recommended setting from fig 9):
 //   score = RMS over the sweep of (amplitude now - baseline amplitude), fraction of full scale
 //   baseline: 5 s start-up average, then follows slow drift (EMA, 60 s) but FREEZES during a
@@ -16,18 +16,18 @@
 //   a PIN prompt fires when the touch has lasted 2 s
 // Strap removal: the sweep is compared with the watch's own "off the wrist" signature (stored at
 // the factory); a match for 0.6 s means the electrode has left the skin -> alert at once.
-// Passive channel (sg_passive.py, passive_stream.py): the same electrode also reads her body voltage
+// Passive channel (simulation/sg_passive.py, simulation/passive_stream.py): the same electrode also reads her body voltage
 // at 500 Hz. When another person touches her ANYWHERE, the two bodies share static charge and her
 // voltage jumps in under 1 ms. A "contact step" must be sharp (> 6x noise in one sample), settle at
 // once, and stand out from the signal's local roughness (her footsteps and arm movements are slower).
 // Steps are classed: earthed metal (pulled to and held at 0 V, or the 50 Hz hum gone indoors), a
 // small object (pulls her < 12 % toward 0 V: phone, bag), or another person.
-// Fused rule F (recommended by passive_stream.py, fig 17):
+// Fused rule F (recommended by simulation/passive_stream.py, fig 17):
 //   wrist path    the active sweep held 2 s AND a person step within 4 s before the hold began
 //   anywhere path a person step AND agitation (>= 2 jerks over 1.25 g on the wrist accelerometer
 //                 within 3 s): a grab that pulls or shakes her, anywhere on her body
 // Her own hand, a metal pole, a phone or a table make no person step, so they never prompt.
-// New channels, rule F2 (default since 28 Oct 2026; sg_newch.py, passive_stream.py):
+// New channels, rule F2 (default since 28 Oct 2026; simulation/sg_newch.py, simulation/passive_stream.py):
 //   transmit check  a static step that lands at the same instant as a jump in the 100 kHz transmit
 //                   current, and matches the k change that jump predicts, is her own hand on the
 //                   watch, never a person
@@ -328,7 +328,7 @@
         return;
       }
 
-      // touch detection, exactly as run_pipeline in event_stream.py
+      // touch detection, exactly as run_pipeline in simulation/event_stream.py
       const sc = rmsDiff(amp, this.base);
       this.score = sc;
       if (!this.active && sc > c.T_ENTER) { this.active = true; this.count = 0; this.frozen = 0; this.prompted = false; this.vetoed = false; this.holdStart = this.t / FS;

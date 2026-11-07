@@ -12,7 +12,7 @@ HERE = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("src", HERE / "build_sources_xlsx.py")
 src = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(src)
-OUT = HERE.parent / "docs" / "SparshaGuard_paper_values.xlsx"
+OUT = HERE.parent / "docs" / "sources" / "SparshaGuard_paper_values.xlsx"
 
 F = "Arial"
 HDR = PatternFill("solid", fgColor="1F3A4D")

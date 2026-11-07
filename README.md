@@ -25,23 +25,46 @@ offline). Press **Play all** for the guided story (about 2 minutes), or switch t
 and touch her. The watch's own decision logic runs on a simulated sensor built from the physics
 below; nothing is scripted to succeed.
 
+## Where things are
+
+```
+SparshaGuard/
+├── index.html          front page of the website (GitHub Pages serves the repo root)
+├── demo/               the digital twin web page + its sensor, firmware and tests
+├── explorer/           the physics explorer web page + its model
+├── simulation/         all Python: the model, every study, the 3D (fem/) and SPICE (ltspice/) checks
+├── results/            what the simulation produces: data/, figures/, classifier/
+├── docs/
+│   ├── technical/      design notes and the write-up of each study
+│   ├── sources/        every parameter value and the paper it comes from
+│   └── pitch/          decks and scripts: bih2026/, anvaya2k26/, the 2-minute video script
+├── media/              videos/ and screenshots/
+├── tools/              build the web pages, check the numbers agree, update the deck
+├── archive/            the v0.1 and v0.2 models and results, kept for comparison
+├── NOTES.md            how the team works on this repo
+└── requirements.txt    Python versions the results were made with
+```
+
+Each folder has its own short `README.md`. Run every script from anywhere: paths are resolved
+from the script's own location.
+
 ## Results at a glance
 
 | | Result | How we know |
 |---|---|---|
 | Wrist grab, signal change | ~16 % of full scale (noise ~0.1 %) | circuit model; 72 published sources logged in total |
 | Wrist grabs caught | 97 % (demo), 68–74 % (study, incl. his palm over her watch face) | 120 random trials; hours of simulated daily life |
-| Grabs anywhere on her body | 70–77 % averaged over 7 places (study, bodies at 1–100 V), 90 % (demo, ~10 V); first design 13 %, wrist only | `passive_stream.py`, demo check |
+| Grabs anywhere on her body | 70–77 % averaged over 7 places (study, bodies at 1–100 V), 90 % (demo, ~10 V); first design 13 %, wrist only | `simulation/passive_stream.py`, demo check |
 | A grab that only holds her (she freezes) | 65–67 % caught through her skin response (fused rule of 14 Oct: 0 %) | demo check |
 | Watch pulled off | 100 % caught, no false alarms | demo headless check |
 | Unwanted PIN prompts | 2 in 9 simulated hours (demo); 0.06–0.17 per hour from strangers (study). First design: ~4–5 per hour | same simulations |
 | Guard Mode rules (PIN to switch off, duress, "I'm safe") | 14 of 14 tests pass | `node demo/test_firmware.js` |
+| Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `simulation/ltspice/`, `simulation/fem/` |
 
-All headline numbers are generated into `data/headline_numbers.json` by
+All headline numbers are generated into `results/data/headline_numbers.json` by
 `python tools/check_consistency.py`, which also fails if any file still quotes an older number.
 The demo and study differ because the demo draws fewer, typical grabs at ~10 V while the study
 sweeps body voltage, context and grab type; quote the study range when in doubt.
-| Model correctness | Python solver = SPICE to 0.0001 %; 3D solver = MIT FastCap within 1 % | `ltspice/`, `fem/` |
 
 **How the fused watch decides.** A PIN prompt needs *another body*. When another person touches
 her, the two bodies share static charge and her voltage jumps in under a millisecond; her own
@@ -55,7 +78,7 @@ things are still estimates until Gate 1: how charged people are on Indian floors
 from about 1 V to 100 V with the bootstrapped input, the best measured shield and an ADS1115),
 how often a grab pulls her
 arm (70 % assumed), and how strongly her wrist skin responds to fear. See
-`docs/whole_body_fusion.md` and `docs/new_channels.md`.
+`docs/technical/whole_body_fusion.md` and `docs/technical/new_channels.md`.
 
 **Signs of assault from her own movement** (digital twin; thresholds are estimates, because no
 published wrist data for assaults was found):
@@ -70,7 +93,7 @@ published wrist data for assaults was found):
 **Honest status:** this is a simulation study. Every value comes from a published paper or from
 geometry, and the remaining estimates are marked. The next stage, **Gate 1**, is a
 battery-powered prototype whose measurements replace those estimates before any number is
-quoted as a device result. A map of the whole project is in `docs/project_map.svg`.
+quoted as a device result. A map of the whole project is in `docs/technical/project_map.svg`.
 
 ## The science, in detail
 
@@ -81,30 +104,30 @@ classifiers, and runs the full detection pipeline through simulated hours of dai
 > **Status: sourced, not yet calibrated.** v0.3 takes its values from the proposal's Touché
 > references and 14 further published sources (body capacitance with footwear, skin under a
 > metal electrode, fabric, the watch's return path, body-to-body coupling, hand area, shield
-> performance, ADC noise). Every value and its source is in `docs/parameter_sources.md` and
-> `docs/SparshaGuard_paper_values.xlsx`. The values still estimated are marked [E]; Gate 1
+> performance, ADC noise). Every value and its source is in `docs/sources/parameter_sources.md` and
+> `docs/sources/SparshaGuard_paper_values.xlsx`. The values still estimated are marked [E]; Gate 1
 > measurements on the real board should replace them before any number is quoted as a device result.
 
 ## How to run
 
 ```bash
 pip install -r requirements.txt
-python make_figures.py      # physics figures, fig0-fig4               (~40 s)
-python make_dataset.py      # synthetic dataset, 18,000 events         (~15 s)
-python train_classifier.py  # classifiers, fig5-fig7                   (~40 s)
-python event_stream.py      # pipeline over simulated hours, fig8-fig9  (~3 min on 2 cores)
-python event_stream.py --figs-only   # redraw fig8-fig9 from saved results
-python build_explorer.py    # rebuild the interactive page after editing its sources
-python rebuild_csv.py       # write the CSV from the .npz (numpy + pandas only)
-python fem/hand_near_strap.py   # 3D field calculation: his hand near the strap (~2 min)
-python whole_body.py        # whole-body touch study, fig10-fig12      (~5 s)
-python ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fig13 (~5 s, needs ngspice)
-FASTCAP=/path/to/fastcap python fem/fastcap_crosscheck.py  # check the 3D result against FastCap, fig14 (~2 min)
-python fusion_study.py      # static channel on paper: rules vs body voltage, fig15-fig16 (~10 s)
-python passive_stream.py    # time-domain static channel + fused alarm rules, fig17-fig18 (~2.5 min)
+python simulation/make_figures.py      # physics figures, fig0-fig4               (~40 s)
+python simulation/make_dataset.py      # synthetic dataset, 18,000 events         (~15 s)
+python simulation/train_classifier.py  # classifiers, fig5-fig7                   (~40 s)
+python simulation/event_stream.py      # pipeline over simulated hours, fig8-fig9  (~3 min on 2 cores)
+python simulation/event_stream.py --figs-only   # redraw fig8-fig9 from saved results
+python tools/build_explorer.py    # rebuild the interactive page after editing its sources
+python simulation/rebuild_csv.py       # write the CSV from the .npz (numpy + pandas only)
+python simulation/fem/hand_near_strap.py   # 3D field calculation: his hand near the strap (~2 min)
+python simulation/whole_body.py        # whole-body touch study, fig10-fig12      (~5 s)
+python simulation/ltspice/spice_crosscheck.py  # check the circuit solver against SPICE, fig13 (~5 s, needs ngspice)
+FASTCAP=/path/to/fastcap python simulation/fem/fastcap_crosscheck.py  # check the 3D result against FastCap, fig14 (~2 min)
+python simulation/fusion_study.py      # static channel on paper: rules vs body voltage, fig15-fig16 (~10 s)
+python simulation/passive_stream.py    # time-domain static channel + fused alarm rules, fig17-fig18 (~2.5 min)
 node demo/check_demo.js     # check the demo's sensor + firmware headless (~4 min)
 node demo/test_firmware.js  # Guard Mode state-machine tests (~1 s)
-python build_demo.py        # rebuild the digital-twin demo page (quotes demo/demo_check.json)
+python tools/build_demo.py        # rebuild the digital-twin demo page (quotes demo/demo_check.json)
 python tools/check_consistency.py   # headline numbers + stale-claim scan (run last)
 python tools/update_bih_deck.py     # write the headline numbers into the BIH deck
 ```
@@ -114,42 +137,67 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 
 ## Files
 
+**`simulation/`** (Python)
+
 | File | What it is |
 |---|---|
 | `sg_model.py` | The electrical model. Every parameter is tagged with its source |
-| `docs/parameter_sources.md` | Every value, where it comes from, and what Gate 1 should measure |
-| `docs/SparshaGuard_paper_values.xlsx` | Every value found in the papers, with full references |
-| `docs/findings_integrated_v0_3.md` | What changed from v0.2 to v0.3 and why |
-| `make_figures.py` | Equivalent circuit and physics figures |
-| `make_dataset.py` | Monte Carlo dataset generator |
-| `train_classifier.py`, `sg_features.py` | SVM and random-forest classifiers, evaluation |
-| `event_stream.py` | Time-domain pipeline: baseline tracking, hysteresis, sustain rule, prompts per hour |
-| `plotstyle.py` | Shared figure style |
-| `ltspice/sparshaguard_wrist_grab.cir` | The same circuit as a netlist for LTspice / ngspice cross-checking |
-| `ltspice/spice_crosscheck.py` | Writes a SPICE netlist for every design and scenario (`ltspice/netlists/`), runs ngspice and compares with the Python solver (fig13, `data/spice_crosscheck.json`) |
-| `data/sparshaguard_synthetic_v0_3.csv` | The dataset, amplitude only; columns explained below. Not stored in the repo (40 MB): run `python rebuild_csv.py` |
-| `data/sparshaguard_synthetic_v0_3.npz` | Same data as the CSV; `..._phase.npz` and `..._baseline.npz` add phase and baseline amplitude |
-| `data/*.json` | Numeric results behind every figure |
-| `models/svm_dual_shield.joblib` | Trained SVM for the recommended hardware design |
-| `explorer/sparshaguard_explorer.html` | Interactive explorer page (built from `page_src.html` + `model.js`) |
-| `demo/sparshaguard_demo.html` | Digital-twin demo: the watch firmware running on a simulated sensor (built by `build_demo.py` from `demo/page_src.html`, `demo/sensor.js`, `demo/firmware.js` and `explorer/model.js`) |
-| `demo/check_demo.js`, `demo/demo_check.json` | Headless check of the demo's sensor and firmware against the study's rates |
-| `demo/test_firmware.js` | Tests of the Guard Mode state machine: PIN, duress, switching off, "I'm safe", strap removal |
-| `tools/check_consistency.py`, `data/headline_numbers.json` | One source of truth for every quoted number, plus a scan for stale claims |
-| `tools/update_bih_deck.py` | Writes the headline numbers into the BIH 2026 deck |
-| `docs/consistency_pass_2026-11-06.md` | What the 6 Nov 2026 consistency pass changed, and why |
-| `build_explorer.py`, `rebuild_csv.py` | Rebuild the explorer page; rebuild the CSV from the `.npz` |
-| `docs/design_notes.md` | Hardware changes, sensing physics, false-trigger strategy, Gate 1 test rules |
-| `whole_body.py`, `docs/whole_body_detection.md` | Can it detect a touch anywhere on her body? Active-sweep limit, passive body-potential channel, proposed design (fig10–fig12) |
 | `sg_passive.py` | Passive static channel in time: her body voltage at 500 Hz, wrist accelerometer, and the firmware's contact-step detector |
-| `passive_stream.py`, `fusion_study.py`, `docs/whole_body_fusion.md` | Fused alarm rules (sweep + static + motion) over body places, places and body voltages (fig15–fig18) |
-| `sg_newch.py`, `docs/new_channels.md` | Her own hand on the glass, skin-stretch noise, the 100 kHz transmit check (shunt mode rejected, fig19) and skin response (EDA); rule F2 |
-| `fem/bem_capacitance.py`, `fem/hand_near_strap.py` | Boundary-element electrostatic solver and the hand-near-strap 3D calculation |
-| `fem/fastcap_crosscheck.py` | The same 3D calculation in FastCap, MIT's reference capacitance solver (fig14, `fem/fastcap_results.json`); build steps in its docstring |
+| `sg_newch.py` | Her own hand on the glass, skin-stretch noise, the 100 kHz transmit check (shunt mode rejected, fig19) and skin response (EDA); rule F2 |
+| `sg_features.py`, `plotstyle.py`, `paths.py` | Classifier features; shared figure style; where results are written |
+| `make_figures.py` | Equivalent circuit and physics figures (fig0–fig4) |
+| `make_dataset.py`, `rebuild_csv.py` | Monte Carlo dataset generator; rebuild the CSV from the `.npz` |
+| `train_classifier.py` | SVM and random-forest classifiers, evaluation (fig5–fig7) |
+| `event_stream.py` | Time-domain pipeline: baseline tracking, hysteresis, sustain rule, prompts per hour (fig8–fig9) |
+| `whole_body.py` | Can it detect a touch anywhere on her body? Active-sweep limit, passive channel (fig10–fig12) |
+| `fusion_study.py`, `passive_stream.py` | Fused alarm rules (sweep + static + motion) over body places and body voltages (fig15–fig18) |
+| `fem/` | Boundary-element 3D solver, the hand-near-strap calculation, and the FastCap cross-check (fig14) |
+| `ltspice/` | The circuit as SPICE netlists and the ngspice cross-check (fig13) |
+
+**`results/`**
+
+| File | What it is |
+|---|---|
+| `data/*.json` | Numeric results behind every figure; `headline_numbers.json` is the one to quote |
+| `data/sparshaguard_synthetic_v0_3.npz` | The dataset; `..._phase.npz` and `..._baseline.npz` add phase and baseline amplitude. The CSV copy (40 MB) is not stored: run `python simulation/rebuild_csv.py` |
 | `figures/` | All figures, fig0–fig19, 200 dpi PNG |
-| `docs/project_map.mmd`, `.svg` | One-page map of the whole project (Mermaid source and picture) |
-| `docs/video_script_2min.md` | Narration and shot list for the 2-minute hackathon video |
-| `video/` | Earlier 13-minute explainer (`SparshaGuard_Explained.mp4`, `.html`, narration script). **Outdated:** made before the 3D forearm result, so it overstates forearm grabs; see `video/README.md` |
+| `classifier/svm_dual_shield.joblib` | Trained SVM for the recommended hardware design |
+
+**`demo/` and `explorer/`** (the website)
+
+| File | What it is |
+|---|---|
+| `demo/sparshaguard_demo.html` | Digital twin: the watch firmware running on a simulated sensor (built by `tools/build_demo.py` from `page_src.html`, `sensor.js`, `firmware.js` and `explorer/model.js`) |
+| `demo/firmware.js` | Guard Mode logic of the safety core: detection rules and the PIN state machine |
+| `demo/check_demo.js`, `demo/demo_check.json` | Headless check of the twin against the study's rates |
+| `demo/test_firmware.js` | Tests of the Guard Mode rules: PIN, duress, switching off, "I'm safe", strap removal |
+| `explorer/sparshaguard_explorer.html` | Physics explorer (built by `tools/build_explorer.py` from `page_src.html` + `model.js`) |
+
+**`docs/`**
+
+| File | What it is |
+|---|---|
+| `technical/design_notes.md` | Hardware (flagship architecture), sensing physics, false-trigger strategy, Gate 1 test rules |
+| `technical/whole_body_detection.md`, `whole_body_fusion.md`, `new_channels.md` | Write-ups of the whole-body, fusion and new-channel studies |
+| `technical/findings_integrated_v0_3.md` | What changed from v0.2 to v0.3 and why |
+| `technical/consistency_pass_2026-11-06.md` | What the 6 Nov 2026 consistency pass changed, and why |
+| `technical/project_map.svg` (`.mmd`) | One-page map of the whole project |
+| `sources/parameter_sources.md` | Every value, where it comes from, and what Gate 1 should measure |
+| `sources/*.xlsx` | Every value found in the papers, with full references (built by `tools/`) |
+| `pitch/bih2026/` | BIH 2026 deck and its 3.5-minute script |
+| `pitch/anvaya2k26/` | ANVAYA 2k26 deck (HTML, PDF, PPTX) and its 5-minute script |
+| `pitch/video_script_2min.md` | Narration and shot list for the 2-minute video |
+
+**`tools/`, `media/`, `archive/`**
+
+| File | What it is |
+|---|---|
+| `tools/build_demo.py`, `tools/build_explorer.py` | Rebuild the two web pages after editing their sources |
+| `tools/check_consistency.py` | Builds `results/data/headline_numbers.json` and fails if any file quotes a stale number |
+| `tools/update_bih_deck.py` | Writes the headline numbers into the BIH 2026 deck |
+| `tools/build_sources_xlsx.py`, `tools/build_paper_values_xlsx.py` | Build the source workbooks in `docs/sources/` |
+| `media/videos/` | The 2-minute demo video and the earlier 13-minute explainer. **Both show older numbers**; see `media/videos/README.md` |
+| `media/screenshots/` | Explorer screenshots |
 | `archive/v0_1/`, `archive/v0_2/` | Earlier models, figures and results, for comparison |
 
 ### Dataset columns
@@ -158,7 +206,7 @@ Open `explorer/sparshaguard_explorer.html` in any browser for the interactive ex
 `label` (no_contact / object / self / other_person), `subtype` (e.g. wrist, shoulder, bystander,
 railing_wrist), `near_watch`, `score_pct` (RMS amplitude change, % of full scale), then
 `da_000`–`da_199`: amplitude change at each of Touché's 200 sweep frequencies (1 kHz to 3.48 MHz
-in 17.5 kHz steps), as a fraction of full scale. Frequencies are in `data/sweep_frequencies.csv`.
+in 17.5 kHz steps), as a fraction of full scale. Frequencies are in `results/data/sweep_frequencies.csv`.
 
 ## The model in one paragraph
 
@@ -197,7 +245,7 @@ compared: single electrode, inner + outer electrode, and inner + outer + driven 
    hand.
 6. **Pipeline result (fig 9, sweep only):** with a 0.3%-of-full-scale threshold and 2 s sustain,
    it caught 88% of wrist grabs and none of the forearm or shoulder grabs, with about 4 unwanted
-   PIN prompts per hour (2 walking, 6 commuting, 4.5 at a desk; `data/event_stream_results.json`).
+   PIN prompts per hour (2 walking, 6 commuting, 4.5 at a desk; `results/data/event_stream_results.json`).
    The main causes are the wrist on a table, the phone, the strap pressed on a metal pole and her
    hand on the watch. Adding the classifier as a gate cuts prompts to about 2.7 per hour but also
    drops wrist detection to 57%, so it is not recommended. (The fused watch below removes most of
@@ -230,7 +278,7 @@ the 3D field calculation then showed that forearm grabs are not visible at all.
 
 ### Circuit: SPICE
 
-`ltspice/spice_crosscheck.py` builds the same circuit element by element as a SPICE netlist and
+`simulation/ltspice/spice_crosscheck.py` builds the same circuit element by element as a SPICE netlist and
 solves it with ngspice, an industry-standard circuit simulator, on the same 200-point sweep.
 SPICE has no constant-phase element, so each skin element is a fitted R-C ladder (Valsa et al.
 2011), accurate to better than 0.004% over the sweep. Across 49 cases (3 designs × 14
@@ -242,7 +290,7 @@ which only Gate 1 measurements can do.
 
 ### 3D field: FastCap
 
-`fem/fastcap_crosscheck.py` solves the hand-near-strap geometry again in FastCap (Nabors & White,
+`simulation/fem/fastcap_crosscheck.py` solves the hand-near-strap geometry again in FastCap (Nabors & White,
 IEEE TCAD 1991), the multipole-accelerated capacitance solver from MIT used as a reference in
 chip and package design. It has its own mesh and panel integrals. FastCap was first checked
 against the exact capacitance of a sphere (0.16% error at 1,654 panels). On the finer mesh the
@@ -255,7 +303,7 @@ tissue are not included in either.
 
 The 3D result (about 0.12–1.4 pF for a grip 1–5 cm from the strap) is well below the 0.5–3 pF
 estimate the model used for a forearm grab. On 12 October 2026 the 3D curve replaced that
-estimate in `sg_model.py` (`hand_near_strap_pF`), and the dataset, classifiers and daily-life
+estimate in `simulation/sg_model.py` (`hand_near_strap_pF`), and the dataset, classifiers and daily-life
 simulation were re-run. The forearm-grab median fell from ~0.26% to ~0.12% of full scale (the
 noise floor), and forearm grabs caught fell from ~43% to 0%. The active sweep sees a grab only
 when his hand is on or within about 1 cm of the strap. Wrist-grab results did not change.
@@ -268,18 +316,18 @@ can see (wrist), as the script already did for shoulder, waist and other far gra
 for the hackathon demonstration. It is split the way the real device is:
 
 - **Sensor twin** (`demo/sensor.js`): the circuit model (`explorer/model.js`, the JavaScript port
-  of `sg_model.py`) plus sweat drift, strap jitter, foot movement and ADC noise, as in
-  `event_stream.py`. It outputs only what an envelope detector gives: 200 amplitudes, 5 times a
+  of `simulation/sg_model.py`) plus sweat drift, strap jitter, foot movement and ADC noise, as in
+  `simulation/event_stream.py`. It outputs only what an envelope detector gives: 200 amplitudes, 5 times a
   second. Each touch draws its details at random over the model's ranges (for example, his palm
   misses the outer electrode in 15% of wrist grabs).
-- **Passive twin** (`PassiveTwin` in `demo/sensor.js`): the JavaScript port of `sg_passive.py`.
+- **Passive twin** (`PassiveTwin` in `demo/sensor.js`): the JavaScript port of `simulation/sg_passive.py`.
   Her body voltage at 500 Hz (walking charge and leak, charge sharing at contact, a person walking
   up, earthed metal, a phone, her arm movement, her own hand on the glass, skin-stretch noise,
   ADS1115 noise), a wrist accelerometer at 50 Hz, the transmit-check current and her skin
   conductance (EDA) at 5 Hz.
-- **Firmware** (`demo/firmware.js`, the logic of the flagship's nRF5340 safety core): the detection pipeline of `event_stream.py` (0.3% threshold,
+- **Firmware** (`demo/firmware.js`, the logic of the flagship's nRF5340 safety core): the detection pipeline of `simulation/event_stream.py` (0.3% threshold,
   2 s hold, frozen baseline, no classifier gate), the static contact-step detector of
-  `sg_passive.py` (sharp, settled, standing out from the signal around it; classed as another
+  `simulation/sg_passive.py` (sharp, settled, standing out from the signal around it; classed as another
   person, earthed metal or a small object; her own hand on the glass is vetoed by a 100 kHz
   transmit check), the fused rule F2 (F plus a skin-response path for grabs that only hold her),
   a strap-removal check against the
@@ -315,36 +363,36 @@ the rest only hold her):
 | Touch while she runs / running alone | 0 % / 0 % | 100 % / 0 % | 100 % / 0 % |
 | Strap removals caught | 100 % | 100 % | 100 % |
 
-Re-run on 6 Nov 2026 with the sourced shield value (C_GB 8.1 pF, see `docs/consistency_pass_2026-11-06.md`).
+Re-run on 6 Nov 2026 with the sourced shield value (C_GB 8.1 pF, see `docs/technical/consistency_pass_2026-11-06.md`).
 With it, his hand on the strap changes the watch's pickup less at the moment of contact, so the
 static step at a wrist grab is cleaner: wrist grabs rose from 88 % to 97 % in the twin, while the
 Python study shows the smaller pickup needs more charge (90 % of shoulder grabs at 1.6 V instead
 of 0.4 V). Both are model results for Gate 1 to check.
 
 No false strap alarms: normal wearing never comes closer than 2.0% to the off-wrist signature
-(the alarm needs 0.4%). This matches `event_stream.py` and `passive_stream.py` within the
-run-to-run spread. Strap removal is a new event in `sg_model.py`
+(the alarm needs 0.4%). This matches `simulation/event_stream.py` and `simulation/passive_stream.py` within the
+run-to-run spread. Strap removal is a new event in `simulation/sg_model.py`
 (`strap_off`: electrode and ground plane 1–5 cm off the skin, in air).
 
 ## Calibrating with Gate 1
 
-The list of what to measure, in priority order, is at the end of `docs/parameter_sources.md`.
-Replace the [E] ranges in `sg_model.py`, rerun the scripts, and use real recordings for final
+The list of what to measure, in priority order, is at the end of `docs/sources/parameter_sources.md`.
+Replace the [E] ranges in `simulation/sg_model.py`, rerun the scripts, and use real recordings for final
 training and for any accuracy you report.
 
 ## Known limitations
 
 - Lumped model. One coupling (his hand near the strap) comes from a 3D boundary-element
-  calculation in `fem/`, confirmed with FastCap; the 3D solve is in air (no strap plastic or
+  calculation in `simulation/fem/`, confirmed with FastCap; the 3D solve is in air (no strap plastic or
   tissue), and where along the forearm he grips (1–5 cm from the strap) is an estimate. The other
   couplings are still geometry estimates.
-- The passive static channel is simulated in time (`sg_passive.py`), but body voltages on Indian
+- The passive static channel is simulated in time (`simulation/sg_passive.py`), but body voltages on Indian
   floors, her arm-movement statistics and how often a grab pulls her are estimates, not measured.
   With today's input and the ESP32 ADC it needs bodies at 10 V or more; the fused watch needs the
   bootstrapped input, the best measured shield layout (23 % of the coupling left, TI) and an ADS1115.
 - Only the Guard Mode logic exists as code (`demo/firmware.js`, the safety core's logic). There is
   no hardware, power budget, embedded firmware, phone app, backend or SMS/112 integration yet.
-- Event rates and durations in `event_stream.py` are guesses, not measured behaviour.
+- Event rates and durations in `simulation/event_stream.py` are guesses, not measured behaviour.
 - Cause attribution in the prompt counts is approximate when long events overlap.
 - The accelerometer is simulated from estimates (no published wrist data for grabs); no heart-rate
   or audio signals yet.

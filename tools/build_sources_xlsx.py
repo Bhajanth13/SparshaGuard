@@ -1,4 +1,4 @@
-"""Build docs/SparshaGuard_parameter_sources.xlsx - every value taken from a paper, with references.
+"""Build docs/sources/SparshaGuard_parameter_sources.xlsx - every value taken from a paper, with references.
 
 Sheets:
   Read Me            what the workbook is, legend, live counts
@@ -16,7 +16,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-OUT = Path(__file__).resolve().parent.parent / "docs" / "SparshaGuard_parameter_sources.xlsx"
+OUT = Path(__file__).resolve().parent.parent / "docs" / "sources" / "SparshaGuard_parameter_sources.xlsx"
 ACCESSED = "2026-10-11"
 
 FONT = "Arial"
@@ -446,7 +446,7 @@ V = [
     ("Measurement", "ESP32 / ESP32-S3 DNL, INL", "±7, ±12 / ±4, ±8", "LSB", "Datasheet values", "S16", "Table 1", CTX, "", ""),
     ("Measurement", "ESP32 ADC sample rate", "200 k (RTC) / 2 M (DIG)", "samples/s", "", "S16", "Table 1", CTX, "", ""),
     ("Measurement", "Noise advice", "100 nF on ADC input; multisampling", "-", "No figures given", "S16", "Text", CTX, "", ""),
-    # ---- S17-S22 whole-body detection study (docs/whole_body_detection.md)
+    # ---- S17-S22 whole-body detection study (docs/technical/whole_body_detection.md)
     ("Static charge", "Body voltage, walking on vinyl floor", "250 – 12,000", "V", "65-90% / 10-20% relative humidity", "S17", "Table", WB, "Fig 11 shaded band", ""),
     ("Static charge", "Body voltage, walking on carpet", "1,500 – 35,000", "V", "65-90% / 10-20% relative humidity", "S17", "Table", WB, "", ""),
     ("Static charge", "Body voltage from walking on vinyl (measured)", "up to ~3,500", "V", "Insulating floor", "S18", "Text", WB, "Her own steps: artefact size", ""),
@@ -508,7 +508,7 @@ V = [
     ("Passive sensing", "Indoor 50 Hz electric field in homes, geometric mean", 9.6, "V/m", "32 homes, log-normal", "S55", "Abstract", CTX, "", ""),
     ("Clothing", "Thermal insulation of a sari, by drape", "0.62 – 0.94", "clo", "Manikin, ISO 9920", "S57", "Abstract", CTX, "", ""),
     ("Harassment", "Physical harassment in public transport: touching / groping", "58.8 / 53.2", "% of victims", "Hyderabad, 583 respondents", "S58", "Press", CTX, "", "Secondary"),
-    # ---- 28 Oct 2026: new channels (sg_newch.py)
+    # ---- 28 Oct 2026: new channels (simulation/sg_newch.py)
     ("EDA", "Skin conductance response onset after the stimulus", "1 – 3", "s", "Most responses", "S61", "Chapter (via summaries)", NEW, "Onset 1–3 s; watch window 0.8–4.5 s", "Secondary"),
     ("EDA", "Response rise time / half-recovery time", "1 – 3 / 2 – 10", "s", "Typical", "S61", "Chapter (via summaries)", NEW, "Shape of each response", "Secondary"),
     ("EDA", "Smallest scored response", "0.01 – 0.05", "µS", "Depends on equipment noise", "S62", "Recommendations", NEW, "Context for the 0.45 µS threshold", ""),
@@ -631,7 +631,7 @@ def main():
             "Accessed", "Notes", "Values logged"]
     widths = [9, 30, 30, 52, 30, 7, 20, 10, 40, 11, 34, 9]
     ss.cell(row=1, column=1, value="Sources").font = TITLE
-    ss.cell(row=2, column=1, value="Full reference for every source ID used in this workbook and in sg_model.py.").font = BODY
+    ss.cell(row=2, column=1, value="Full reference for every source ID used in this workbook and in simulation/sg_model.py.").font = BODY
     header(ss, 3, cols, widths)
     for i, s in enumerate(SOURCES, start=1):
         r = 3 + i
@@ -649,7 +649,7 @@ def main():
 
     # ---------------- Model v0.3 Params
     ms = wb.create_sheet("Model v0.3 Params")
-    cols = ["Parameter", "Symbol in sg_model.py", "Value used", "Unit", "Tag", "Source IDs", "Note"]
+    cols = ["Parameter", "Symbol in simulation/sg_model.py", "Value used", "Unit", "Tag", "Source IDs", "Note"]
     widths = [36, 18, 34, 14, 7, 14, 40]
     ms.cell(row=1, column=1, value="Parameters used by simulation v0.3").font = TITLE
     ms.cell(row=2, column=1, value="Tag: S = published source, G = geometry calculation, D = our design choice, "
@@ -686,13 +686,13 @@ def main():
     rows = [
         ("Purpose", "Every value taken from a paper for the SparshaGuard simulation, with its full reference, "
                     "and every parameter the model uses with where it came from."),
-        ("Project folder", "D:\\SPARSHA  (model: sg_model.py; notes: docs\\parameter_sources.md, docs\\new_findings_pending.md)"),
+        ("Project folder", "D:\\SPARSHA  (model: simulation/sg_model.py; notes: docs\\parameter_sources.md, docs\\new_findings_pending.md)"),
         ("Last updated", ACCESSED),
         ("", ""),
         ("Sheets", ""),
         ("Values from Papers", "The log: one row per value, with source, location in the source and status."),
         ("Sources", "Full reference and link for each source ID."),
-        ("Model v0.3 Params", "Each parameter in sg_model.py, the value used, and its tag and sources."),
+        ("Model v0.3 Params", "Each parameter in simulation/sg_model.py, the value used, and its tag and sources."),
         ("Still Estimated", "Values with no published source yet, and how Gate 1 should measure them."),
         ("", ""),
         ("Adding a value", "Add a row at the bottom of 'Values from Papers'. Fill Category to Location, pick a "

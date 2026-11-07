@@ -1,5 +1,5 @@
-// SparshaGuard circuit model v0.3, JavaScript port of sg_model.py ("typical" values).
-// Sources: see docs/parameter_sources.md
+// SparshaGuard circuit model v0.3, JavaScript port of simulation/sg_model.py ("typical" values).
+// Sources: see docs/sources/parameter_sources.md
 const SG = (() => {
   const EPS0 = 8.854e-12, pF = 1e-12, CM2 = 1e-4, TAU = 2 * Math.PI;
   const c = (re, im = 0) => ({ re, im });
@@ -31,7 +31,7 @@ const SG = (() => {
   }
   const HIS = { hyd: 0.5, alpha: 0.9 };
 
-  // from data/summary_stats.json (no-touch drift, % of full scale, p50 and p90)
+  // from results/data/summary_stats.json (no-touch drift, % of full scale, p50 and p90)
   const DRIFT = { single: [0.112, 0.119], dual: [0.118, 0.145], dual_shield: [0.113, 0.123] };
   const TRIGGER = 0.3;      // % of full scale; chosen from the event-stream trade-off (fig 9)
   const NOISE = 0.112;      // % of full scale, per sweep point after averaging (ESP32 ADC)
@@ -57,7 +57,7 @@ const SG = (() => {
     };
   }
 
-  // his hand near the strap: 3D boundary-element result (fem/), checked with FastCap; log-log interpolation
+  // his hand near the strap: 3D boundary-element result (simulation/fem/), checked with FastCap; log-log interpolation
   const FEM_GAP = [1, 2, 3, 5, 10];
   const FEM_HAND = { dual: [1.4364, 0.4363, 0.2395, 0.1180, 0.0487], single: [0.3494, 0.1106, 0.0612, 0.0312, 0.0134] };
   function handNearStrapPF(gapCm, design) {

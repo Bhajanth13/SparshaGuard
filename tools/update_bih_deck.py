@@ -1,6 +1,6 @@
-"""Bring docs/SparshaGuard_BIH2026.pptx up to date with data/headline_numbers.json.
+"""Bring docs/pitch/bih2026/SparshaGuard_BIH2026.pptx up to date with results/data/headline_numbers.json.
 
-    python tools/check_consistency.py    # first: refresh data/headline_numbers.json
+    python tools/check_consistency.py    # first: refresh results/data/headline_numbers.json
     python tools/update_bih_deck.py
 
 Edits text runs in place (formatting kept) and resizes the success-metric bars on slide 7.
@@ -13,8 +13,8 @@ from pathlib import Path
 from pptx import Presentation
 
 ROOT = Path(__file__).resolve().parent.parent
-DECK = ROOT / "docs/SparshaGuard_BIH2026.pptx"
-H = json.loads((ROOT / "data/headline_numbers.json").read_text())
+DECK = ROOT / "docs/pitch/bih2026/SparshaGuard_BIH2026.pptx"
+H = json.loads((ROOT / "results/data/headline_numbers.json").read_text())
 D = H["demo_F2_10V"]
 N = H["sources_logged"]
 BAR_FULL = 3200400                       # EMU width of the 100 % bar track on slide 7

@@ -1,12 +1,12 @@
 // Headless check of the digital twin: runs the same sensor and firmware code as the demo page,
-// with no scripting of outcomes, and compares the rates with the Python studies (event_stream.py,
-// passive_stream.py). Three firmwares watch the same sensor side by side: rule A (active sweep only),
+// with no scripting of outcomes, and compares the rates with the Python studies (simulation/event_stream.py,
+// simulation/passive_stream.py). Three firmwares watch the same sensor side by side: rule A (active sweep only),
 // rule F (fused, 14 Oct: active sweep + static channel + accelerometer) and rule F2 (F + transmit
 // check + EDA path, the default since 28 Oct 2026).
 //   node demo/check_demo.js          (~5 min)   -> demo/demo_check.json
 // 1. Grabs: 120 trials at each body location (20 s calm, 10 s grab, 10 s after), as attack_runs()
-//    in event_stream.py; 70 % of grabs pull her arm [E]; caught if the PIN prompt fires during it.
-// 2. Daily life: 2 simulated hours per context with the event mix of event_stream.py; counts
+//    in simulation/event_stream.py; 70 % of grabs pull her arm [E]; caught if the PIN prompt fires during it.
+// 2. Daily life: 2 simulated hours per context with the event mix of simulation/event_stream.py; counts
 //    PIN prompts per hour that nobody wanted (the PIN is never entered here, so each prompt is
 //    cancelled at once to keep the hour going).
 // 3. Strap removal: 120 trials; and how close normal wearing ever gets to the off-wrist signature.
@@ -36,7 +36,7 @@ function grabTrials(detail, n) {
   return Object.fromEntries(RULES.map((r) => [r, caught[r] / n]));
 }
 
-// event mix per context, from event_stream.py: [kind, detail, per hour, min s, max s], or a
+// event mix per context, from simulation/event_stream.py: [kind, detail, per hour, min s, max s], or a
 // log-normal duration ["logn", median s, mean s, cap s]: her hand on the watch [S38], phone use [S39]
 const SELF_D = ["logn", 5, 9, 60], PHONE_D = ["logn", 30, 212, 1800];
 const MIX = {
@@ -94,7 +94,7 @@ function dailyLife(ctx, hours, seed) {
 }
 
 const t0 = Date.now();
-const out = { note: "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (rule A) and data/passive_stream_results.json (rules F and F2, improved input, v0 = 10 V)",
+const out = { note: "Same code as demo/sparshaguard_demo.html; compare with results/data/event_stream_results.json (rule A) and results/data/passive_stream_results.json (rules F and F2, improved input, v0 = 10 V)",
   body_voltage_v0: V0 };
 out.grabs_caught = {};
 for (const loc of ["wrist", "forearm", "upper_arm", "other_arm", "shoulder", "waist", "face_hair"]) {

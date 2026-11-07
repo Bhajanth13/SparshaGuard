@@ -1,5 +1,5 @@
 {
- "note": "Same code as demo/sparshaguard_demo.html; compare with data/event_stream_results.json (rule A) and data/passive_stream_results.json (rules F and F2, improved input, v0 = 10 V)",
+ "note": "Same code as demo/sparshaguard_demo.html; compare with results/data/event_stream_results.json (rule A) and results/data/passive_stream_results.json (rules F and F2, improved input, v0 = 10 V)",
  "body_voltage_v0": 10,
  "grabs_caught": {
   "wrist": {

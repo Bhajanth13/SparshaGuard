@@ -1,15 +1,15 @@
 // SparshaGuard sensor twin: what the watch's sense circuit would output, frame by frame.
 //
-// It wraps the circuit model in explorer/model.js (a faithful port of sg_model.py, checked
-// against SPICE) and adds what event_stream.py adds in Python:
+// It wraps the circuit model in explorer/model.js (a faithful port of simulation/sg_model.py, checked
+// against SPICE) and adds what simulation/event_stream.py adds in Python:
 //   - slow sweat drift (skin hydration, minutes), strap jitter on the wrist coupling (~1 s) and
-//     feet lifting while walking (~0.5 s), as Ornstein-Uhlenbeck processes [E, as in event_stream.py]
+//     feet lifting while walking (~0.5 s), as Ornstein-Uhlenbeck processes [E, as in simulation/event_stream.py]
 //   - ADC noise: 0.1 % of full scale per sweep point after averaging 16 sweeps [S15]
-//   - per-event random draws over the same ranges as sg_model.py (e.g. a wrist grab lands his palm
+//   - per-event random draws over the same ranges as simulation/sg_model.py (e.g. a wrist grab lands his palm
 //     on the outer electrode 85 % of the time; a forearm grip sits 1-5 cm from the strap)
 // The output is amplitude only (200 Touché frequencies), which is all an envelope detector gives.
 //
-// PassiveTwin adds the second, passive channel on the same electrode (port of sg_passive.py):
+// PassiveTwin adds the second, passive channel on the same electrode (port of simulation/sg_passive.py):
 // her body voltage from static charge, sampled at 500 Hz, and a wrist accelerometer at 50 Hz.
 //   body capacitance 110-250 pF [S4], 0.625x on one foot while walking [S40] (gait timing [S46]);
 //   charge leaks with tau = R C_B, R 2e10-1e11 ohm [S18, S40]; walking (1.6-2.3 steps/s [S41])
@@ -27,7 +27,7 @@
 //   gestures 150-350, pulls 200-500, struggling 400-900. Heart rate [E]: resting 65-85 bpm,
 //   +15 walking, +55 running, +30 under stress (a pull or a struggle), rising with a ~20 s and
 //   falling with a ~60 s time constant.
-// New channels (28 Oct 2026, port of sg_newch.py; values and sources listed there):
+// New channels (28 Oct 2026, port of simulation/sg_newch.py; values and sources listed there):
 //   her own hand on the watch adds C_hand between her body and the watch ground through the glass
 //   (palm 4-12 cm^2, stack 1.5-3 mm, er 3-7 [G/E]), landing at 0.1-0.3 m/s [E, S72], so k falls in
 //   ~10-100 ms with no charge moving; a stranger's palm covers her watch face in 30 % of wrist grabs [E]
@@ -45,7 +45,7 @@
   const DESIGN = "dual_shield";  // the recommended design
   const pF = 1e-12;
 
-  // daily contexts, as in event_stream.py: footwear/floor, strap jitter, feet movement
+  // daily contexts, as in simulation/event_stream.py: footwear/floor, strap jitter, feet movement
   const CONTEXTS = {
     walking: { label: "Walking alone at night", env: "street_shoes", motion: 0.015, feet: 0.05 },
     bus: { label: "Bus / metro commute", env: "street_shoes", motion: 0.010, feet: 0.03 },
@@ -67,7 +67,7 @@
     step() { this.x = this.a * this.x + this.s * Math.sqrt(1 - this.a * this.a) * this.R.n(); return this.x; }
   }
 
-  // one event = the sensor-relevant parameters of a touch, drawn like sg_model.py draws them
+  // one event = the sensor-relevant parameters of a touch, drawn like simulation/sg_model.py draws them
   function drawEvent(kind, detail, R) {
     const st = { touch: kind, loc: detail, object: detail, bare: true, clothMm: 0.555 };
     const BARE = { wrist: 0.9, forearm: 0.6, upper_arm: 0.3, shoulder: 0.1, other_arm: 0.5, waist: 0.05, face_hair: 0.8 };
@@ -86,7 +86,7 @@
   // ------------------------------------------------------------------ passive channel
   const PFS = 500, IMU_FS = 50, ONE_FOOT = 100 / 160;
   const ACTIVITY = new Set(["run", "struggle"]);       // her own movements, not touches
-  // C_GB = 35.4 pF unshielded x shield residual: best measured layout 23 %, mid 35 % [S14] (as sg_passive.py)
+  // C_GB = 35.4 pF unshielded x shield residual: best measured layout 23 %, mid 35 % [S14] (as simulation/sg_passive.py)
   const FRONT = { improved: { cgb: 35.4 * 0.23 * pF, cin: 0.5 * pF, adc: 2e-3 }, current: { cgb: 35.4 * 0.35 * pF, cin: 5 * pF, adc: 21.8e-3 } };
   const cAB = (d) => 21 * pF * Math.pow(1 / Math.max(d, 0.15), 0.72);           // [S12]
   const NC = { TX_NOISE: 0.003, P_STRANGER_FACE: 0.3 };
