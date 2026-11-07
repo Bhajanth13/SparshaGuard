@@ -4,7 +4,6 @@ Run:  python simulation/train_classifier.py
 Writes results/figures/fig5..fig7, results/data/classifier_results.json, results/classifier/svm_dual_shield.joblib
 """
 import json
-import os
 
 import joblib
 import matplotlib.pyplot as plt
@@ -24,7 +23,6 @@ import sg_model as m
 from paths import CLASSIFIER, DATA, FIGURES
 
 ps.apply()
-os.makedirs("models", exist_ok=True)
 D = np.load(DATA / "sparshaguard_synthetic_v0_3.npz", allow_pickle=True)
 X_all = D["X"]
 F = len(D["freqs_hz"])
